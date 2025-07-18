@@ -67,6 +67,15 @@ app.get('/users', (req, res) => {
     res.json(userList);
 });
 
+// Test endpoint
+app.get('/test', (req, res) => {
+    res.json({ 
+        message: 'Server is working!',
+        version: '1.0.1',
+        endpoints: ['POST /register', 'POST /login', 'GET /users', 'GET /test']
+    });
+});
+
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
     console.log('Press Ctrl+C to stop the server');
