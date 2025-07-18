@@ -12,6 +12,47 @@ app.use(bodyParser.json({ limit: '10mb' }));
 // In-memory storage (just for demo - resets when server restarts)
 const users = {};
 
+// Add this function after your imports but before the endpoints
+function extractSignatureFeatures(signatureDataUrl) {
+    // Extract basic features from the signature data
+    // In a real app, you'd use image processing, but for demo we'll use simpler metrics
+    
+    // Remove the data URL prefix to get just the base64 data
+    const base64Data = signatureDataUrl.split(',')[1] || '';
+    
+    return {
+        // Length of the signature data (indicates complexity)
+        dataLength: base64Data.length,
+        // Simple hash to create a fingerprint
+        hash: base64Data.split('').reduce((a, b) => {
+            a = ((a << 5) - a) + b.charCodeAt(0);
+            return a & a;
+        }, 0),
+        // Store first and last parts for basic comparison
+        prefix: base64Data.substring(0, 50),
+        suffix: base64Data.substring(base64Data.length - 50)
+    };
+}
+
+function compareSignatures(signature1, signature2) {
+    const features1 = extractSignatureFeatures(signature1);
+    const features2 = extractSignatureFeatures(signature2);
+    
+    // Calculate similarity score (0-100)
+    let score = 0;
+    
+    // Compare data length (size similarity)
+    const lengthDiff = Math.abs(features1.dataLength - features2.dataLength);
+    const lengthSimilarity = Math.max(0, 100 - (lengthDiff / features1.dataLength * 100));
+    score += lengthSimilarity * 0.3; // 30% weight
+    
+    // Compare prefix and suffix (stroke similarity)
+    if (features1.prefix === features2.prefix) score += 35;
+    if (features1.suffix === features2.suffix) score += 35;
+    
+    return score;
+}
+
 // Register endpoint - save signature
 app.post('/register', (req, res) => {
     const { username, signature } = req.body;
@@ -45,16 +86,23 @@ app.post('/login', (req, res) => {
         return res.status(404).json({ error: 'User not found' });
     }
     
-    // In a real app, you'd compare signatures properly
-    // For demo, we'll just check they're not empty
-    if (signature && users[username].signature) {
+    // Compare signatures
+    const similarityScore = compareSignatures(users[username].signature, signature);
+    
+    // Require at least 70% similarity
+    if (similarityScore >= 70) {
         res.json({ 
             success: true, 
             message: `Welcome back, ${username}!`,
+            similarityScore: Math.round(similarityScore),
             token: 'demo-jwt-token-' + Date.now()
         });
     } else {
-        res.status(401).json({ error: 'Invalid signature' });
+        res.status(401).json({ 
+            error: 'Signature does not match',
+            similarityScore: Math.round(similarityScore),
+            hint: 'Try signing more similarly to your registration signature'
+        });
     }
 });
 
