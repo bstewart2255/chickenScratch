@@ -113,6 +113,7 @@
         <canvas id="signature-pad" width="400" height="200"></canvas>
         
         <button class="clear" id="clear">Clear Signature</button>
+        <button class="secondary" id="fullscreen">Fullscreen</button>
         <button class="primary" id="action">Register</button>
         
         <div id="message"></div>
@@ -330,6 +331,39 @@
             
             signaturePad.clear();
             messageDiv.textContent = '';
+        });
+        
+        // Fullscreen button
+        document.getElementById('fullscreen').addEventListener('click', () => {
+            const container = document.querySelector('.container');
+            
+            if (!document.fullscreenElement) {
+                // Enter fullscreen
+                container.requestFullscreen().then(() => {
+                    // Make signature pad bigger in fullscreen
+                    canvas.style.height = '60vh';
+                    resizeCanvas();
+                    document.getElementById('fullscreen').textContent = 'Exit Fullscreen';
+                }).catch(err => {
+                    console.log('Fullscreen error:', err);
+                });
+            } else {
+                // Exit fullscreen
+                document.exitFullscreen().then(() => {
+                    canvas.style.height = '200px';
+                    resizeCanvas();
+                    document.getElementById('fullscreen').textContent = 'Fullscreen';
+                });
+            }
+        });
+
+        // Handle fullscreen change
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) {
+                canvas.style.height = '200px';
+                resizeCanvas();
+                document.getElementById('fullscreen').textContent = 'Fullscreen';
+            }
         });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
