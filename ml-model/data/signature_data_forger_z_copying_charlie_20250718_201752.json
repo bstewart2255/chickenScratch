@@ -1,0 +1,145 @@
+{
+  "user_id": "forger_z_copying_charlie",
+  "type": "forgery",
+  "raw_data": {
+    "strokes": [
+      {
+        "points": [
+          {
+            "x": 151,
+            "y": 116,
+            "time": 0
+          },
+          {
+            "x": 167,
+            "y": 113,
+            "time": 11
+          },
+          {
+            "x": 197,
+            "y": 140,
+            "time": 26
+          },
+          {
+            "x": 220,
+            "y": 111,
+            "time": 33
+          },
+          {
+            "x": 251,
+            "y": 108,
+            "time": 52
+          },
+          {
+            "x": 241,
+            "y": 124,
+            "time": 45
+          },
+          {
+            "x": 289,
+            "y": 103,
+            "time": 90
+          },
+          {
+            "x": 319,
+            "y": 101,
+            "time": 77
+          },
+          {
+            "x": 279,
+            "y": 130,
+            "time": 40
+          }
+        ],
+        "startTime": 0,
+        "endTime": 40
+      },
+      {
+        "points": [
+          {
+            "x": 144,
+            "y": 133,
+            "time": 0
+          },
+          {
+            "x": 166,
+            "y": 137,
+            "time": 9
+          },
+          {
+            "x": 188,
+            "y": 153,
+            "time": 24
+          },
+          {
+            "x": 195,
+            "y": 135,
+            "time": 30
+          },
+          {
+            "x": 236,
+            "y": 138,
+            "time": 24
+          },
+          {
+            "x": 254,
+            "y": 137,
+            "time": 65
+          },
+          {
+            "x": 240,
+            "y": 134,
+            "time": 90
+          },
+          {
+            "x": 291,
+            "y": 162,
+            "time": 105
+          },
+          {
+            "x": 296,
+            "y": 135,
+            "time": 96
+          },
+          {
+            "x": 333,
+            "y": 131,
+            "time": 72
+          }
+        ],
+        "startTime": 0,
+        "endTime": 72
+      }
+    ]
+  },
+  "features": {
+    "timestamp": "2025-07-18T20:17:52.522224",
+    "basic_stats": {
+      "stroke_count": 2,
+      "total_points": 19,
+      "total_duration_ms": 72,
+      "average_points_per_stroke": 9.5
+    },
+    "velocity_features": {
+      "average_velocity": 13.45853443707861,
+      "max_velocity": 49.4064773081425,
+      "min_velocity": 0.4397013750565841,
+      "velocity_std": 16.319555010215037
+    },
+    "shape_features": {
+      "width": "189",
+      "height": "61",
+      "area": "11529",
+      "aspect_ratio": 3.098360655737705,
+      "center_x": 238.5,
+      "center_y": 131.5
+    },
+    "stroke_features": {
+      "average_stroke_length": 270.3596119185329,
+      "total_length": 540.7192238370658,
+      "length_variation": 5.1721947889467685,
+      "average_stroke_duration": 56.0,
+      "duration_variation": 16.0
+    }
+  }
+}

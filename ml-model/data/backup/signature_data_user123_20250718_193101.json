@@ -1,0 +1,44 @@
+{
+  "user_id": "user123",
+  "type": "genuine",
+  "raw_data": {
+    "strokes": [
+      {
+        "points": [
+          {
+            "x": 100,
+            "y": 100,
+            "time": 0
+          },
+          {
+            "x": 150,
+            "y": 120,
+            "time": 50
+          },
+          {
+            "x": 200,
+            "y": 130,
+            "time": 100
+          }
+        ],
+        "startTime": 0,
+        "endTime": 100
+      }
+    ]
+  },
+  "features": {
+    "timestamp": "2025-07-18T19:31:01.574641",
+    "basic_stats": {
+      "stroke_count": 1,
+      "total_points": 3,
+      "total_duration_ms": 100,
+      "average_points_per_stroke": 3.0
+    },
+    "velocity_features": {
+      "average_velocity": 1.048418432072729,
+      "max_velocity": 1.0770329614269007,
+      "min_velocity": 1.019803902718557,
+      "velocity_std": 0.028614529354171858
+    },
+    "shape_features": {
+      "width": 

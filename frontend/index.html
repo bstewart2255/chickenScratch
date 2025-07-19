@@ -156,6 +156,10 @@
         <div class="toggle" id="toggle">
             Already have an account? Sign in
         </div>
+        
+        <button onclick="toggleForgeryMode()" style="background-color: #ff6b6b; color: white; margin-top: 10px;">
+            Toggle Forgery Mode
+        </button>
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
@@ -232,6 +236,53 @@
             circle: null,
             square: null
         };
+
+        // Function to send signature data to ML backend
+        async function sendToMLBackend(signatureData, userId, type = 'genuine') {
+            try {
+                const response = await fetch('http://localhost:5001/api/collect-signature', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        userId: userId,
+                        type: type,
+                        signaturePadData: signaturePad.toData(),
+                        // Add timing and other metrics
+                        metrics: {
+                            strokeCount: strokeCount,
+                            totalDistance: totalDistance,
+                            duration: signatureStartTime ? Date.now() - signatureStartTime : 0
+                        }
+                    })
+                });
+                
+                const result = await response.json();
+                console.log('ML Backend Response:', result);
+                
+                if (result.success) {
+                    console.log('Features extracted:', result.features);
+                }
+            } catch (error) {
+                console.error('Error sending to ML backend:', error);
+            }
+        }
+
+        // Add a forgery mode toggle
+        let forgeryMode = false;
+
+        // Add this function
+        function toggleForgeryMode() {
+            forgeryMode = !forgeryMode;
+            if (forgeryMode) {
+                document.body.style.backgroundColor = '#ffe6e6';  // Light red
+                showMessage('FORGERY MODE: Signatures will be marked as forgeries', true);
+            } else {
+                document.body.style.backgroundColor = '#f5f5f5';  // Normal
+                showMessage('Normal mode: Signatures will be marked as genuine');
+            }
+        }
 
         // Update step indicator
         function updateStepIndicator() {
@@ -367,6 +418,10 @@
                 
                 if (response.ok) {
                     showMessage('Registration complete! Your signature and shapes have been saved.');
+                    
+                    // Also send signature to ML backend for training
+                    await sendToMLBackend(registrationData.signature, username, forgeryMode ? 'forgery' : 'genuine');
+                    
                     // Reset everything
                     signaturePad.clear();
                     usernameInput.value = '';
@@ -432,7 +487,41 @@
                 const data = await response.json();
                 
                 if (response.ok) {
-                    showMessage(`${data.message} Match: Signature ${data.scores.signature}%, Circle ${data.scores.circle}%, Square ${data.scores.square}%`);
+                    // Basic authentication succeeded, now verify with ML
+                    try {
+                        // Prepare signature data for ML verification
+                        const mlSignatureData = {
+                            strokes: signaturePad.toData()
+                        };
+                        
+                        const mlResponse = await fetch('http://localhost:5001/api/verify-ml', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                userId: username,
+                                signatureData: mlSignatureData
+                            })
+                        });
+                        
+                        const mlResult = await mlResponse.json();
+                        
+                        if (mlResult.success && mlResult.is_genuine) {
+                            showMessage(`${data.message} Match: Signature ${data.scores.signature}%, Circle ${data.scores.circle}%, Square ${data.scores.square}% | ML Confidence: ${mlResult.confidence.toFixed(0)}%`);
+                        } else if (mlResult.success && !mlResult.is_genuine) {
+                            showMessage('Warning: Signature verification failed - possible forgery detected!', true);
+                            console.log('ML Analysis:', mlResult.analysis);
+                        } else {
+                            // ML verification failed, but basic auth passed
+                            showMessage(`${data.message} Match: Signature ${data.scores.signature}%, Circle ${data.scores.circle}%, Square ${data.scores.square}% (ML verification unavailable)`);
+                        }
+                    } catch (mlError) {
+                        console.error('ML verification error:', mlError);
+                        // Fall back to basic auth result if ML fails
+                        showMessage(`${data.message} Match: Signature ${data.scores.signature}%, Circle ${data.scores.circle}%, Square ${data.scores.square}%`);
+                    }
+                    
                     // Reset for next login
                     signaturePad.clear();
                     currentStep = 1;

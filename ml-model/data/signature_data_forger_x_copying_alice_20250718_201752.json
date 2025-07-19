@@ -1,0 +1,94 @@
+{
+  "user_id": "forger_x_copying_alice",
+  "type": "forgery",
+  "raw_data": {
+    "strokes": [
+      {
+        "points": [
+          {
+            "x": 188,
+            "y": 120,
+            "time": 0
+          },
+          {
+            "x": 203,
+            "y": 90,
+            "time": 14
+          },
+          {
+            "x": 228,
+            "y": 107,
+            "time": 26
+          },
+          {
+            "x": 248,
+            "y": 115,
+            "time": 30
+          },
+          {
+            "x": 276,
+            "y": 93,
+            "time": 48
+          },
+          {
+            "x": 293,
+            "y": 98,
+            "time": 40
+          },
+          {
+            "x": 296,
+            "y": 103,
+            "time": 90
+          },
+          {
+            "x": 349,
+            "y": 84,
+            "time": 70
+          },
+          {
+            "x": 364,
+            "y": 82,
+            "time": 104
+          },
+          {
+            "x": 323,
+            "y": 107,
+            "time": 54
+          }
+        ],
+        "startTime": 0,
+        "endTime": 54
+      }
+    ]
+  },
+  "features": {
+    "timestamp": "2025-07-18T20:17:52.521394",
+    "basic_stats": {
+      "stroke_count": 1,
+      "total_points": 10,
+      "total_duration_ms": 54,
+      "average_points_per_stroke": 10.0
+    },
+    "velocity_features": {
+      "average_velocity": 14.98710280323056,
+      "max_velocity": 56.302753041036986,
+      "min_velocity": 0.11661903789690602,
+      "velocity_std": 20.585035129006553
+    },
+    "shape_features": {
+      "width": "176",
+      "height": "38",
+      "area": "6688",
+      "aspect_ratio": 4.631578947368421,
+      "center_x": 276.0,
+      "center_y": 101.0
+    },
+    "stroke_features": {
+      "average_stroke_length": 263.9304242833716,
+      "total_length": 263.9304242833716,
+      "length_variation": 0.0,
+      "average_stroke_duration": 54.0,
+      "duration_variation": 0.0
+    }
+  }
+}

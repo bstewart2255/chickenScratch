@@ -1,0 +1,59 @@
+{
+  "user_id": "forger2",
+  "type": "forgery",
+  "raw_data": {
+    "strokes": [
+      {
+        "points": [
+          {
+            "x": 50,
+            "y": 50,
+            "time": 0
+          },
+          {
+            "x": 60,
+            "y": 55,
+            "time": 100
+          },
+          {
+            "x": 70,
+            "y": 60,
+            "time": 200
+          }
+        ],
+        "startTime": 0,
+        "endTime": 200
+      }
+    ]
+  },
+  "features": {
+    "timestamp": "2025-07-18T20:11:57.627205",
+    "basic_stats": {
+      "stroke_count": 1,
+      "total_points": 3,
+      "total_duration_ms": 200,
+      "average_points_per_stroke": 3.0
+    },
+    "velocity_features": {
+      "average_velocity": 0.1118033988749895,
+      "max_velocity": 0.1118033988749895,
+      "min_velocity": 0.1118033988749895,
+      "velocity_std": 0.0
+    },
+    "shape_features": {
+      "width": "20",
+      "height": "10",
+      "area": "200",
+      "aspect_ratio": 2.0,
+      "center_x": 60.0,
+      "center_y": 55.0
+    },
+    "stroke_features": {
+      "average_stroke_length": 22.360679774997898,
+      "total_length": 22.360679774997898,
+      "length_variation": 0.0,
+      "average_stroke_duration": 200.0,
+      "duration_variation": 0.0
+    }
+  }
+}
