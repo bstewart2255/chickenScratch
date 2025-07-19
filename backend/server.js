@@ -15,7 +15,15 @@ const pool = new Pool({
 });
 
 // Middleware
-app.use(cors());
+// Update CORS to allow your frontend
+app.use(cors({
+    origin: [
+        'http://localhost:8000',
+        'https://signatureauth-frontend.onrender.com', // Your frontend URL
+        'https://chickenscratch.onrender.com' // In case
+    ],
+    credentials: true
+}));
 app.use(bodyParser.json({ limit: '10mb' }));
 
 // Helper functions remain the same
