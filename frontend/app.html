@@ -83,6 +83,21 @@
         .toggle:hover {
             text-decoration: underline;
         }
+        .match-indicator {
+        margin-top: 10px;
+        padding: 10px;
+        border-radius: 4px;
+        text-align: center;
+        font-weight: bold;
+        }
+        .match-good {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .match-poor {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
     </style>
 </head>
 <body>
@@ -117,6 +132,41 @@
         const canvas = document.getElementById('signature-pad');
         const signaturePad = new SignaturePad(canvas);
         
+        // Add signature tracking variables
+        let signatureStartTime = null;
+        let strokeCount = 0;
+        let lastPoint = null;
+        let totalDistance = 0;
+
+        // Track signature metrics
+        signaturePad.addEventListener("beginStroke", () => {
+            if (!signatureStartTime) {
+                signatureStartTime = Date.now();
+            }
+            strokeCount++;
+        });
+
+        signaturePad.addEventListener("endStroke", () => {
+            lastPoint = null; // Reset for next stroke
+        });
+
+        // Track distance (simplified - just for demo)
+        signaturePad.addEventListener("afterUpdateStroke", (e) => {
+            const data = signaturePad.toData();
+            if (data.length > 0) {
+                const lastStroke = data[data.length - 1];
+                if (lastStroke.points.length > 1) {
+                    const points = lastStroke.points;
+                    const p1 = points[points.length - 2];
+                    const p2 = points[points.length - 1];
+                    const distance = Math.sqrt(
+                        Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2)
+                    );
+                    totalDistance += distance;
+                }
+            }
+        });
+        
         // UI elements
         const usernameInput = document.getElementById('username');
         const actionButton = document.getElementById('action');
@@ -142,6 +192,11 @@
         // Clear button
         document.getElementById('clear').addEventListener('click', () => {
             signaturePad.clear();
+            // Reset tracking variables
+            signatureStartTime = null;
+            strokeCount = 0;
+            totalDistance = 0;
+            lastPoint = null;
         });
         
         // Show message
@@ -167,6 +222,17 @@
                 return;
             }
             
+            // Calculate signature features
+            const signatureData = signaturePad.toDataURL();
+            const duration = signatureStartTime ? Date.now() - signatureStartTime : 0;
+            
+            const features = {
+                strokeCount: strokeCount,
+                totalDistance: Math.round(totalDistance),
+                duration: duration,
+                averageSpeed: duration > 0 ? Math.round(totalDistance / duration * 1000) : 0
+            };
+            
             try {
                 const response = await fetch(`${API_URL}/register`, {
                     method: 'POST',
@@ -175,7 +241,8 @@
                     },
                     body: JSON.stringify({
                         username: username,
-                        signature: signaturePad.toDataURL()
+                        signature: signatureData,
+                        features: features  // Include features
                     })
                 });
                 
@@ -183,8 +250,12 @@
                 
                 if (response.ok) {
                     showMessage(data.message);
+                    // Reset tracking variables
                     signaturePad.clear();
                     usernameInput.value = '';
+                    signatureStartTime = null;
+                    strokeCount = 0;
+                    totalDistance = 0;
                 } else {
                     showMessage(data.error, true);
                 }
@@ -222,11 +293,12 @@
                 const data = await response.json();
                 
                 if (response.ok) {
-                    showMessage(data.message);
+                    showMessage(`${data.message} (Match: ${data.similarityScore}%)`);
                     console.log('Auth token:', data.token);
                     signaturePad.clear();
                 } else {
-                    showMessage(data.error, true);
+                    showMessage(`${data.error} (Match: ${data.similarityScore}%)`, true);
+                    // Don't clear the signature so user can try again
                 }
             } catch (error) {
                 showMessage('Error connecting to server', true);
@@ -260,5 +332,7 @@
             messageDiv.textContent = '';
         });
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
 </body>
-</html>
+</html> 
