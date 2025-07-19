@@ -2,220 +2,744 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Signature Auth App</title>
+    <title>Signature Auth - Enhanced</title>
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            padding: 20px;
-            max-width: 400px;
-            margin: 0 auto;
-            background-color: #f5f5f5;
+        * {
+            box-sizing: border-box;
         }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
         .container {
             background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 90%;
+            margin: 20px;
         }
+        
         h1 { 
             text-align: center; 
             color: #333;
+            margin-bottom: 10px;
         }
-        #signature-pad { 
-            border: 2px solid #ddd; 
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        /* Progress indicator */
+        .progress-container {
+            margin-bottom: 30px;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: #e0e0e0;
             border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+        
+        .progress-text {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        /* Canvas styling */
+        #signature-pad { 
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
             width: 100%;
             touch-action: none;
-            background-color: white;
+            background-color: #fafafa;
             margin: 20px 0;
+            cursor: crosshair;
+            transition: border-color 0.3s;
         }
-        input {
-            width: 100%;
+        
+        #signature-pad:hover {
+            border-color: #667eea;
+        }
+        
+        /* Instructions */
+        .instructions {
+            background: #f5f3ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #4a5568;
+        }
+        
+        .drawing-prompt {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 20px 0;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        /* Consistency indicator */
+        .consistency-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 15px 0;
             padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-            font-size: 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s;
         }
+        
+        .consistency-good {
+            background: #d4f4dd;
+            color: #1e7e34;
+        }
+        
+        .consistency-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .consistency-poor {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        /* Buttons */
         button { 
             width: 100%;
             margin: 10px 0; 
-            padding: 12px;
+            padding: 15px;
             font-size: 16px;
-            border-radius: 4px;
+            border-radius: 10px;
             cursor: pointer;
             border: none;
-            font-weight: bold;
+            font-weight: 600;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
         }
+        
+        button:active {
+            transform: scale(0.98);
+        }
+        
         .primary {
-            background-color: #007bff;
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
         }
+        
+        .primary:hover {
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
         .secondary {
-            background-color: #6c757d;
-            color: white;
-        }
-        .clear {
-            background-color: #f0f0f0;
+            background: #e0e0e0;
             color: #333;
         }
-        .message {
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 4px;
-            text-align: center;
+        
+        .secondary:hover {
+            background: #d0d0d0;
         }
-        .success {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .error {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        .toggle {
-            text-align: center;
-            margin-top: 20px;
-            color: #007bff;
-            cursor: pointer;
-        }
-        .toggle:hover {
-            text-decoration: underline;
-        }
-        .match-indicator {
-        margin-top: 10px;
-        padding: 10px;
-        border-radius: 4px;
-        text-align: center;
-        font-weight: bold;
-        }
-        .match-good {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .match-poor {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        .step-indicator {
-            text-align: center;
-            font-weight: bold;
-            margin: 15px 0;
-            padding: 10px;
-            background-color: #e3f2fd;
-            border-radius: 5px;
-            color: #1976d2;
-        }
-        .shape-guide {
-            text-align: center;
+        
+        .clear {
+            background: transparent;
+            border: 2px solid #e0e0e0;
             color: #666;
-            margin: 10px 0;
-            font-size: 14px;
         }
-        .step-buttons {
+        
+        .clear:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* Sample display */
+        .samples-container {
             display: flex;
             gap: 10px;
-            margin-top: 10px;
+            margin: 20px 0;
+            justify-content: center;
+            flex-wrap: wrap;
         }
-        #next {
-            background-color: #28a745;
+        
+        .sample-box {
+            width: 80px;
+            height: 80px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            position: relative;
+            background: #fafafa;
+            transition: all 0.3s;
+        }
+        
+        .sample-box.completed {
+            border-color: #667eea;
+            background: #f5f3ff;
+        }
+        
+        .sample-box.completed::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #667eea;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        /* Input field */
+        input {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        /* Messages */
+        .message {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 500;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .success {
+            background: #d4f4dd;
+            color: #1e7e34;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        /* Loading spinner */
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Stage indicator */
+        .stage-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .stage {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+        }
+        
+        .stage.active {
+            opacity: 1;
+        }
+        
+        .stage-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 5px;
+            transition: all 0.3s;
+        }
+        
+        .stage.active .stage-icon {
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
         }
-        #next:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
+        
+        .stage.completed .stage-icon {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .stage-label {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            button {
+                padding: 12px;
+            }
+            
+            .stage-indicator {
+                gap: 15px;
+            }
+            
+            .stage-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 20px;
+            }
+        }
+        
+        /* Fullscreen mode */
+        .fullscreen-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .fullscreen-canvas {
+            width: 90%;
+            max-width: 800px;
+            height: 60vh;
+            border: 3px solid #667eea;
+            border-radius: 20px;
+            background: #fafafa;
+        }
+        
+        .fullscreen-controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+        }
+        
+        /* Skip button for returning users */
+        .skip-intro {
+            text-align: center;
+            margin-top: 10px;
+        }
+        
+        .skip-intro a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .skip-intro a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1 id="title">Sign Up</h1>
+    <div class="container" id="mainContainer">
+        <h1 id="title">Secure Sign-Up</h1>
+        <p class="subtitle" id="subtitle">Let's set up your unique authentication</p>
         
-        <input type="text" id="username" placeholder="Enter username">
-        
-        <div style="text-align: center; color: #666; margin: 10px 0;">
-            Draw your signature below:
+        <!-- Progress bar -->
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+            <div class="progress-text" id="progressText">Getting started...</div>
         </div>
         
-        <!-- Add step indicator -->
-        <div class="step-indicator" id="stepIndicator">
-            Step 1 of 3: Draw your signature
+        <!-- Stage indicator -->
+        <div class="stage-indicator" id="stageIndicator">
+            <div class="stage active" id="stage1">
+                <div class="stage-icon">✍️</div>
+                <div class="stage-label">Signature</div>
+            </div>
+            <div class="stage" id="stage2">
+                <div class="stage-icon">⭕</div>
+                <div class="stage-label">Shapes</div>
+            </div>
+            <div class="stage" id="stage3">
+                <div class="stage-icon">🎨</div>
+                <div class="stage-label">Drawings</div>
+            </div>
         </div>
-
+        
+        <!-- Username input (only shown initially) -->
+        <input type="text" id="username" placeholder="Choose your username" style="display: none;">
+        
+        <!-- Instructions -->
+        <div class="instructions" id="instructions">
+            Welcome! We'll guide you through setting up your secure signature authentication.
+        </div>
+        
+        <!-- Drawing prompt (hidden initially) -->
+        <div class="drawing-prompt" id="drawingPrompt" style="display: none;"></div>
+        
+        <!-- Signature/Drawing pad -->
         <canvas id="signature-pad" width="400" height="200"></canvas>
-
-        <!-- Add navigation buttons -->
+        
+        <!-- Consistency indicator -->
+        <div class="consistency-indicator" id="consistencyIndicator" style="display: none;">
+            Checking consistency...
+        </div>
+        
+        <!-- Sample boxes -->
+        <div class="samples-container" id="samplesContainer" style="display: none;">
+            <div class="sample-box" id="sample1"></div>
+            <div class="sample-box" id="sample2"></div>
+            <div class="sample-box" id="sample3"></div>
+            <div class="sample-box" id="sample4"></div>
+            <div class="sample-box" id="sample5"></div>
+        </div>
+        
+        <!-- Buttons -->
         <button class="clear" id="clear">Clear</button>
-        <button class="secondary" id="fullscreen">Fullscreen</button>
-        <button class="secondary" id="next" style="display: none;">Next Step</button>
-        <button class="primary" id="action">Register</button>
+        <button class="secondary" id="undo" style="display: none;">Undo Last Stroke</button>
+        <button class="primary" id="next">Next</button>
         
         <div id="message"></div>
         
-        <div class="toggle" id="toggle">
-            Already have an account? Sign in
+        <div class="skip-intro" id="skipIntro">
+            <a href="#" id="skipLink">Already have an account? Sign in</a>
         </div>
-        
-        <button onclick="toggleForgeryMode()" style="background-color: #ff6b6b; color: white; margin-top: 10px;">
-            Toggle Forgery Mode
-        </button>
     </div>
     
+    <!-- Load signature_pad library -->
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
     
     <script>
-        // Backend URL
+        // Configuration
         const API_URL = 'https://chickenscratch.onrender.com';
+        const ML_API_URL = 'https://chickenscratch.onrender.com';
+        
+        // Drawing challenges pool
+        const drawingChallenges = {
+            shapes: [
+                { prompt: "Draw a circle", type: "shape", validation: "circle" },
+                { prompt: "Draw a square", type: "shape", validation: "square" },
+                { prompt: "Draw a triangle", type: "shape", validation: "triangle" }
+            ],
+            creative: [
+                { prompt: "Draw 3 shapes of different sizes", type: "creative", validation: "multiple_shapes" },
+                { prompt: "Draw an arrow", type: "creative", validation: "arrow" },
+                { prompt: "Draw a simple face", type: "creative", validation: "face" },
+                { prompt: "Draw a star", type: "creative", validation: "star" },
+                { prompt: "Draw the first letter of your name", type: "creative", validation: "letter" },
+                { prompt: "Draw a house", type: "creative", validation: "house" },
+                { prompt: "Connect these 4 dots", type: "creative", validation: "dots" }
+            ]
+        };
+        
+        // State management
+        const state = {
+            mode: 'enrollment', // 'enrollment' or 'authentication'
+            currentStage: 1,
+            currentSample: 0,
+            samples: {
+                signatures: [],
+                shapes: [],
+                drawings: []
+            },
+            username: '',
+            enrollmentData: {
+                signatures: [],
+                shapes: {},
+                drawings: {}
+            },
+            consistency: {
+                signatures: [],
+                current: 0
+            },
+            selectedChallenges: [],
+            userConfidence: 0,
+            strokeHistory: []
+        };
         
         // Initialize signature pad
         const canvas = document.getElementById('signature-pad');
-        const signaturePad = new SignaturePad(canvas);
+        const signaturePad = new SignaturePad(canvas, {
+            minWidth: 0.5,
+            maxWidth: 2.5,
+            throttle: 16,
+            minDistance: 5,
+            backgroundColor: '#fafafa',
+            penColor: '#333333'
+        });
         
-        // Add signature tracking variables
-        let signatureStartTime = null;
-        let strokeCount = 0;
-        let lastPoint = null;
-        let totalDistance = 0;
-
-        // Track signature metrics
+        // Track drawing metrics
+        let drawingMetrics = {
+            startTime: null,
+            strokeCount: 0,
+            totalDistance: 0,
+            averageSpeed: 0,
+            points: []
+        };
+        
+        // Signature pad event listeners
         signaturePad.addEventListener("beginStroke", () => {
-            if (!signatureStartTime) {
-                signatureStartTime = Date.now();
+            if (!drawingMetrics.startTime) {
+                drawingMetrics.startTime = Date.now();
             }
-            strokeCount++;
+            drawingMetrics.strokeCount++;
+            
+            // Haptic feedback on mobile
+            if ('vibrate' in navigator) {
+                navigator.vibrate(10);
+            }
         });
-
+        
         signaturePad.addEventListener("endStroke", () => {
-            lastPoint = null; // Reset for next stroke
-        });
-
-        // Track distance (simplified - just for demo)
-        signaturePad.addEventListener("afterUpdateStroke", (e) => {
+            // Store stroke for undo functionality
             const data = signaturePad.toData();
-            if (data.length > 0) {
-                const lastStroke = data[data.length - 1];
-                if (lastStroke.points.length > 1) {
-                    const points = lastStroke.points;
-                    const p1 = points[points.length - 2];
-                    const p2 = points[points.length - 1];
+            state.strokeHistory = data;
+            
+            // Update undo button visibility
+            document.getElementById('undo').style.display = data.length > 1 ? 'block' : 'none';
+        });
+        
+        // Calculate drawing metrics
+        function calculateMetrics() {
+            const data = signaturePad.toData();
+            let totalPoints = 0;
+            let totalDistance = 0;
+            
+            data.forEach(stroke => {
+                totalPoints += stroke.points.length;
+                for (let i = 1; i < stroke.points.length; i++) {
+                    const p1 = stroke.points[i - 1];
+                    const p2 = stroke.points[i];
                     const distance = Math.sqrt(
                         Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2)
                     );
                     totalDistance += distance;
                 }
+            });
+            
+            const duration = drawingMetrics.startTime ? Date.now() - drawingMetrics.startTime : 0;
+            const averageSpeed = duration > 0 ? totalDistance / duration : 0;
+            
+            return {
+                strokeCount: drawingMetrics.strokeCount,
+                totalPoints,
+                totalDistance: Math.round(totalDistance),
+                duration,
+                averageSpeed: averageSpeed.toFixed(3),
+                timestamp: Date.now()
+            };
+        }
+        
+        // Consistency checking
+        function checkSignatureConsistency(newSig, previousSigs) {
+            if (previousSigs.length === 0) return 1.0;
+            
+            // Simple consistency check based on metrics
+            const metrics = calculateMetrics();
+            const avgPrevious = previousSigs.reduce((acc, sig) => {
+                return {
+                    strokeCount: acc.strokeCount + sig.metrics.strokeCount,
+                    totalDistance: acc.totalDistance + sig.metrics.totalDistance,
+                    duration: acc.duration + sig.metrics.duration
+                };
+            }, { strokeCount: 0, totalDistance: 0, duration: 0 });
+            
+            // Calculate averages
+            const count = previousSigs.length;
+            avgPrevious.strokeCount /= count;
+            avgPrevious.totalDistance /= count;
+            avgPrevious.duration /= count;
+            
+            // Calculate similarity scores
+            const strokeSimilarity = 1 - Math.abs(metrics.strokeCount - avgPrevious.strokeCount) / Math.max(metrics.strokeCount, avgPrevious.strokeCount);
+            const distanceSimilarity = 1 - Math.abs(metrics.totalDistance - avgPrevious.totalDistance) / Math.max(metrics.totalDistance, avgPrevious.totalDistance);
+            const durationSimilarity = 1 - Math.abs(metrics.duration - avgPrevious.duration) / Math.max(metrics.duration, avgPrevious.duration);
+            
+            // Weighted average
+            return (strokeSimilarity * 0.3 + distanceSimilarity * 0.4 + durationSimilarity * 0.3);
+        }
+        
+        // Update consistency indicator
+        function updateConsistencyIndicator(score) {
+            const indicator = document.getElementById('consistencyIndicator');
+            indicator.style.display = 'flex';
+            
+            if (score > 0.8) {
+                indicator.className = 'consistency-indicator consistency-good';
+                indicator.innerHTML = '✓ Great consistency!';
+            } else if (score > 0.6) {
+                indicator.className = 'consistency-indicator consistency-warning';
+                indicator.innerHTML = '⚠ Try to match your previous signature';
+            } else {
+                indicator.className = 'consistency-indicator consistency-poor';
+                indicator.innerHTML = '✗ Too different - try to sign more consistently';
             }
-        });
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                indicator.style.display = 'none';
+            }, 3000);
+        }
         
-        // UI elements
-        const usernameInput = document.getElementById('username');
-        const actionButton = document.getElementById('action');
-        const messageDiv = document.getElementById('message');
-        const titleElement = document.getElementById('title');
-        const toggleElement = document.getElementById('toggle');
+        // Progress management
+        function updateProgress() {
+            const totalSteps = state.mode === 'enrollment' ? 15 : 5; // Adjust based on requirements
+            let completedSteps = 0;
+            
+            if (state.currentStage === 1) {
+                completedSteps = state.samples.signatures.length;
+            } else if (state.currentStage === 2) {
+                completedSteps = 5 + state.samples.shapes.length;
+            } else if (state.currentStage === 3) {
+                completedSteps = 10 + state.samples.drawings.length;
+            }
+            
+            const percentage = (completedSteps / totalSteps) * 100;
+            document.getElementById('progressFill').style.width = `${percentage}%`;
+            
+            // Update progress text
+            const progressText = document.getElementById('progressText');
+            if (state.currentStage === 1) {
+                progressText.textContent = `Signature ${state.samples.signatures.length + 1} of 5`;
+            } else if (state.currentStage === 2) {
+                progressText.textContent = `Shape ${state.samples.shapes.length + 1} of 3`;
+            } else {
+                progressText.textContent = `Drawing ${state.samples.drawings.length + 1} of ${state.selectedChallenges.length}`;
+            }
+        }
         
-        // State
-        let isLoginMode = false;
+        // Stage management
+        function updateStageIndicator() {
+            // Update stage icons
+            for (let i = 1; i <= 3; i++) {
+                const stage = document.getElementById(`stage${i}`);
+                if (i < state.currentStage) {
+                    stage.classList.add('completed');
+                    stage.classList.remove('active');
+                } else if (i === state.currentStage) {
+                    stage.classList.add('active');
+                    stage.classList.remove('completed');
+                } else {
+                    stage.classList.remove('active', 'completed');
+                }
+            }
+        }
+        
+        // Update instructions
+        function updateInstructions() {
+            const instructions = document.getElementById('instructions');
+            const drawingPrompt = document.getElementById('drawingPrompt');
+            
+            if (state.currentStage === 1) {
+                if (state.samples.signatures.length === 0) {
+                    instructions.innerHTML = "Let's start with your signature. Sign as you normally would - take your time.";
+                } else {
+                    instructions.innerHTML = `Good! Now sign again (${state.samples.signatures.length + 1} of 5). Try to keep it consistent.`;
+                }
+                drawingPrompt.style.display = 'none';
+            } else if (state.currentStage === 2) {
+                instructions.innerHTML = "Now let's capture some basic shapes for added security.";
+                const shapeIndex = state.samples.shapes.length;
+                const shape = drawingChallenges.shapes[shapeIndex];
+                drawingPrompt.textContent = shape.prompt;
+                drawingPrompt.style.display = 'block';
+            } else if (state.currentStage === 3) {
+                instructions.innerHTML = "Finally, let's add some creative drawings that only you would draw this way.";
+                const drawingIndex = state.samples.drawings.length;
+                const challenge = state.selectedChallenges[drawingIndex];
+                drawingPrompt.textContent = challenge.prompt;
+                drawingPrompt.style.display = 'block';
+            }
+        }
+        
+        // Sample box management
+        function updateSampleBoxes() {
+            const container = document.getElementById('samplesContainer');
+            
+            if (state.currentStage === 1) {
+                container.style.display = 'flex';
+                // Update signature sample boxes
+                for (let i = 0; i < 5; i++) {
+                    const box = document.getElementById(`sample${i + 1}`);
+                    if (i < state.samples.signatures.length) {
+                        box.classList.add('completed');
+                    } else {
+                        box.classList.remove('completed');
+                    }
+                }
+            } else {
+                container.style.display = 'none';
+            }
+        }
         
         // Handle canvas resize
         function resizeCanvas() {
@@ -226,385 +750,417 @@
             signaturePad.clear();
         }
         
-        window.onresize = resizeCanvas;
+        window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
         
-        // Multi-step registration state
-        let currentStep = 1;
-        let registrationData = {
-            signature: null,
-            circle: null,
-            square: null
-        };
-
-        // Function to send signature data to ML backend
-        async function sendToMLBackend(signatureData, userId, type = 'genuine') {
-            try {
-                const response = await fetch('http://localhost:5001/api/collect-signature', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        userId: userId,
-                        type: type,
-                        signaturePadData: signaturePad.toData(),
-                        // Add timing and other metrics
-                        metrics: {
-                            strokeCount: strokeCount,
-                            totalDistance: totalDistance,
-                            duration: signatureStartTime ? Date.now() - signatureStartTime : 0
-                        }
-                    })
-                });
-                
-                const result = await response.json();
-                console.log('ML Backend Response:', result);
-                
-                if (result.success) {
-                    console.log('Features extracted:', result.features);
-                }
-            } catch (error) {
-                console.error('Error sending to ML backend:', error);
-            }
-        }
-
-        // Add a forgery mode toggle
-        let forgeryMode = false;
-
-        // Add this function
-        function toggleForgeryMode() {
-            forgeryMode = !forgeryMode;
-            if (forgeryMode) {
-                document.body.style.backgroundColor = '#ffe6e6';  // Light red
-                showMessage('FORGERY MODE: Signatures will be marked as forgeries', true);
-            } else {
-                document.body.style.backgroundColor = '#f5f5f5';  // Normal
-                showMessage('Normal mode: Signatures will be marked as genuine');
-            }
-        }
-
-        // Update step indicator
-        function updateStepIndicator() {
-            const indicator = document.getElementById('stepIndicator');
-            const nextButton = document.getElementById('next');
-            const actionButton = document.getElementById('action');
-            
-            if (isLoginMode) {
-                indicator.textContent = `Step ${currentStep} of 3: ${getStepInstruction()}`;
-                nextButton.style.display = currentStep < 3 ? 'inline-block' : 'none';
-                actionButton.textContent = currentStep === 3 ? 'Login' : 'Login';
-                actionButton.style.display = currentStep === 3 ? 'inline-block' : 'none';
-            } else {
-                indicator.textContent = `Step ${currentStep} of 3: ${getStepInstruction()}`;
-                nextButton.style.display = currentStep < 3 ? 'inline-block' : 'none';
-                actionButton.textContent = currentStep === 3 ? 'Complete Registration' : 'Register';
-                actionButton.style.display = currentStep === 3 ? 'inline-block' : 'none';
-            }
-        }
-
-        function getStepInstruction() {
-            switch(currentStep) {
-                case 1: return 'Draw your signature';
-                case 2: return 'Draw a circle ⭕';
-                case 3: return 'Draw a square ⬜';
-                default: return '';
-            }
-        }
-
-        // Modified clear function
+        // Clear button
         document.getElementById('clear').addEventListener('click', () => {
             signaturePad.clear();
-            signatureStartTime = null;
-            strokeCount = 0;
-            totalDistance = 0;
-            lastPoint = null;
+            drawingMetrics = {
+                startTime: null,
+                strokeCount: 0,
+                totalDistance: 0,
+                averageSpeed: 0,
+                points: []
+            };
+            state.strokeHistory = [];
+            document.getElementById('undo').style.display = 'none';
+            
+            // Haptic feedback
+            if ('vibrate' in navigator) {
+                navigator.vibrate(20);
+            }
+        });
+        
+        // Undo button
+        document.getElementById('undo').addEventListener('click', () => {
+            const data = signaturePad.toData();
+            if (data.length > 0) {
+                data.pop(); // Remove last stroke
+                signaturePad.fromData(data);
+                drawingMetrics.strokeCount--;
+                
+                // Update undo button visibility
+                document.getElementById('undo').style.display = data.length > 0 ? 'block' : 'none';
+            }
         });
         
         // Show message
         function showMessage(text, isError = false) {
+            const messageDiv = document.getElementById('message');
             messageDiv.className = isError ? 'message error' : 'message success';
             messageDiv.textContent = text;
             setTimeout(() => {
                 messageDiv.textContent = '';
             }, 5000);
         }
-
-        // Next button handler
-        document.getElementById('next').addEventListener('click', () => {
-            if (signaturePad.isEmpty()) {
-                showMessage('Please complete this step before continuing', true);
-                return;
-            }
-            
-            // Save current drawing
-            const drawingData = signaturePad.toDataURL();
-            const features = {
-                strokeCount: strokeCount,
-                totalDistance: Math.round(totalDistance),
-                duration: signatureStartTime ? Date.now() - signatureStartTime : 0
-            };
-            
-            switch(currentStep) {
-                case 1:
-                    registrationData.signature = { data: drawingData, features };
-                    break;
-                case 2:
-                    registrationData.circle = { data: drawingData, features };
-                    break;
-            }
-            
-            // Move to next step
-            currentStep++;
-            signaturePad.clear();
-            
-            // Reset tracking
-            signatureStartTime = null;
-            strokeCount = 0;
-            totalDistance = 0;
-            
-            updateStepIndicator();
-        });
         
-        // Modified register function
-        async function register() {
-            const username = usernameInput.value.trim();
-            
-            if (!username) {
-                showMessage('Please enter a username', true);
-                return;
-            }
-            
-            // For step 3, save the square
-            if (currentStep === 3) {
-                if (signaturePad.isEmpty()) {
-                    showMessage('Please draw a square', true);
+        // Select random challenges for stage 3
+        function selectRandomChallenges() {
+            const shuffled = [...drawingChallenges.creative].sort(() => 0.5 - Math.random());
+            state.selectedChallenges = shuffled.slice(0, 5); // Select 5 random challenges
+        }
+        
+        // Next button handler
+        document.getElementById('next').addEventListener('click', async () => {
+            if (state.mode === 'enrollment' && state.currentStage === 1 && state.samples.signatures.length === 0) {
+                // First step - need username
+                const username = document.getElementById('username').value.trim();
+                if (!username) {
+                    showMessage('Please enter a username', true);
                     return;
                 }
-                
-                registrationData.square = {
-                    data: signaturePad.toDataURL(),
-                    features: {
-                        strokeCount: strokeCount,
-                        totalDistance: Math.round(totalDistance),
-                        duration: signatureStartTime ? Date.now() - signatureStartTime : 0
-                    }
-                };
+                state.username = username;
+                document.getElementById('username').style.display = 'none';
             }
             
-            // Ensure all steps are completed
-            if (!registrationData.signature || !registrationData.circle || !registrationData.square) {
-                showMessage('Please complete all steps', true);
+            if (signaturePad.isEmpty()) {
+                showMessage('Please complete the drawing before continuing', true);
                 return;
             }
             
+            // Capture current drawing
+            const drawingData = signaturePad.toDataURL();
+            const metrics = calculateMetrics();
+            const signatureData = signaturePad.toData();
+            
+            const sampleData = {
+                data: drawingData,
+                metrics: metrics,
+                raw: signatureData,
+                timestamp: Date.now()
+            };
+            
+            // Process based on current stage
+            if (state.currentStage === 1) {
+                // Signature stage
+                state.samples.signatures.push(sampleData);
+                
+                // Check consistency
+                if (state.samples.signatures.length > 1) {
+                    const consistency = checkSignatureConsistency(
+                        sampleData,
+                        state.samples.signatures.slice(0, -1)
+                    );
+                    updateConsistencyIndicator(consistency);
+                    
+                    // If consistency is too low, suggest retry
+                    if (consistency < 0.5 && state.samples.signatures.length < 5) {
+                        showMessage('Signature very different - you may want to clear and try again', true);
+                    }
+                }
+                
+                // Check if we have enough signatures
+                if (state.samples.signatures.length >= 5) {
+                    // Move to shapes stage
+                    state.currentStage = 2;
+                    updateStageIndicator();
+                }
+            } else if (state.currentStage === 2) {
+                // Shapes stage
+                const shapeIndex = state.samples.shapes.length;
+                const shape = drawingChallenges.shapes[shapeIndex];
+                
+                state.samples.shapes.push({
+                    ...sampleData,
+                    type: shape.validation
+                });
+                
+                // Check if we have all shapes
+                if (state.samples.shapes.length >= 3) {
+                    // Move to creative drawings
+                    state.currentStage = 3;
+                    selectRandomChallenges();
+                    updateStageIndicator();
+                }
+            } else if (state.currentStage === 3) {
+                // Creative drawings stage
+                const drawingIndex = state.samples.drawings.length;
+                const challenge = state.selectedChallenges[drawingIndex];
+                
+                state.samples.drawings.push({
+                    ...sampleData,
+                    type: challenge.validation,
+                    prompt: challenge.prompt
+                });
+                
+                // Check if we're done
+                if (state.samples.drawings.length >= state.selectedChallenges.length) {
+                    // Complete enrollment
+                    await completeEnrollment();
+                    return;
+                }
+            }
+            
+            // Clear pad for next sample
+            signaturePad.clear();
+            drawingMetrics = {
+                startTime: null,
+                strokeCount: 0,
+                totalDistance: 0,
+                averageSpeed: 0,
+                points: []
+            };
+            
+            // Update UI
+            updateProgress();
+            updateInstructions();
+            updateSampleBoxes();
+        });
+        
+        // Complete enrollment
+        async function completeEnrollment() {
+            const nextButton = document.getElementById('next');
+            nextButton.disabled = true;
+            nextButton.innerHTML = '<div class="spinner" style="width: 20px; height: 20px; margin: 0 auto;"></div>';
+            
             try {
+                // Calculate best signatures (most consistent ones)
+                const signatureScores = state.samples.signatures.map((sig, index) => {
+                    if (index === 0) return { index, score: 1 };
+                    const consistency = checkSignatureConsistency(
+                        sig,
+                        state.samples.signatures.slice(0, index)
+                    );
+                    return { index, score: consistency };
+                });
+                
+                // Sort by consistency and take top 3
+                signatureScores.sort((a, b) => b.score - a.score);
+                const bestSignatures = signatureScores.slice(0, 3).map(s => state.samples.signatures[s.index]);
+                
+                // Prepare enrollment data
+                const enrollmentData = {
+                    username: state.username,
+                    signatures: bestSignatures,
+                    shapes: state.samples.shapes.reduce((acc, shape) => {
+                        acc[shape.type] = shape;
+                        return acc;
+                    }, {}),
+                    drawings: state.samples.drawings.reduce((acc, drawing) => {
+                        acc[drawing.type] = drawing;
+                        return acc;
+                    }, {}),
+                    metadata: {
+                        enrollmentTime: Date.now(),
+                        deviceInfo: {
+                            userAgent: navigator.userAgent,
+                            platform: navigator.platform,
+                            touchSupport: 'ontouchstart' in window
+                        }
+                    }
+                };
+                
+                // Send to backend
                 const response = await fetch(`${API_URL}/register`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        username: username,
-                        signature: registrationData.signature,
-                        shapes: {
-                            circle: registrationData.circle,
-                            square: registrationData.square
-                        }
-                    })
+                    body: JSON.stringify(enrollmentData)
                 });
                 
-                const data = await response.json();
-                
                 if (response.ok) {
-                    showMessage('Registration complete! Your signature and shapes have been saved.');
+                    // Also send to ML backend for training
+                    try {
+                        for (const sig of bestSignatures) {
+                            await fetch(`${ML_API_URL}/api/collect-signature`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    userId: state.username,
+                                    type: 'genuine',
+                                    signaturePadData: sig.raw,
+                                    metrics: sig.metrics
+                                })
+                            });
+                        }
+                    } catch (mlError) {
+                        console.error('ML training error:', mlError);
+                    }
                     
-                    // Also send signature to ML backend for training
-                    await sendToMLBackend(registrationData.signature, username, forgeryMode ? 'forgery' : 'genuine');
+                    showMessage('🎉 Enrollment complete! Your secure authentication is ready.');
                     
-                    // Reset everything
-                    signaturePad.clear();
-                    usernameInput.value = '';
-                    currentStep = 1;
-                    registrationData = { signature: null, circle: null, square: null };
-                    updateStepIndicator();
+                    // Show completion UI
+                    document.getElementById('mainContainer').innerHTML = `
+                        <div style="text-align: center; padding: 40px;">
+                            <div style="font-size: 72px; margin-bottom: 20px;">✅</div>
+                            <h2>You're All Set!</h2>
+                            <p style="color: #666; margin: 20px 0;">Your unique signature and drawings have been securely saved.</p>
+                            <button class="primary" onclick="location.reload()">Sign In</button>
+                        </div>
+                    `;
                 } else {
-                    showMessage(data.error, true);
+                    const error = await response.json();
+                    showMessage(error.message || 'Enrollment failed', true);
+                    nextButton.disabled = false;
+                    nextButton.textContent = 'Retry';
                 }
             } catch (error) {
-                showMessage('Error connecting to server', true);
+                console.error('Enrollment error:', error);
+                showMessage('Connection error. Please try again.', true);
+                nextButton.disabled = false;
+                nextButton.textContent = 'Retry';
             }
         }
         
-        // Modified login function
-        async function login() {
-            const username = usernameInput.value.trim();
+        // Skip to sign in
+        document.getElementById('skipLink').addEventListener('click', (e) => {
+            e.preventDefault();
+            // Switch to authentication mode
+            switchToAuthMode();
+        });
+        
+        // Switch to authentication mode
+        function switchToAuthMode() {
+            state.mode = 'authentication';
+            state.currentStage = 1;
+            state.samples = { signatures: [], shapes: [], drawings: [] };
             
+            document.getElementById('title').textContent = 'Welcome Back';
+            document.getElementById('subtitle').textContent = 'Sign in with your signature';
+            document.getElementById('username').style.display = 'block';
+            document.getElementById('username').placeholder = 'Enter your username';
+            document.getElementById('progressContainer').style.display = 'none';
+            document.getElementById('stageIndicator').style.display = 'none';
+            document.getElementById('samplesContainer').style.display = 'none';
+            document.getElementById('instructions').innerHTML = 'Enter your username and signature to sign in';
+            document.getElementById('next').textContent = 'Sign In';
+            document.getElementById('skipLink').textContent = 'Need an account? Sign up';
+            document.getElementById('skipLink').onclick = () => location.reload();
+            
+            // Clear canvas
+            signaturePad.clear();
+        }
+        
+        // Authentication flow
+        async function authenticate() {
+            const username = document.getElementById('username').value.trim();
             if (!username) {
                 showMessage('Please enter your username', true);
                 return;
             }
             
-            // For step 3, save the square
-            if (currentStep === 3) {
-                if (signaturePad.isEmpty()) {
-                    showMessage('Please draw a square', true);
-                    return;
-                }
-                
-                registrationData.square = {
-                    data: signaturePad.toDataURL(),
-                    features: {
-                        strokeCount: strokeCount,
-                        totalDistance: Math.round(totalDistance),
-                        duration: signatureStartTime ? Date.now() - signatureStartTime : 0
-                    }
-                };
-            }
-            
-            // Ensure all steps are completed
-            if (!registrationData.signature || !registrationData.circle || !registrationData.square) {
-                showMessage('Please complete all authentication steps', true);
+            if (signaturePad.isEmpty()) {
+                showMessage('Please sign your signature', true);
                 return;
             }
             
+            const nextButton = document.getElementById('next');
+            nextButton.disabled = true;
+            nextButton.innerHTML = '<div class="spinner" style="width: 20px; height: 20px; margin: 0 auto;"></div>';
+            
             try {
+                // Prepare authentication data
+                const signatureData = {
+                    data: signaturePad.toDataURL(),
+                    metrics: calculateMetrics(),
+                    raw: signaturePad.toData()
+                };
+                
+                // First, get required challenges from backend
+                const challengeResponse = await fetch(`${API_URL}/auth/challenges/${username}`);
+                if (!challengeResponse.ok) {
+                    showMessage('User not found', true);
+                    nextButton.disabled = false;
+                    nextButton.textContent = 'Sign In';
+                    return;
+                }
+                
+                const challenges = await challengeResponse.json();
+                
+                // TODO: Implement adaptive authentication based on confidence
+                // For now, just verify signature
+                const authData = {
+                    username: username,
+                    signature: signatureData,
+                    deviceInfo: {
+                        userAgent: navigator.userAgent,
+                        platform: navigator.platform
+                    }
+                };
+                
                 const response = await fetch(`${API_URL}/login`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        username: username,
-                        signature: registrationData.signature,
-                        shapes: {
-                            circle: registrationData.circle,
-                            square: registrationData.square
-                        }
-                    })
+                    body: JSON.stringify(authData)
                 });
                 
-                const data = await response.json();
-                
                 if (response.ok) {
-                    // Basic authentication succeeded, now verify with ML
+                    const result = await response.json();
+                    
+                    // Also verify with ML
                     try {
-                        // Prepare signature data for ML verification
-                        const mlSignatureData = {
-                            strokes: signaturePad.toData()
-                        };
-                        
-                        const mlResponse = await fetch('http://localhost:5001/api/verify-ml', {
+                        const mlResponse = await fetch(`${ML_API_URL}/api/verify-ml`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
                             },
                             body: JSON.stringify({
                                 userId: username,
-                                signatureData: mlSignatureData
+                                signatureData: { strokes: signatureData.raw }
                             })
                         });
                         
                         const mlResult = await mlResponse.json();
                         
                         if (mlResult.success && mlResult.is_genuine) {
-                            showMessage(`${data.message} Match: Signature ${data.scores.signature}%, Circle ${data.scores.circle}%, Square ${data.scores.square}% | ML Confidence: ${mlResult.confidence.toFixed(0)}%`);
+                            showMessage(`✅ Welcome back, ${username}! ML Confidence: ${mlResult.confidence.toFixed(0)}%`);
                         } else if (mlResult.success && !mlResult.is_genuine) {
-                            showMessage('Warning: Signature verification failed - possible forgery detected!', true);
-                            console.log('ML Analysis:', mlResult.analysis);
-                        } else {
-                            // ML verification failed, but basic auth passed
-                            showMessage(`${data.message} Match: Signature ${data.scores.signature}%, Circle ${data.scores.circle}%, Square ${data.scores.square}% (ML verification unavailable)`);
+                            showMessage('⚠️ Signature verification failed - additional verification required', true);
+                            // TODO: Trigger additional challenges
                         }
                     } catch (mlError) {
                         console.error('ML verification error:', mlError);
-                        // Fall back to basic auth result if ML fails
-                        showMessage(`${data.message} Match: Signature ${data.scores.signature}%, Circle ${data.scores.circle}%, Square ${data.scores.square}%`);
+                        showMessage(`Welcome back, ${username}!`);
                     }
                     
-                    // Reset for next login
-                    signaturePad.clear();
-                    currentStep = 1;
-                    registrationData = { signature: null, circle: null, square: null };
-                    updateStepIndicator();
+                    // Show success UI
+                    setTimeout(() => {
+                        document.getElementById('mainContainer').innerHTML = `
+                            <div style="text-align: center; padding: 40px;">
+                                <div style="font-size: 72px; margin-bottom: 20px;">👋</div>
+                                <h2>Welcome back, ${username}!</h2>
+                                <p style="color: #666; margin: 20px 0;">You've been successfully authenticated.</p>
+                                <button class="primary" onclick="location.reload()">Sign Out</button>
+                            </div>
+                        `;
+                    }, 2000);
                 } else {
-                    showMessage(data.error, true);
-                    // Let them retry from step 1
-                    currentStep = 1;
-                    registrationData = { signature: null, circle: null, square: null };
-                    signaturePad.clear();
-                    updateStepIndicator();
+                    const error = await response.json();
+                    showMessage(error.message || 'Authentication failed', true);
+                    nextButton.disabled = false;
+                    nextButton.textContent = 'Sign In';
                 }
             } catch (error) {
-                showMessage('Error connecting to server', true);
+                console.error('Authentication error:', error);
+                showMessage('Connection error. Please try again.', true);
+                nextButton.disabled = false;
+                nextButton.textContent = 'Sign In';
             }
         }
         
-        // Action button click
-        actionButton.addEventListener('click', () => {
-            if (isLoginMode) {
-                login();
-            } else {
-                register();
-            }
-        });
-        
-        // Update toggle to reset steps
-        toggleElement.addEventListener('click', () => {
-            isLoginMode = !isLoginMode;
-            currentStep = 1;
-            registrationData = { signature: null, circle: null, square: null };
-            signaturePad.clear();
-            
-            if (isLoginMode) {
-                titleElement.textContent = 'Sign In';
-                toggleElement.textContent = 'Need an account? Sign up';
-            } else {
-                titleElement.textContent = 'Sign Up';
-                toggleElement.textContent = 'Already have an account? Sign in';
-            }
-            
-            updateStepIndicator();
-            messageDiv.textContent = '';
-        });
-        
-        // Fullscreen button
-        document.getElementById('fullscreen').addEventListener('click', () => {
-            const container = document.querySelector('.container');
-            
-            if (!document.fullscreenElement) {
-                // Enter fullscreen
-                container.requestFullscreen().then(() => {
-                    // Make signature pad bigger in fullscreen
-                    canvas.style.height = '60vh';
-                    resizeCanvas();
-                    document.getElementById('fullscreen').textContent = 'Exit Fullscreen';
-                }).catch(err => {
-                    console.log('Fullscreen error:', err);
-                });
-            } else {
-                // Exit fullscreen
-                document.exitFullscreen().then(() => {
-                    canvas.style.height = '200px';
-                    resizeCanvas();
-                    document.getElementById('fullscreen').textContent = 'Fullscreen';
-                });
-            }
-        });
-
-        // Handle fullscreen change
-        document.addEventListener('fullscreenchange', () => {
-            if (!document.fullscreenElement) {
-                canvas.style.height = '200px';
-                resizeCanvas();
-                document.getElementById('fullscreen').textContent = 'Fullscreen';
+        // Override next button for auth mode
+        document.getElementById('next').addEventListener('click', async (e) => {
+            if (state.mode === 'authentication') {
+                e.stopImmediatePropagation();
+                await authenticate();
             }
         });
         
         // Initialize
-        updateStepIndicator();
+        updateProgress();
+        updateInstructions();
+        updateStageIndicator();
+        
+        // Show username input for enrollment
+        if (state.mode === 'enrollment') {
+            document.getElementById('username').style.display = 'block';
+        }
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
 </body>
-</html> 
+</html>
