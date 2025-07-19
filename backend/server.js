@@ -53,32 +53,33 @@ function compareSignatures(signature1, signature2) {
     return score;
 }
 
-// Register endpoint - save signature
+// Register endpoint - save signature and shapes
 app.post('/register', (req, res) => {
-    const { username, signature } = req.body;
+    const { username, signature, shapes } = req.body;
     
-    if (!username || !signature) {
-        return res.status(400).json({ error: 'Username and signature required' });
+    if (!username || !signature || !shapes || !shapes.circle || !shapes.square) {
+        return res.status(400).json({ error: 'Username, signature, and both shapes required' });
     }
     
-    // Store user's signature
+    // Store user's signature and shapes
     users[username] = {
         signature: signature,
+        shapes: shapes,
         registeredAt: new Date()
     };
     
     res.json({ 
         success: true, 
-        message: `User ${username} registered successfully!` 
+        message: `User ${username} registered with signature and shapes!` 
     });
 });
 
-// Login endpoint - check signature
+// Login endpoint - check signature and shapes
 app.post('/login', (req, res) => {
-    const { username, signature } = req.body;
+    const { username, signature, shapes } = req.body;
     
-    if (!username || !signature) {
-        return res.status(400).json({ error: 'Username and signature required' });
+    if (!username || !signature || !shapes) {
+        return res.status(400).json({ error: 'Username, signature, and shapes required' });
     }
     
     // Check if user exists
@@ -86,22 +87,36 @@ app.post('/login', (req, res) => {
         return res.status(404).json({ error: 'User not found' });
     }
     
-    // Compare signatures
-    const similarityScore = compareSignatures(users[username].signature, signature);
+    // Compare signature and shapes
+    const signatureScore = compareSignatures(users[username].signature.data, signature.data);
+    const circleScore = compareSignatures(users[username].shapes.circle.data, shapes.circle.data);
+    const squareScore = compareSignatures(users[username].shapes.square.data, shapes.square.data);
     
-    // Require at least 70% similarity
-    if (similarityScore >= 70) {
+    // Calculate average score
+    const averageScore = (signatureScore + circleScore + squareScore) / 3;
+    
+    // Require at least 40% average similarity
+    if (averageScore >= 40) {
         res.json({ 
             success: true, 
             message: `Welcome back, ${username}!`,
-            similarityScore: Math.round(similarityScore),
+            scores: {
+                signature: Math.round(signatureScore),
+                circle: Math.round(circleScore),
+                square: Math.round(squareScore),
+                average: Math.round(averageScore)
+            },
             token: 'demo-jwt-token-' + Date.now()
         });
     } else {
         res.status(401).json({ 
-            error: 'Signature does not match',
-            similarityScore: Math.round(similarityScore),
-            hint: 'Try signing more similarly to your registration signature'
+            error: 'Authentication failed - signature or shapes do not match',
+            scores: {
+                signature: Math.round(signatureScore),
+                circle: Math.round(circleScore),
+                square: Math.round(squareScore),
+                average: Math.round(averageScore)
+            }
         });
     }
 });

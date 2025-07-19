@@ -98,6 +98,34 @@
             background-color: #f8d7da;
             color: #721c24;
         }
+        .step-indicator {
+            text-align: center;
+            font-weight: bold;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #e3f2fd;
+            border-radius: 5px;
+            color: #1976d2;
+        }
+        .shape-guide {
+            text-align: center;
+            color: #666;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .step-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        #next {
+            background-color: #28a745;
+            color: white;
+        }
+        #next:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -110,10 +138,17 @@
             Draw your signature below:
         </div>
         
+        <!-- Add step indicator -->
+        <div class="step-indicator" id="stepIndicator">
+            Step 1 of 3: Draw your signature
+        </div>
+
         <canvas id="signature-pad" width="400" height="200"></canvas>
-        
-        <button class="clear" id="clear">Clear Signature</button>
+
+        <!-- Add navigation buttons -->
+        <button class="clear" id="clear">Clear</button>
         <button class="secondary" id="fullscreen">Fullscreen</button>
+        <button class="secondary" id="next" style="display: none;">Next Step</button>
         <button class="primary" id="action">Register</button>
         
         <div id="message"></div>
@@ -190,10 +225,45 @@
         window.onresize = resizeCanvas;
         resizeCanvas();
         
-        // Clear button
+        // Multi-step registration state
+        let currentStep = 1;
+        let registrationData = {
+            signature: null,
+            circle: null,
+            square: null
+        };
+
+        // Update step indicator
+        function updateStepIndicator() {
+            const indicator = document.getElementById('stepIndicator');
+            const nextButton = document.getElementById('next');
+            const actionButton = document.getElementById('action');
+            
+            if (isLoginMode) {
+                indicator.textContent = `Step ${currentStep} of 3: ${getStepInstruction()}`;
+                nextButton.style.display = currentStep < 3 ? 'inline-block' : 'none';
+                actionButton.textContent = currentStep === 3 ? 'Login' : 'Login';
+                actionButton.style.display = currentStep === 3 ? 'inline-block' : 'none';
+            } else {
+                indicator.textContent = `Step ${currentStep} of 3: ${getStepInstruction()}`;
+                nextButton.style.display = currentStep < 3 ? 'inline-block' : 'none';
+                actionButton.textContent = currentStep === 3 ? 'Complete Registration' : 'Register';
+                actionButton.style.display = currentStep === 3 ? 'inline-block' : 'none';
+            }
+        }
+
+        function getStepInstruction() {
+            switch(currentStep) {
+                case 1: return 'Draw your signature';
+                case 2: return 'Draw a circle ⭕';
+                case 3: return 'Draw a square ⬜';
+                default: return '';
+            }
+        }
+
+        // Modified clear function
         document.getElementById('clear').addEventListener('click', () => {
             signaturePad.clear();
-            // Reset tracking variables
             signatureStartTime = null;
             strokeCount = 0;
             totalDistance = 0;
@@ -208,8 +278,44 @@
                 messageDiv.textContent = '';
             }, 5000);
         }
+
+        // Next button handler
+        document.getElementById('next').addEventListener('click', () => {
+            if (signaturePad.isEmpty()) {
+                showMessage('Please complete this step before continuing', true);
+                return;
+            }
+            
+            // Save current drawing
+            const drawingData = signaturePad.toDataURL();
+            const features = {
+                strokeCount: strokeCount,
+                totalDistance: Math.round(totalDistance),
+                duration: signatureStartTime ? Date.now() - signatureStartTime : 0
+            };
+            
+            switch(currentStep) {
+                case 1:
+                    registrationData.signature = { data: drawingData, features };
+                    break;
+                case 2:
+                    registrationData.circle = { data: drawingData, features };
+                    break;
+            }
+            
+            // Move to next step
+            currentStep++;
+            signaturePad.clear();
+            
+            // Reset tracking
+            signatureStartTime = null;
+            strokeCount = 0;
+            totalDistance = 0;
+            
+            updateStepIndicator();
+        });
         
-        // Register function
+        // Modified register function
         async function register() {
             const username = usernameInput.value.trim();
             
@@ -218,21 +324,28 @@
                 return;
             }
             
-            if (signaturePad.isEmpty()) {
-                showMessage('Please provide a signature', true);
-                return;
+            // For step 3, save the square
+            if (currentStep === 3) {
+                if (signaturePad.isEmpty()) {
+                    showMessage('Please draw a square', true);
+                    return;
+                }
+                
+                registrationData.square = {
+                    data: signaturePad.toDataURL(),
+                    features: {
+                        strokeCount: strokeCount,
+                        totalDistance: Math.round(totalDistance),
+                        duration: signatureStartTime ? Date.now() - signatureStartTime : 0
+                    }
+                };
             }
             
-            // Calculate signature features
-            const signatureData = signaturePad.toDataURL();
-            const duration = signatureStartTime ? Date.now() - signatureStartTime : 0;
-            
-            const features = {
-                strokeCount: strokeCount,
-                totalDistance: Math.round(totalDistance),
-                duration: duration,
-                averageSpeed: duration > 0 ? Math.round(totalDistance / duration * 1000) : 0
-            };
+            // Ensure all steps are completed
+            if (!registrationData.signature || !registrationData.circle || !registrationData.square) {
+                showMessage('Please complete all steps', true);
+                return;
+            }
             
             try {
                 const response = await fetch(`${API_URL}/register`, {
@@ -242,21 +355,24 @@
                     },
                     body: JSON.stringify({
                         username: username,
-                        signature: signatureData,
-                        features: features  // Include features
+                        signature: registrationData.signature,
+                        shapes: {
+                            circle: registrationData.circle,
+                            square: registrationData.square
+                        }
                     })
                 });
                 
                 const data = await response.json();
                 
                 if (response.ok) {
-                    showMessage(data.message);
-                    // Reset tracking variables
+                    showMessage('Registration complete! Your signature and shapes have been saved.');
+                    // Reset everything
                     signaturePad.clear();
                     usernameInput.value = '';
-                    signatureStartTime = null;
-                    strokeCount = 0;
-                    totalDistance = 0;
+                    currentStep = 1;
+                    registrationData = { signature: null, circle: null, square: null };
+                    updateStepIndicator();
                 } else {
                     showMessage(data.error, true);
                 }
@@ -265,7 +381,7 @@
             }
         }
         
-        // Login function
+        // Modified login function
         async function login() {
             const username = usernameInput.value.trim();
             
@@ -274,8 +390,26 @@
                 return;
             }
             
-            if (signaturePad.isEmpty()) {
-                showMessage('Please provide your signature', true);
+            // For step 3, save the square
+            if (currentStep === 3) {
+                if (signaturePad.isEmpty()) {
+                    showMessage('Please draw a square', true);
+                    return;
+                }
+                
+                registrationData.square = {
+                    data: signaturePad.toDataURL(),
+                    features: {
+                        strokeCount: strokeCount,
+                        totalDistance: Math.round(totalDistance),
+                        duration: signatureStartTime ? Date.now() - signatureStartTime : 0
+                    }
+                };
+            }
+            
+            // Ensure all steps are completed
+            if (!registrationData.signature || !registrationData.circle || !registrationData.square) {
+                showMessage('Please complete all authentication steps', true);
                 return;
             }
             
@@ -287,19 +421,30 @@
                     },
                     body: JSON.stringify({
                         username: username,
-                        signature: signaturePad.toDataURL()
+                        signature: registrationData.signature,
+                        shapes: {
+                            circle: registrationData.circle,
+                            square: registrationData.square
+                        }
                     })
                 });
                 
                 const data = await response.json();
                 
                 if (response.ok) {
-                    showMessage(`${data.message} (Match: ${data.similarityScore}%)`);
-                    console.log('Auth token:', data.token);
+                    showMessage(`${data.message} Match: Signature ${data.scores.signature}%, Circle ${data.scores.circle}%, Square ${data.scores.square}%`);
+                    // Reset for next login
                     signaturePad.clear();
+                    currentStep = 1;
+                    registrationData = { signature: null, circle: null, square: null };
+                    updateStepIndicator();
                 } else {
-                    showMessage(`${data.error} (Match: ${data.similarityScore}%)`, true);
-                    // Don't clear the signature so user can try again
+                    showMessage(data.error, true);
+                    // Let them retry from step 1
+                    currentStep = 1;
+                    registrationData = { signature: null, circle: null, square: null };
+                    signaturePad.clear();
+                    updateStepIndicator();
                 }
             } catch (error) {
                 showMessage('Error connecting to server', true);
@@ -315,21 +460,22 @@
             }
         });
         
-        // Toggle between login and register
+        // Update toggle to reset steps
         toggleElement.addEventListener('click', () => {
             isLoginMode = !isLoginMode;
+            currentStep = 1;
+            registrationData = { signature: null, circle: null, square: null };
+            signaturePad.clear();
             
             if (isLoginMode) {
                 titleElement.textContent = 'Sign In';
-                actionButton.textContent = 'Login';
                 toggleElement.textContent = 'Need an account? Sign up';
             } else {
                 titleElement.textContent = 'Sign Up';
-                actionButton.textContent = 'Register';
                 toggleElement.textContent = 'Already have an account? Sign in';
             }
             
-            signaturePad.clear();
+            updateStepIndicator();
             messageDiv.textContent = '';
         });
         
@@ -365,6 +511,9 @@
                 document.getElementById('fullscreen').textContent = 'Fullscreen';
             }
         });
+        
+        // Initialize
+        updateStepIndicator();
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
