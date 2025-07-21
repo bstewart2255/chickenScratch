@@ -98,6 +98,7 @@ app.post('/register', async (req, res) => {
     }
     
     try {
+        console.log('Starting registration transaction...');
         // Start transaction
         await pool.query('BEGIN');
         
@@ -120,29 +121,44 @@ app.post('/register', async (req, res) => {
         const userId = userResult.rows[0].id;
         
         // Save signatures (multiple samples)
-        for (const signature of signatures) {
-            await pool.query(
-                'INSERT INTO signatures (user_id, signature_data, features, metrics) VALUES ($1, $2, $3, $4)',
-                [
-                    userId, 
-                    JSON.stringify(signature), 
-                    JSON.stringify(extractSignatureFeatures(signature.data)),
-                    JSON.stringify(signature.metrics || {})  // Add metrics
-                ]
-            );
+        console.log('Saving signatures...');
+        for (let i = 0; i < signatures.length; i++) {
+            const signature = signatures[i];
+            try {
+                await pool.query(
+                    'INSERT INTO signatures (user_id, signature_data, features, metrics) VALUES ($1, $2, $3, $4)',
+                    [
+                        userId, 
+                        JSON.stringify(signature), 
+                        JSON.stringify(extractSignatureFeatures(signature.data)),
+                        JSON.stringify(signature.metrics || {})  // Add metrics
+                    ]
+                );
+                console.log(`✅ Saved signature ${i + 1}/${signatures.length}`);
+            } catch (sigError) {
+                console.error(`Error saving signature ${i + 1}:`, sigError);
+                throw sigError;
+            }
         }
         
         // Save shapes
+        console.log('Saving shapes...');
         for (const [shapeType, shapeData] of Object.entries(shapes)) {
-            await pool.query(
-                'INSERT INTO shapes (user_id, shape_type, shape_data, metrics) VALUES ($1, $2, $3, $4)',
-                [
-                    userId, 
-                    shapeType, 
-                    JSON.stringify(shapeData),
-                    JSON.stringify(shapeData.metrics || {})  // Add metrics
-                ]
-            );
+            try {
+                await pool.query(
+                    'INSERT INTO shapes (user_id, shape_type, shape_data, metrics) VALUES ($1, $2, $3, $4)',
+                    [
+                        userId, 
+                        shapeType, 
+                        JSON.stringify(shapeData),
+                        JSON.stringify(shapeData.metrics || {})  // Add metrics
+                    ]
+                );
+                console.log(`✅ Saved shape: ${shapeType}`);
+            } catch (shapeError) {
+                console.error(`Error saving shape ${shapeType}:`, shapeError);
+                throw shapeError;
+            }
         }
         
         // Save creative drawings
@@ -161,13 +177,13 @@ app.post('/register', async (req, res) => {
                         truncated: true
                     };
                     await pool.query(
-                        'INSERT INTO shapes (user_id, shape_type, shape_data) VALUES ($1, $2, $3)',
-                        [userId, `drawing_${drawingType}`, JSON.stringify(compressedData)]
+                        'INSERT INTO shapes (user_id, shape_type, shape_data, metrics) VALUES ($1, $2, $3, $4)',
+                        [userId, `drawing_${drawingType}`, JSON.stringify(compressedData), JSON.stringify(drawingData.metrics || {})]
                     );
                 } else {
                     await pool.query(
-                        'INSERT INTO shapes (user_id, shape_type, shape_data) VALUES ($1, $2, $3)',
-                        [userId, `drawing_${drawingType}`, drawingDataStr]
+                        'INSERT INTO shapes (user_id, shape_type, shape_data, metrics) VALUES ($1, $2, $3, $4)',
+                        [userId, `drawing_${drawingType}`, drawingDataStr, JSON.stringify(drawingData.metrics || {})]
                     );
                 }
             } catch (drawingError) {

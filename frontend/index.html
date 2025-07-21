@@ -792,7 +792,7 @@
                     drawingPrompt.textContent = challenge.prompt;
                     
                     // Special handling for dots challenge
-                    if (challenge.validation === 'dots' || challenge.prompt.includes('dots')) {
+                    if ((challenge.validation && challenge.validation === 'dots') || challenge.prompt.includes('dots')) {
                         setTimeout(() => drawDots(), 100); // Small delay to ensure canvas is ready
                     }
                 } else {
@@ -856,9 +856,11 @@
             // Redraw dots if we're on the dots challenge
             if (state.currentStage === 3) {
                 const drawingIndex = state.samples.drawings.length;
-                const challenge = state.selectedChallenges[drawingIndex];
-                if (challenge && (challenge.validation === 'dots' || challenge.prompt.includes('dots'))) {
-                    setTimeout(() => drawDots(), 50);
+                if (state.selectedChallenges && drawingIndex < state.selectedChallenges.length) {
+                    const challenge = state.selectedChallenges[drawingIndex];
+                    if (challenge && ((challenge.validation && challenge.validation === 'dots') || (challenge.prompt && challenge.prompt.includes('dots')))) {
+                        setTimeout(() => drawDots(), 50);
+                    }
                 }
             }
             
@@ -1000,12 +1002,32 @@
             } else if (state.currentStage === 3) {
                 // Creative drawings stage
                 const drawingIndex = state.samples.drawings.length;
+                
+                // Ensure we have challenges selected
+                if (!state.selectedChallenges || state.selectedChallenges.length === 0) {
+                    selectRandomChallenges();
+                }
+                
+                // Check if we've collected enough drawings
+                if (drawingIndex >= state.selectedChallenges.length) {
+                    // Complete enrollment
+                    await completeEnrollment();
+                    return;
+                }
+                
                 const challenge = state.selectedChallenges[drawingIndex];
+                
+                // Safety check
+                if (!challenge) {
+                    console.error('No challenge found for drawing index:', drawingIndex);
+                    showMessage('Error: Drawing challenge not found', true);
+                    return;
+                }
                 
                 state.samples.drawings.push({
                     ...sampleData,
-                    type: challenge.validation,
-                    prompt: challenge.prompt
+                    type: challenge.validation || 'creative',
+                    prompt: challenge.prompt || 'Creative drawing'
                 });
                 
                 // Check if we're done
@@ -1056,8 +1078,10 @@
                         acc[shape.type] = shape;
                         return acc;
                     }, {}),
-                    drawings: state.samples.drawings.reduce((acc, drawing) => {
-                        acc[drawing.type] = drawing;
+                    drawings: state.samples.drawings.reduce((acc, drawing, index) => {
+                        // Use index to ensure unique keys
+                        const key = `${drawing.type}_${index}`;
+                        acc[key] = drawing;
                         return acc;
                     }, {}),
                     metadata: {
