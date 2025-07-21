@@ -246,12 +246,142 @@ app.post('/register', async (req, res) => {
     }
 });
 
-// Updated Login endpoint
-app.post('/login', async (req, res) => {
-    const { username, signature, shapes } = req.body;
+// Get authentication challenges for a user
+app.get('/auth/challenges/:username', async (req, res) => {
+    const { username } = req.params;
     
-    if (!username || !signature || !shapes) {
-        return res.status(400).json({ error: 'Username, signature, and shapes required' });
+    try {
+        // Check if user exists
+        const userResult = await pool.query(
+            'SELECT id, created_at FROM users WHERE username = $1',
+            [username]
+        );
+        
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        const user = userResult.rows[0];
+        const userId = user.id;
+        
+        // Get recent auth attempts to calculate risk
+        const recentAuthResult = await pool.query(`
+            SELECT success, created_at, device_info 
+            FROM auth_attempts 
+            WHERE user_id = $1 
+            AND created_at >= NOW() - INTERVAL '30 days'
+            ORDER BY created_at DESC
+            LIMIT 10
+        `, [userId]);
+        
+        // Calculate risk factors
+        let riskScore = 0;
+        const currentDevice = req.headers['user-agent'] || 'Unknown';
+        
+        // Check if this is a new device
+        const knownDevices = recentAuthResult.rows.map(r => r.device_info);
+        const isNewDevice = !knownDevices.includes(currentDevice);
+        if (isNewDevice) riskScore += 30;
+        
+        // Check recent failures
+        const recentFailures = recentAuthResult.rows
+            .slice(0, 3)
+            .filter(r => !r.success).length;
+        riskScore += recentFailures * 20;
+        
+        // Check time since last successful login
+        const lastSuccess = recentAuthResult.rows.find(r => r.success);
+        if (lastSuccess) {
+            const daysSinceLogin = Math.floor(
+                (Date.now() - new Date(lastSuccess.created_at).getTime()) / (1000 * 60 * 60 * 24)
+            );
+            if (daysSinceLogin > 30) riskScore += 20;
+            if (daysSinceLogin > 90) riskScore += 30;
+        } else {
+            riskScore += 40; // Never successfully logged in
+        }
+        
+        // Determine required challenges based on risk score
+        const challenges = {
+            signature: true, // Always required
+            shapes: riskScore >= 30,
+            drawings: riskScore >= 60,
+            required: []
+        };
+        
+        // Build required challenges array
+        challenges.required.push({ type: 'signature', name: 'Your Signature' });
+        
+        if (challenges.shapes) {
+            challenges.required.push(
+                { type: 'shape', name: 'Circle', shape: 'circle' },
+                { type: 'shape', name: 'Square', shape: 'square' },
+                { type: 'shape', name: 'Triangle', shape: 'triangle' }
+            );
+        }
+        
+        if (challenges.drawings) {
+            // Get user's drawing prompts from registration
+            const drawingsResult = await pool.query(`
+                SELECT shape_type, shape_data
+                FROM shapes
+                WHERE user_id = $1 AND shape_type LIKE 'drawing_%'
+                LIMIT 2
+            `, [userId]);
+            
+            drawingsResult.rows.forEach((row, index) => {
+                const drawingData = row.shape_data;
+                challenges.required.push({
+                    type: 'drawing',
+                    name: drawingData.prompt || `Drawing ${index + 1}`,
+                    prompt: drawingData.prompt,
+                    drawingType: row.shape_type
+                });
+            });
+        }
+        
+        res.json({
+            username,
+            riskScore,
+            riskFactors: {
+                isNewDevice,
+                recentFailures,
+                daysSinceLastLogin: lastSuccess ? 
+                    Math.floor((Date.now() - new Date(lastSuccess.created_at).getTime()) / (1000 * 60 * 60 * 24)) : 
+                    null
+            },
+            challenges
+        });
+        
+    } catch (error) {
+        console.error('Error getting challenges:', error);
+        res.status(500).json({ error: 'Failed to get authentication challenges' });
+    }
+});
+
+// Updated Login endpoint - supports adaptive authentication
+app.post('/login', async (req, res) => {
+    console.log('Login attempt:', { 
+        username: req.body.username,
+        hasSignature: !!req.body.signature,
+        hasShapes: !!req.body.shapes,
+        hasDrawings: !!req.body.drawings,
+        bodyKeys: Object.keys(req.body)
+    });
+    
+    const { username, signature, shapes, drawings, deviceInfo } = req.body;
+    
+    // Minimum requirement is username and signature
+    if (!username || !signature) {
+        return res.status(400).json({ 
+            error: 'Username and signature required',
+            received: {
+                username: !!username,
+                signature: !!signature,
+                shapes: !!shapes,
+                drawings: !!drawings
+            }
+        });
     }
     
     try {
@@ -279,25 +409,65 @@ app.post('/login', async (req, res) => {
         
         const storedSignature = storedSigResult.rows[0].signature_data;
         
-        // Get stored shapes
-        const storedShapesResult = await pool.query(
-            'SELECT shape_type, shape_data FROM shapes WHERE user_id = $1',
-            [userId]
-        );
-        
-        const storedShapes = {};
-        storedShapesResult.rows.forEach(row => {
-            storedShapes[row.shape_type] = row.shape_data;
-        });
-        
-        // Compare signatures and shapes
+        // Calculate signature score (always required)
         const signatureScore = compareSignatures(storedSignature.data, signature.data);
-        const circleScore = compareSignatures(storedShapes.circle.data, shapes.circle.data);
-        const squareScore = compareSignatures(storedShapes.square.data, shapes.square.data);
+        let totalScore = signatureScore;
+        let scoreCount = 1;
         
-        const averageScore = (signatureScore + circleScore + squareScore) / 3;
+        const scores = {
+            signature: Math.round(signatureScore)
+        };
         
-        const isSuccess = averageScore >= 40;
+        // If shapes were provided, verify them
+        if (shapes) {
+            const storedShapesResult = await pool.query(
+                'SELECT shape_type, shape_data FROM shapes WHERE user_id = $1 AND shape_type IN ($2, $3, $4)',
+                [userId, 'circle', 'square', 'triangle']
+            );
+            
+            const storedShapes = {};
+            storedShapesResult.rows.forEach(row => {
+                storedShapes[row.shape_type] = row.shape_data;
+            });
+            
+            // Verify each provided shape
+            if (shapes.circle && storedShapes.circle) {
+                const circleScore = compareSignatures(storedShapes.circle.data, shapes.circle.data);
+                scores.circle = Math.round(circleScore);
+                totalScore += circleScore;
+                scoreCount++;
+            }
+            
+            if (shapes.square && storedShapes.square) {
+                const squareScore = compareSignatures(storedShapes.square.data, shapes.square.data);
+                scores.square = Math.round(squareScore);
+                totalScore += squareScore;
+                scoreCount++;
+            }
+            
+            if (shapes.triangle && storedShapes.triangle) {
+                const triangleScore = compareSignatures(storedShapes.triangle.data, shapes.triangle.data);
+                scores.triangle = Math.round(triangleScore);
+                totalScore += triangleScore;
+                scoreCount++;
+            }
+        }
+        
+        // If drawings were provided, verify them (future enhancement)
+        if (drawings) {
+            // TODO: Implement drawing verification
+            console.log('Drawing verification not yet implemented');
+        }
+        
+        const averageScore = totalScore / scoreCount;
+        scores.average = Math.round(averageScore);
+        
+        // Adjust threshold based on what was provided
+        let threshold = 40; // Default threshold
+        if (shapes) threshold = 45; // Higher threshold when more factors
+        if (drawings) threshold = 50; // Even higher with drawings
+        
+        const isSuccess = averageScore >= threshold;
         
         // Record authentication attempt
         try {
@@ -313,22 +483,24 @@ app.post('/login', async (req, res) => {
             res.json({ 
                 success: true, 
                 message: `Welcome back, ${username}!`,
-                scores: {
-                    signature: Math.round(signatureScore),
-                    circle: Math.round(circleScore),
-                    square: Math.round(squareScore),
-                    average: Math.round(averageScore)
-                },
-                token: 'demo-jwt-token-' + Date.now()
+                scores: scores,
+                token: 'demo-jwt-token-' + Date.now(),
+                authMethod: {
+                    signature: true,
+                    shapes: !!shapes,
+                    drawings: !!drawings
+                }
             });
         } else {
             res.status(401).json({ 
-                error: 'Authentication failed - signature or shapes do not match',
-                scores: {
-                    signature: Math.round(signatureScore),
-                    circle: Math.round(circleScore),
-                    square: Math.round(squareScore),
-                    average: Math.round(averageScore)
+                error: 'Authentication failed',
+                details: 'Verification scores below threshold',
+                scores: scores,
+                threshold: threshold,
+                authMethod: {
+                    signature: true,
+                    shapes: !!shapes,
+                    drawings: !!drawings
                 }
             });
         }
