@@ -936,6 +936,11 @@
         
         // Complete enrollment
         async function completeEnrollment() {
+            // Ensure challenges are selected
+            if (!state.selectedChallenges || state.selectedChallenges.length === 0) {
+                selectRandomChallenges();
+            }
+            
             const nextButton = document.getElementById('next');
             nextButton.disabled = true;
             nextButton.innerHTML = '<div class="spinner" style="width: 20px; height: 20px; margin: 0 auto;"></div>';
