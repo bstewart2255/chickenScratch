@@ -274,6 +274,19 @@
             color: #721c24;
         }
         
+        /* Fix message overlap */
+        #message {
+            position: relative;
+            z-index: 1000;
+            margin-top: 20px;  /* Add space */
+        }
+        
+        /* Also update the retry button to not overlap */
+        #next {
+            position: relative;
+            z-index: 999;
+        }
+        
         /* Loading spinner */
         .spinner {
             border: 3px solid #f3f3f3;
@@ -717,17 +730,20 @@
             } else if (state.currentStage === 3) {
                 instructions.innerHTML = "Finally, let's add some creative drawings that only you would draw this way.";
                 const drawingIndex = state.samples.drawings.length;
-                const challenge = state.selectedChallenges[drawingIndex];
                 
-                // Add safety check
+                // Make sure challenges are selected
+                if (!state.selectedChallenges || state.selectedChallenges.length === 0) {
+                    selectRandomChallenges();
+                }
+                
+                const challenge = state.selectedChallenges[drawingIndex];
                 if (challenge && challenge.prompt) {
                     drawingPrompt.textContent = challenge.prompt;
-                    drawingPrompt.style.display = 'block';
                 } else {
-                    console.error('No challenge found at index', drawingIndex);
+                    // Fallback
                     drawingPrompt.textContent = 'Draw something creative';
-                    drawingPrompt.style.display = 'block';
                 }
+                drawingPrompt.style.display = 'block';
             }
         }
         
