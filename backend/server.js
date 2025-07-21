@@ -575,21 +575,41 @@ app.get('/debug/metrics/:username', async (req, res) => {
 });
 
 // Test endpoint with enhanced info
-app.get('/test', (req, res) => {
-    res.json({ 
-        message: 'Server is working!',
-        version: '2.1.0', // Updated version
-        database: 'PostgreSQL',
-        endpoints: ['POST /register', 'POST /login', 'GET /users', 'GET /test'],
-        features: {
-            multipleSignatures: true,
-            shapes: true,
-            drawings: true,
-            expectedSignatures: 3,
-            expectedShapes: 3,
-            expectedDrawings: 5
-        }
-    });
+app.get('/test', async (req, res) => {
+    try {
+        // Check if auth_attempts table exists
+        const tableCheck = await pool.query(`
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_schema = 'public' 
+                AND table_name = 'auth_attempts'
+            ) as auth_table_exists
+        `);
+        
+        res.json({ 
+            message: 'Server is working!',
+            version: '2.2.0', // Updated version
+            database: 'PostgreSQL',
+            authTableExists: tableCheck.rows[0].auth_table_exists,
+            endpoints: ['POST /register', 'POST /login', 'GET /users', 'GET /test', 'GET /auth/challenges/:username'],
+            features: {
+                multipleSignatures: true,
+                shapes: true,
+                drawings: true,
+                adaptiveAuth: true,
+                expectedSignatures: 3,
+                expectedShapes: 3,
+                expectedDrawings: 5
+            }
+        });
+    } catch (error) {
+        res.json({ 
+            message: 'Server is working!',
+            version: '2.2.0',
+            database: 'PostgreSQL (error checking tables)',
+            error: error.message
+        });
+    }
 });
 
 // Dashboard endpoints
