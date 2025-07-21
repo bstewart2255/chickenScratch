@@ -86,6 +86,11 @@ function compareSignatures(signature1, signature2) {
 
 // Updated Register endpoint to match enhanced frontend
 app.post('/register', async (req, res) => {
+    // Log raw request body first
+    console.log('Raw registration request body:', JSON.stringify(req.body).substring(0, 200) + '...');
+    console.log('Request body type:', typeof req.body);
+    console.log('Request body keys:', req.body ? Object.keys(req.body) : 'undefined body');
+    
     const { username, signatures, shapes, drawings, metadata } = req.body;
     
     // Log incoming data structure for debugging
