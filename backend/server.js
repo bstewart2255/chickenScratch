@@ -71,12 +71,21 @@ function compareSignatures(signature1, signature2) {
     return score;
 }
 
-// Updated Register endpoint
+// Updated Register endpoint to match enhanced frontend
 app.post('/register', async (req, res) => {
-    const { username, signature, shapes } = req.body;
+    const { username, signatures, shapes, drawings, metadata } = req.body;
     
-    if (!username || !signature || !shapes || !shapes.circle || !shapes.square) {
-        return res.status(400).json({ error: 'Username, signature, and both shapes required' });
+    // Validation
+    if (!username || !signatures || signatures.length === 0) {
+        return res.status(400).json({ error: 'Username and signatures required' });
+    }
+    
+    if (!shapes || Object.keys(shapes).length === 0) {
+        return res.status(400).json({ error: 'Shape drawings required' });
+    }
+    
+    if (!drawings || Object.keys(drawings).length === 0) {
+        return res.status(400).json({ error: 'Creative drawings required' });
     }
     
     try {
@@ -101,31 +110,47 @@ app.post('/register', async (req, res) => {
         );
         const userId = userResult.rows[0].id;
         
-        // Save signature
-        await pool.query(
-            'INSERT INTO signatures (user_id, signature_data, features) VALUES ($1, $2, $3)',
-            [userId, signature, extractSignatureFeatures(signature.data)]
-        );
+        // Save signatures (multiple samples)
+        for (const signature of signatures) {
+            await pool.query(
+                'INSERT INTO signatures (user_id, signature_data, features) VALUES ($1, $2, $3)',
+                [userId, JSON.stringify(signature), JSON.stringify(extractSignatureFeatures(signature.data))]
+            );
+        }
         
         // Save shapes
         for (const [shapeType, shapeData] of Object.entries(shapes)) {
             await pool.query(
                 'INSERT INTO shapes (user_id, shape_type, shape_data) VALUES ($1, $2, $3)',
-                [userId, shapeType, shapeData]
+                [userId, shapeType, JSON.stringify(shapeData)]
             );
+        }
+        
+        // Save creative drawings
+        for (const [drawingType, drawingData] of Object.entries(drawings)) {
+            await pool.query(
+                'INSERT INTO shapes (user_id, shape_type, shape_data) VALUES ($1, $2, $3)',
+                [userId, `drawing_${drawingType}`, JSON.stringify(drawingData)]
+            );
+        }
+        
+        // Log metadata if provided
+        if (metadata) {
+            console.log(`User ${username} enrolled with metadata:`, metadata);
         }
         
         await pool.query('COMMIT');
         
         res.json({ 
             success: true, 
-            message: `User ${username} registered successfully!` 
+            message: `User ${username} registered successfully!`,
+            userId: userId
         });
         
     } catch (error) {
         await pool.query('ROLLBACK');
         console.error('Registration error:', error);
-        res.status(500).json({ error: 'Registration failed' });
+        res.status(500).json({ error: 'Registration failed: ' + error.message });
     }
 });
 
