@@ -660,15 +660,15 @@
         
         // Progress management
         function updateProgress() {
-            const totalSteps = state.mode === 'enrollment' ? 15 : 5; // Adjust based on requirements
+            const totalSteps = state.mode === 'enrollment' ? 11 : 5; // Changed from 15 to 11 (3 sigs + 3 shapes + 5 drawings)
             let completedSteps = 0;
             
             if (state.currentStage === 1) {
                 completedSteps = state.samples.signatures.length;
             } else if (state.currentStage === 2) {
-                completedSteps = 5 + state.samples.shapes.length;
+                completedSteps = 3 + state.samples.shapes.length;  // Changed from 5 to 3
             } else if (state.currentStage === 3) {
-                completedSteps = 10 + state.samples.drawings.length;
+                completedSteps = 6 + state.samples.drawings.length;  // Changed from 10 to 6
             }
             
             const percentage = (completedSteps / totalSteps) * 100;
@@ -677,7 +677,7 @@
             // Update progress text
             const progressText = document.getElementById('progressText');
             if (state.currentStage === 1) {
-                progressText.textContent = `Signature ${state.samples.signatures.length + 1} of 5`;
+                progressText.textContent = `Signature ${state.samples.signatures.length + 1} of 3`; // Changed from 5 to 3
             } else if (state.currentStage === 2) {
                 progressText.textContent = `Shape ${state.samples.shapes.length + 1} of 3`;
             } else {
@@ -711,7 +711,7 @@
                 if (state.samples.signatures.length === 0) {
                     instructions.innerHTML = "Let's start with your signature. Sign as you normally would - take your time.";
                 } else {
-                    instructions.innerHTML = `Good! Now sign again (${state.samples.signatures.length + 1} of 5). Try to keep it consistent.`;
+                    instructions.innerHTML = `Good! Now sign again (${state.samples.signatures.length + 1} of 3). Try to keep it consistent.`; // Changed from 5 to 3
                 }
                 drawingPrompt.style.display = 'none';
             } else if (state.currentStage === 2) {
@@ -732,6 +732,11 @@
                 const challenge = state.selectedChallenges[drawingIndex];
                 if (challenge && challenge.prompt) {
                     drawingPrompt.textContent = challenge.prompt;
+                    
+                    // Special handling for dots challenge
+                    if (challenge.validation === 'dots' || challenge.prompt.includes('dots')) {
+                        setTimeout(() => drawDots(), 100); // Small delay to ensure canvas is ready
+                    }
                 } else {
                     // Fallback
                     drawingPrompt.textContent = 'Draw something creative';
@@ -746,13 +751,18 @@
             
             if (state.currentStage === 1) {
                 container.style.display = 'flex';
-                // Update signature sample boxes
+                // Update only first 3 boxes (hide boxes 4 and 5)
                 for (let i = 0; i < 5; i++) {
                     const box = document.getElementById(`sample${i + 1}`);
-                    if (i < state.samples.signatures.length) {
-                        box.classList.add('completed');
+                    if (i < 3) {  // Only show first 3 boxes
+                        box.style.display = 'block';
+                        if (i < state.samples.signatures.length) {
+                            box.classList.add('completed');
+                        } else {
+                            box.classList.remove('completed');
+                        }
                     } else {
-                        box.classList.remove('completed');
+                        box.style.display = 'none';  // Hide boxes 4 and 5
                     }
                 }
             } else {
@@ -783,6 +793,15 @@
                 points: []
             };
             
+            // Redraw dots if we're on the dots challenge
+            if (state.currentStage === 3) {
+                const drawingIndex = state.samples.drawings.length;
+                const challenge = state.selectedChallenges[drawingIndex];
+                if (challenge && (challenge.validation === 'dots' || challenge.prompt.includes('dots'))) {
+                    setTimeout(() => drawDots(), 50);
+                }
+            }
+            
             // Haptic feedback
             if ('vibrate' in navigator) {
                 navigator.vibrate(20);
@@ -803,6 +822,47 @@
         function selectRandomChallenges() {
             const shuffled = [...drawingChallenges.creative].sort(() => 0.5 - Math.random());
             state.selectedChallenges = shuffled.slice(0, 5); // Select 5 random challenges
+        }
+        
+        // Function to draw dots on the canvas
+        function drawDots() {
+            const canvas = document.getElementById('signature-pad');
+            const ctx = canvas.getContext('2d');
+            
+            // Save the current signature data
+            const currentData = signaturePad.toData();
+            
+            // Clear and redraw
+            signaturePad.clear();
+            
+            // Define 4 dot positions (spread across canvas)
+            const dots = [
+                { x: canvas.width * 0.25, y: canvas.height * 0.25 },
+                { x: canvas.width * 0.75, y: canvas.height * 0.25 },
+                { x: canvas.width * 0.25, y: canvas.height * 0.75 },
+                { x: canvas.width * 0.75, y: canvas.height * 0.75 }
+            ];
+            
+            // Draw the dots
+            ctx.fillStyle = '#667eea';
+            dots.forEach(dot => {
+                ctx.beginPath();
+                ctx.arc(dot.x, dot.y, 8, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                // Add numbers to dots
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 12px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(dots.indexOf(dot) + 1, dot.x, dot.y);
+                ctx.fillStyle = '#667eea';
+            });
+            
+            // Restore previous strokes if any
+            if (currentData.length > 0) {
+                signaturePad.fromData(currentData);
+            }
         }
         
         // Next button handler
@@ -855,7 +915,7 @@
                 }
                 
                 // Check if we have enough signatures
-                if (state.samples.signatures.length >= 5) {
+                if (state.samples.signatures.length >= 3) {  // Changed from 5 to 3
                     // Move to shapes stage
                     state.currentStage = 2;
                     updateStageIndicator();
@@ -924,19 +984,8 @@
             nextButton.innerHTML = '<div class="spinner" style="width: 20px; height: 20px; margin: 0 auto;"></div>';
             
             try {
-                // Calculate best signatures (most consistent ones)
-                const signatureScores = state.samples.signatures.map((sig, index) => {
-                    if (index === 0) return { index, score: 1 };
-                    const consistency = checkSignatureConsistency(
-                        sig,
-                        state.samples.signatures.slice(0, index)
-                    );
-                    return { index, score: consistency };
-                });
-                
-                // Sort by consistency and take top 3
-                signatureScores.sort((a, b) => b.score - a.score);
-                const bestSignatures = signatureScores.slice(0, 3).map(s => state.samples.signatures[s.index]);
+                // Since we only have 3, use all of them
+                const bestSignatures = state.samples.signatures; // Use all 3 signatures
                 
                 // Prepare enrollment data
                 const enrollmentData = {
