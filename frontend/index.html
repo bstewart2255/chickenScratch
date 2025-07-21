@@ -249,6 +249,8 @@
             text-align: center;
             font-weight: 500;
             animation: slideIn 0.3s ease;
+            position: relative;  /* Add this */
+            z-index: 100;       /* Add this */
         }
         
         @keyframes slideIn {
@@ -716,8 +718,16 @@
                 instructions.innerHTML = "Finally, let's add some creative drawings that only you would draw this way.";
                 const drawingIndex = state.samples.drawings.length;
                 const challenge = state.selectedChallenges[drawingIndex];
-                drawingPrompt.textContent = challenge.prompt;
-                drawingPrompt.style.display = 'block';
+                
+                // Add safety check
+                if (challenge && challenge.prompt) {
+                    drawingPrompt.textContent = challenge.prompt;
+                    drawingPrompt.style.display = 'block';
+                } else {
+                    console.error('No challenge found at index', drawingIndex);
+                    drawingPrompt.textContent = 'Draw something creative';
+                    drawingPrompt.style.display = 'block';
+                }
             }
         }
         

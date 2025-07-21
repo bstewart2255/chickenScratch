@@ -14,17 +14,33 @@ const pool = new Pool({
     }
 });
 
-// Middleware
-// Update CORS to allow your frontend
-app.use(cors({
-    origin: [
-        'http://localhost:8000',
-        'https://signatureauth-frontend.onrender.com', // Your frontend URL
-        'https://chickenscratch.onrender.com' // In case
-    ],
-    credentials: true
-}));
-app.use(bodyParser.json({ limit: '10mb' }));
+// Update CORS configuration
+const corsOptions = {
+    origin: function (origin, callback) {
+        const allowedOrigins = [
+            'http://localhost:8000',
+            'http://localhost:3000',
+            'https://chickenscratch.onrender.com',
+            'https://chickenscratch-1.onrender.com',
+            'https://signatureauth-frontend.onrender.com'  // Add your actual frontend URL
+        ];
+        
+        // Allow requests with no origin (like mobile apps or curl)
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            console.log('Blocked origin:', origin);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+app.use(cors(corsOptions));
 
 // Helper functions remain the same
 function extractSignatureFeatures(signatureDataUrl) {
