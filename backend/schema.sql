@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS signatures (
     user_id INTEGER REFERENCES users(id),
     signature_data JSONB NOT NULL,
     features JSONB,
+    metrics JSONB,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -20,6 +21,7 @@ CREATE TABLE IF NOT EXISTS shapes (
     user_id INTEGER REFERENCES users(id),
     shape_type VARCHAR(50),
     shape_data JSONB NOT NULL,
+    metrics JSONB,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -32,3 +34,7 @@ CREATE TABLE IF NOT EXISTS auth_attempts (
     device_info VARCHAR(255),
     created_at TIMESTAMP DEFAULT NOW()
 );
+
+-- Add metrics columns to existing tables (run these if tables already exist)
+-- ALTER TABLE signatures ADD COLUMN IF NOT EXISTS metrics JSONB;
+-- ALTER TABLE shapes ADD COLUMN IF NOT EXISTS metrics JSONB;

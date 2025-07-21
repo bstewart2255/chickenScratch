@@ -45,6 +45,17 @@ async function setupDatabase() {
       )
     `);
     console.log('✅ Shapes table created');
+
+    // Add metrics column to existing tables
+    await pool.query(`
+        ALTER TABLE signatures ADD COLUMN IF NOT EXISTS metrics JSONB
+    `);
+    console.log('✅ Added metrics column to signatures table');
+
+    await pool.query(`
+        ALTER TABLE shapes ADD COLUMN IF NOT EXISTS metrics JSONB
+    `);
+    console.log('✅ Added metrics column to shapes table');
     
     console.log('\n🎉 Database setup complete!');
     

@@ -558,7 +558,8 @@
             strokeCount: 0,
             totalDistance: 0,
             averageSpeed: 0,
-            points: []
+            points: [],
+            retryCount: 0
         };
         
         // Signature pad event listeners
@@ -583,9 +584,16 @@
             const data = signaturePad.toData();
             let totalPoints = 0;
             let totalDistance = 0;
+            let allPoints = [];
             
+            // Collect all points for bounding box
             data.forEach(stroke => {
                 totalPoints += stroke.points.length;
+                stroke.points.forEach(point => {
+                    allPoints.push({x: point.x, y: point.y});
+                });
+                
+                // Calculate distances
                 for (let i = 1; i < stroke.points.length; i++) {
                     const p1 = stroke.points[i - 1];
                     const p2 = stroke.points[i];
@@ -596,17 +604,65 @@
                 }
             });
             
-            const duration = drawingMetrics.startTime ? Date.now() - drawingMetrics.startTime : 0;
-            const averageSpeed = duration > 0 ? totalDistance / duration : 0;
+            // Calculate bounding box
+            const xs = allPoints.map(p => p.x);
+            const ys = allPoints.map(p => p.y);
+            const canvas = document.getElementById('signature-pad');
             
-            return {
-                strokeCount: drawingMetrics.strokeCount,
-                totalPoints,
-                totalDistance: Math.round(totalDistance),
-                duration,
-                averageSpeed: averageSpeed.toFixed(3),
-                timestamp: Date.now()
+            let boundingBox = {
+                width: 0,
+                height: 0,
+                center_x: canvas.width / 2,
+                center_y: canvas.height / 2
             };
+            
+            if (allPoints.length > 0) {
+                boundingBox = {
+                    width: Math.max(...xs) - Math.min(...xs),
+                    height: Math.max(...ys) - Math.min(...ys),
+                    center_x: (Math.max(...xs) + Math.min(...xs)) / 2,
+                    center_y: (Math.max(...ys) + Math.min(...ys)) / 2
+                };
+            }
+            
+            const duration = drawingMetrics.startTime ? Date.now() - drawingMetrics.startTime : 0;
+            const canvasCoverage = allPoints.length > 0 ? 
+                (boundingBox.width * boundingBox.height) / (canvas.width * canvas.height) : 0;
+            
+            const metrics = {
+                basic: {
+                    stroke_count: data.length,
+                    total_points: totalPoints,
+                    duration_ms: duration,
+                    bounding_box: boundingBox,
+                    total_distance: Math.round(totalDistance),
+                    avg_speed: duration > 0 ? (totalDistance / duration).toFixed(3) : "0"
+                },
+                context: {
+                    device_type: detectDeviceType(),
+                    input_method: detectInputMethod(),
+                    canvas_coverage: (canvasCoverage * 100).toFixed(1),
+                    timestamp: new Date().toISOString(),
+                    retry_count: drawingMetrics.retryCount || 0
+                }
+            };
+            
+            // Log metrics for debugging
+            console.log('Calculated metrics:', metrics);
+            
+            return metrics;
+        }
+        
+        // Add these helper functions
+        function detectDeviceType() {
+            const ua = navigator.userAgent;
+            if (/tablet|ipad|playbook|silk/i.test(ua)) return 'tablet';
+            if (/mobile|iphone|ipod|android|blackberry|opera|mini|windows\sce|palm|smartphone|iemobile/i.test(ua)) return 'mobile';
+            return 'desktop';
+        }
+        
+        function detectInputMethod() {
+            return 'ontouchstart' in window ? 'touch' : 'mouse';
         }
         
         // Consistency checking
@@ -787,12 +843,14 @@
         // Clear button
         document.getElementById('clear').addEventListener('click', () => {
             signaturePad.clear();
+            const previousRetryCount = drawingMetrics.retryCount;
             drawingMetrics = {
                 startTime: null,
                 strokeCount: 0,
                 totalDistance: 0,
                 averageSpeed: 0,
-                points: []
+                points: [],
+                retryCount: previousRetryCount + 1
             };
             
             // Redraw dots if we're on the dots challenge
@@ -965,7 +1023,8 @@
                 strokeCount: 0,
                 totalDistance: 0,
                 averageSpeed: 0,
-                points: []
+                points: [],
+                retryCount: 0  // Reset retry count for new sample
             };
             
             // Update UI

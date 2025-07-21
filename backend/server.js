@@ -122,16 +122,26 @@ app.post('/register', async (req, res) => {
         // Save signatures (multiple samples)
         for (const signature of signatures) {
             await pool.query(
-                'INSERT INTO signatures (user_id, signature_data, features) VALUES ($1, $2, $3)',
-                [userId, JSON.stringify(signature), JSON.stringify(extractSignatureFeatures(signature.data))]
+                'INSERT INTO signatures (user_id, signature_data, features, metrics) VALUES ($1, $2, $3, $4)',
+                [
+                    userId, 
+                    JSON.stringify(signature), 
+                    JSON.stringify(extractSignatureFeatures(signature.data)),
+                    JSON.stringify(signature.metrics || {})  // Add metrics
+                ]
             );
         }
         
         // Save shapes
         for (const [shapeType, shapeData] of Object.entries(shapes)) {
             await pool.query(
-                'INSERT INTO shapes (user_id, shape_type, shape_data) VALUES ($1, $2, $3)',
-                [userId, shapeType, JSON.stringify(shapeData)]
+                'INSERT INTO shapes (user_id, shape_type, shape_data, metrics) VALUES ($1, $2, $3, $4)',
+                [
+                    userId, 
+                    shapeType, 
+                    JSON.stringify(shapeData),
+                    JSON.stringify(shapeData.metrics || {})  // Add metrics
+                ]
             );
         }
         
@@ -305,6 +315,50 @@ app.get('/users', async (req, res) => {
     } catch (error) {
         console.error('Error fetching users:', error);
         res.status(500).json({ error: 'Failed to fetch users' });
+    }
+});
+
+// Debug endpoint to check metrics storage
+app.get('/debug/metrics/:username', async (req, res) => {
+    try {
+        const userResult = await pool.query(
+            'SELECT id FROM users WHERE username = $1',
+            [req.params.username]
+        );
+        
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        const userId = userResult.rows[0].id;
+        
+        // Get signatures with metrics
+        const signatures = await pool.query(
+            'SELECT metrics, created_at FROM signatures WHERE user_id = $1 ORDER BY created_at DESC',
+            [userId]
+        );
+        
+        // Get shapes with metrics
+        const shapes = await pool.query(
+            'SELECT shape_type, metrics, created_at FROM shapes WHERE user_id = $1 ORDER BY created_at DESC',
+            [userId]
+        );
+        
+        res.json({
+            username: req.params.username,
+            signatures: signatures.rows.map(row => ({
+                metrics: row.metrics,
+                created_at: row.created_at
+            })),
+            shapes: shapes.rows.map(row => ({
+                type: row.shape_type,
+                metrics: row.metrics,
+                created_at: row.created_at
+            }))
+        });
+    } catch (error) {
+        console.error('Debug metrics error:', error);
+        res.status(500).json({ error: error.message });
     }
 });
 
