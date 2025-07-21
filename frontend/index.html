@@ -1071,7 +1071,20 @@
                 }
             } catch (error) {
                 console.error('Enrollment error:', error);
-                showMessage('Connection error. Please try again.', true);
+                let errorMsg = 'Connection error. Please try again.';
+                
+                if (error.message.includes('Failed to fetch')) {
+                    errorMsg = 'Cannot connect to server. Please check your connection.';
+                } else if (error.message.includes('CORS')) {
+                    errorMsg = 'Server configuration error (CORS). Please try again later.';
+                } else if (error.message) {
+                    errorMsg = `Error: ${error.message}`;
+                }
+                
+                showMessage(errorMsg, true);
+                console.log('API URL:', API_URL);
+                console.log('Full error:', error);
+                
                 nextButton.disabled = false;
                 nextButton.textContent = 'Retry';
             }
@@ -1245,6 +1258,29 @@
         if (state.mode === 'enrollment') {
             document.getElementById('username').style.display = 'block';
         }
+        
+        // Health check on load
+        async function checkAPIHealth() {
+            try {
+                const response = await fetch(`${API_URL}/test`);
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Backend API is healthy:', data);
+                } else {
+                    console.error('Backend API returned error:', response.status, response.statusText);
+                    showMessage('Warning: Server may be starting up. Please wait a moment.', true);
+                }
+            } catch (error) {
+                console.error('Cannot connect to backend API:', error);
+                console.log('Attempted URL:', `${API_URL}/test`);
+                if (window.location.hostname === 'chickenscratch-1.onrender.com') {
+                    showMessage('Server is starting up. Please wait 30 seconds and refresh.', true);
+                }
+            }
+        }
+        
+        // Check API health on page load
+        checkAPIHealth();
     </script>
 </body>
 </html>
