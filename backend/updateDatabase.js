@@ -64,6 +64,31 @@ async function updateDatabase() {
         `);
         console.table(shapeColumns.rows);
         
+        // Check if auth_attempts table exists
+        const authTableResult = await pool.query(`
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_schema = 'public' 
+            AND table_name = 'auth_attempts'
+        `);
+        
+        if (authTableResult.rows.length === 0) {
+            console.log('Creating auth_attempts table...');
+            await pool.query(`
+                CREATE TABLE auth_attempts (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER REFERENCES users(id),
+                    success BOOLEAN NOT NULL,
+                    confidence DECIMAL(5,2),
+                    device_info VARCHAR(255),
+                    created_at TIMESTAMP DEFAULT NOW()
+                )
+            `);
+            console.log('✅ Created auth_attempts table');
+        } else {
+            console.log('✅ Auth_attempts table already exists');
+        }
+        
         console.log('\n✅ Database update complete!');
         
     } catch (error) {
