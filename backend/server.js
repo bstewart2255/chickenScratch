@@ -137,10 +137,33 @@ app.post('/register', async (req, res) => {
         
         // Save creative drawings
         for (const [drawingType, drawingData] of Object.entries(drawings)) {
-            await pool.query(
-                'INSERT INTO shapes (user_id, shape_type, shape_data) VALUES ($1, $2, $3)',
-                [userId, `drawing_${drawingType}`, JSON.stringify(drawingData)]
-            );
+            try {
+                // Limit the size of drawing data to prevent database errors
+                const drawingDataStr = JSON.stringify(drawingData);
+                if (drawingDataStr.length > 50000) {
+                    console.warn(`Drawing ${drawingType} data too large (${drawingDataStr.length} chars), storing compressed version`);
+                    // Store only essential data for large drawings
+                    const compressedData = {
+                        type: drawingData.type,
+                        prompt: drawingData.prompt,
+                        metrics: drawingData.metrics,
+                        dataLength: drawingDataStr.length,
+                        truncated: true
+                    };
+                    await pool.query(
+                        'INSERT INTO shapes (user_id, shape_type, shape_data) VALUES ($1, $2, $3)',
+                        [userId, `drawing_${drawingType}`, JSON.stringify(compressedData)]
+                    );
+                } else {
+                    await pool.query(
+                        'INSERT INTO shapes (user_id, shape_type, shape_data) VALUES ($1, $2, $3)',
+                        [userId, `drawing_${drawingType}`, drawingDataStr]
+                    );
+                }
+            } catch (drawingError) {
+                console.error(`Error saving drawing ${drawingType}:`, drawingError);
+                // Continue with other drawings
+            }
         }
         
         // Log metadata if provided
@@ -159,7 +182,22 @@ app.post('/register', async (req, res) => {
     } catch (error) {
         await pool.query('ROLLBACK');
         console.error('Registration error:', error);
-        res.status(500).json({ error: 'Registration failed: ' + error.message });
+        console.error('Error stack:', error.stack);
+        
+        // Provide more specific error messages
+        let errorMessage = 'Registration failed';
+        if (error.code === '22001') {
+            errorMessage = 'Data too large - please try drawing with fewer strokes';
+        } else if (error.code === '23505') {
+            errorMessage = 'Username already taken';
+        } else if (error.message) {
+            errorMessage = `Registration failed: ${error.message}`;
+        }
+        
+        res.status(500).json({ 
+            error: errorMessage,
+            code: error.code 
+        });
     }
 });
 
