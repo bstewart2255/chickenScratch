@@ -1051,8 +1051,21 @@
                         </div>
                     `;
                 } else {
-                    const error = await response.json();
-                    showMessage(error.message || 'Enrollment failed', true);
+                    let errorMessage = 'Enrollment failed';
+                    try {
+                        const contentType = response.headers.get("content-type");
+                        if (contentType && contentType.includes("application/json")) {
+                            const error = await response.json();
+                            errorMessage = error.message || error.error || errorMessage;
+                        } else {
+                            // Server returned HTML error page
+                            errorMessage = `Server error (${response.status}): ${response.statusText}`;
+                        }
+                    } catch (parseError) {
+                        console.error('Error parsing response:', parseError);
+                        errorMessage = `Server error (${response.status})`;
+                    }
+                    showMessage(errorMessage, true);
                     nextButton.disabled = false;
                     nextButton.textContent = 'Retry';
                 }
@@ -1189,8 +1202,21 @@
                         `;
                     }, 2000);
                 } else {
-                    const error = await response.json();
-                    showMessage(error.message || 'Authentication failed', true);
+                    let errorMessage = 'Authentication failed';
+                    try {
+                        const contentType = response.headers.get("content-type");
+                        if (contentType && contentType.includes("application/json")) {
+                            const error = await response.json();
+                            errorMessage = error.message || error.error || errorMessage;
+                        } else {
+                            // Server returned HTML error page
+                            errorMessage = `Server error (${response.status}): ${response.statusText}`;
+                        }
+                    } catch (parseError) {
+                        console.error('Error parsing response:', parseError);
+                        errorMessage = `Server error (${response.status})`;
+                    }
+                    showMessage(errorMessage, true);
                     nextButton.disabled = false;
                     nextButton.textContent = 'Sign In';
                 }

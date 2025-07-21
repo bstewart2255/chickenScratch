@@ -75,6 +75,15 @@ function compareSignatures(signature1, signature2) {
 app.post('/register', async (req, res) => {
     const { username, signatures, shapes, drawings, metadata } = req.body;
     
+    // Log incoming data structure for debugging
+    console.log('Registration request received:', {
+        username,
+        signaturesCount: signatures?.length,
+        shapesCount: shapes ? Object.keys(shapes).length : 0,
+        drawingsCount: drawings ? Object.keys(drawings).length : 0,
+        hasMetadata: !!metadata
+    });
+    
     // Validation
     if (!username || !signatures || signatures.length === 0) {
         return res.status(400).json({ error: 'Username and signatures required' });
@@ -249,13 +258,21 @@ app.get('/users', async (req, res) => {
     }
 });
 
-// Test endpoint remains the same
+// Test endpoint with enhanced info
 app.get('/test', (req, res) => {
     res.json({ 
         message: 'Server is working!',
-        version: '2.0.0', // Updated version
+        version: '2.1.0', // Updated version
         database: 'PostgreSQL',
-        endpoints: ['POST /register', 'POST /login', 'GET /users', 'GET /test']
+        endpoints: ['POST /register', 'POST /login', 'GET /users', 'GET /test'],
+        features: {
+            multipleSignatures: true,
+            shapes: true,
+            drawings: true,
+            expectedSignatures: 3,
+            expectedShapes: 3,
+            expectedDrawings: 5
+        }
     });
 });
 
