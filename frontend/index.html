@@ -480,7 +480,6 @@
         
         <!-- Buttons -->
         <button class="clear" id="clear">Clear</button>
-        <button class="secondary" id="undo" style="display: none;">Undo Last Stroke</button>
         <button class="primary" id="next">Next</button>
         
         <div id="message"></div>
@@ -537,8 +536,7 @@
                 current: 0
             },
             selectedChallenges: [],
-            userConfidence: 0,
-            strokeHistory: []
+            userConfidence: 0
         };
         
         // Initialize signature pad
@@ -575,12 +573,7 @@
         });
         
         signaturePad.addEventListener("endStroke", () => {
-            // Store stroke for undo functionality
-            const data = signaturePad.toData();
-            state.strokeHistory = data;
-            
-            // Update undo button visibility
-            document.getElementById('undo').style.display = data.length > 1 ? 'block' : 'none';
+            // Stroke ended - no undo functionality needed
         });
         
         // Calculate drawing metrics
@@ -789,25 +782,10 @@
                 averageSpeed: 0,
                 points: []
             };
-            state.strokeHistory = [];
-            document.getElementById('undo').style.display = 'none';
             
             // Haptic feedback
             if ('vibrate' in navigator) {
                 navigator.vibrate(20);
-            }
-        });
-        
-        // Undo button
-        document.getElementById('undo').addEventListener('click', () => {
-            const data = signaturePad.toData();
-            if (data.length > 0) {
-                data.pop(); // Remove last stroke
-                signaturePad.fromData(data);
-                drawingMetrics.strokeCount--;
-                
-                // Update undo button visibility
-                document.getElementById('undo').style.display = data.length > 0 ? 'block' : 'none';
             }
         });
         
