@@ -1094,6 +1094,19 @@
                     }
                 };
                 
+                // Log enrollment data for debugging
+                const dataSize = JSON.stringify(enrollmentData).length;
+                console.log('Sending enrollment data:', {
+                    username: enrollmentData.username,
+                    signaturesCount: enrollmentData.signatures?.length,
+                    shapesCount: Object.keys(enrollmentData.shapes || {}).length,
+                    drawingsCount: Object.keys(enrollmentData.drawings || {}).length,
+                    shapes: Object.keys(enrollmentData.shapes || {}),
+                    drawings: Object.keys(enrollmentData.drawings || {}),
+                    totalDataSize: dataSize,
+                    dataSizeKB: (dataSize / 1024).toFixed(2) + ' KB'
+                });
+                
                 // Send to backend
                 const response = await fetch(`${API_URL}/register`, {
                     method: 'POST',
@@ -1136,14 +1149,20 @@
                         </div>
                     `;
                 } else {
+                    console.error('Registration failed with status:', response.status);
                     let errorMessage = 'Enrollment failed';
                     try {
                         const contentType = response.headers.get("content-type");
+                        console.log('Response content-type:', contentType);
+                        
                         if (contentType && contentType.includes("application/json")) {
                             const error = await response.json();
+                            console.error('Server error response:', error);
                             errorMessage = error.message || error.error || errorMessage;
                         } else {
-                            // Server returned HTML error page
+                            // Try to read the response text
+                            const text = await response.text();
+                            console.error('Server response text:', text);
                             errorMessage = `Server error (${response.status}): ${response.statusText}`;
                         }
                     } catch (parseError) {
