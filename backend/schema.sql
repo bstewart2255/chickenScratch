@@ -22,3 +22,13 @@ CREATE TABLE IF NOT EXISTS shapes (
     shape_data JSONB NOT NULL,
     created_at TIMESTAMP DEFAULT NOW()
 );
+
+-- Authentication attempts table
+CREATE TABLE IF NOT EXISTS auth_attempts (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),
+    success BOOLEAN NOT NULL,
+    confidence DECIMAL(5,2),
+    device_info VARCHAR(255),
+    created_at TIMESTAMP DEFAULT NOW()
+);

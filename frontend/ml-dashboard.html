@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ML Dashboard - Signature Authentication</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+        
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Grid Layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        .icon-blue { background: #e6f0ff; color: #667eea; }
+        .icon-green { background: #d4f4dd; color: #1e7e34; }
+        .icon-purple { background: #f5f3ff; color: #764ba2; }
+        .icon-orange { background: #fff3cd; color: #ff6b6b; }
+        
+        /* Metrics */
+        .metric-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #1a202c;
+            margin: 10px 0;
+        }
+        
+        .metric-label {
+            color: #718096;
+            font-size: 14px;
+        }
+        
+        .metric-change {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        
+        .change-positive {
+            background: #d4f4dd;
+            color: #1e7e34;
+        }
+        
+        .change-negative {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        /* Charts */
+        .chart-container {
+            width: 100%;
+            height: 300px;
+            margin-top: 20px;
+        }
+        
+        /* Table */
+        .data-table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+        
+        .data-table th {
+            background: #f7fafc;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #4a5568;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .data-table tr:hover {
+            background: #f7fafc;
+        }
+        
+        /* Status badges */
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .badge-success {
+            background: #d4f4dd;
+            color: #1e7e34;
+        }
+        
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        /* Progress bars */
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+        }
+        
+        /* Filters */
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        
+        .filter-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+        
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        /* Loading spinner */
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filters {
+                flex-direction: column;
+            }
+            
+            .filter-btn {
+                width: 100%;
+            }
+        }
+        
+        /* Large card for charts */
+        .card-large {
+            grid-column: span 2;
+        }
+        
+        @media (max-width: 768px) {
+            .card-large {
+                grid-column: span 1;
+            }
+        }
+        
+        /* Feature distribution */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .feature-item {
+            text-align: center;
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 8px;
+        }
+        
+        .feature-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .feature-label {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 5px;
+        }
+        
+        /* Buttons */
+        button.primary {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        
+        button.primary:hover {
+            background: #5a67d8;
+        }
+        
+        button.secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        
+        button.secondary:hover {
+            background: #cbd5e0;
+        }
+        
+        /* Notifications */
+        .message {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 500;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .success {
+            background: #d4f4dd;
+            color: #1e7e34;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1>ML Dashboard</h1>
+            <p>Signature Authentication System Performance</p>
+        </div>
+    </div>
+    
+    <div class="container">
+        <!-- Time filters -->
+        <div class="filters">
+            <button class="filter-btn active" data-period="today">Today</button>
+            <button class="filter-btn" data-period="week">Last 7 Days</button>
+            <button class="filter-btn" data-period="month">Last 30 Days</button>
+            <button class="filter-btn" data-period="all">All Time</button>
+        </div>
+        
+        <!-- Key Metrics -->
+        <div class="dashboard-grid">
+            <!-- Total Users -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Total Users</h3>
+                    <div class="card-icon icon-blue">👥</div>
+                </div>
+                <div class="metric-value" id="totalUsers">0</div>
+                <div class="metric-label">Enrolled users</div>
+                <div class="metric-change change-positive">+12% from last week</div>
+            </div>
+            
+            <!-- Model Accuracy -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Model Accuracy</h3>
+                    <div class="card-icon icon-green">🎯</div>
+                </div>
+                <div class="metric-value" id="modelAccuracy">0%</div>
+                <div class="metric-label">Overall accuracy</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="accuracyProgress" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <!-- Authentication Attempts -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Auth Attempts</h3>
+                    <div class="card-icon icon-purple">🔐</div>
+                </div>
+                <div class="metric-value" id="authAttempts">0</div>
+                <div class="metric-label">Last 24 hours</div>
+                <div class="metric-change change-positive" id="authChange">Normal activity</div>
+            </div>
+            
+            <!-- False Positive Rate -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">False Positive Rate</h3>
+                    <div class="card-icon icon-orange">⚠️</div>
+                </div>
+                <div class="metric-value" id="falsePositiveRate">0%</div>
+                <div class="metric-label">Forgeries accepted</div>
+                <div class="metric-change change-positive">Within threshold</div>
+            </div>
+        </div>
+        
+        <!-- Charts Section -->
+        <div class="dashboard-grid">
+            <!-- Performance Over Time -->
+            <div class="card card-large">
+                <h3 class="card-title">Performance Metrics Over Time</h3>
+                <canvas id="performanceChart" class="chart-container"></canvas>
+            </div>
+            
+            <!-- Feature Importance -->
+            <div class="card">
+                <h3 class="card-title">Feature Importance</h3>
+                <div class="feature-grid" id="featureGrid">
+                    <div class="feature-item">
+                        <div class="feature-value">85%</div>
+                        <div class="feature-label">Stroke Count</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-value">78%</div>
+                        <div class="feature-label">Velocity</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-value">72%</div>
+                        <div class="feature-label">Duration</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-value">65%</div>
+                        <div class="feature-label">Shape Area</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- User Distribution -->
+            <div class="card">
+                <h3 class="card-title">User Signature Distribution</h3>
+                <canvas id="distributionChart" style="height: 200px;"></canvas>
+            </div>
+        </div>
+        
+        <!-- Recent Activity Table -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Recent Authentication Activity</h3>
+                <div style="display: flex; gap: 10px;">
+                    <button class="filter-btn" onclick="toggleRealtimeUpdates()" id="realtimeBtn">
+                        <span id="realtimeStatus">🔴</span> Real-time
+                    </button>
+                    <button class="filter-btn" onclick="openRetrainModal()">
+                        🔄 Retrain Model
+                    </button>
+                </div>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>User</th>
+                        <th>Type</th>
+                        <th>Confidence</th>
+                        <th>Status</th>
+                        <th>Device</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="activityTable">
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px;">
+                            <div class="spinner"></div>
+                            <p style="margin-top: 10px; color: #718096;">Loading activity data...</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Training Data Stats -->
+        <div class="dashboard-grid">
+            <div class="card">
+                <h3 class="card-title">Training Data Statistics</h3>
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <div class="feature-value" id="genuineSamples">0</div>
+                        <div class="feature-label">Genuine Samples</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-value" id="forgerySamples">0</div>
+                        <div class="feature-label">Forgery Samples</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-value" id="avgSamplesPerUser">0</div>
+                        <div class="feature-label">Avg per User</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-value" id="dataBalance">0%</div>
+                        <div class="feature-label">Data Balance</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3 class="card-title">Model Performance by User Type</h3>
+                <canvas id="userTypeChart" style="height: 200px;"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- User Detail Modal -->
+    <div id="userModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+        <div style="position: relative; margin: 50px auto; max-width: 800px; background: white; border-radius: 12px; padding: 30px; max-height: 80vh; overflow-y: auto;">
+            <button onclick="closeUserModal()" style="position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 24px; cursor: pointer;">×</button>
+            <h2 id="modalUserName" style="margin-bottom: 20px;">User Details</h2>
+            <div id="userDetailsContent">
+                <!-- User details will be loaded here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Model Retraining Modal -->
+    <div id="retrainModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+        <div style="position: relative; margin: 100px auto; max-width: 500px; background: white; border-radius: 12px; padding: 30px;">
+            <h2>Retrain ML Model</h2>
+            <p style="color: #666; margin: 20px 0;">This will retrain the model with all current signature data. The process may take a few minutes.</p>
+            <div id="retrainProgress" style="display: none;">
+                <div class="progress-bar" style="margin: 20px 0;">
+                    <div class="progress-fill" id="retrainProgressBar" style="width: 0%"></div>
+                </div>
+                <p id="retrainStatus" style="text-align: center; color: #667eea;">Initializing...</p>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="primary" onclick="startRetraining()" id="startRetrainBtn">Start Retraining</button>
+                <button class="secondary" onclick="closeRetrainModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Configuration
+        const API_URL = 'https://chickenscratch.onrender.com';
+        const ML_API_URL = 'https://chickenscratch.onrender.com';
+        
+        // WebSocket for real-time updates
+        let ws = null;
+        let reconnectInterval = null;
+        let realtimeEnabled = false;
+        let charts = {};
+        
+        // Mock data for demonstration
+        const mockData = {
+            users: 47,
+            accuracy: 92.3,
+            authAttempts: 156,
+            falsePositiveRate: 2.1,
+            genuineSamples: 235,
+            forgerySamples: 89,
+            recentActivity: [
+                { id: 1, time: '2 min ago', user: 'alice', type: 'genuine', confidence: 94.2, status: 'success', device: 'iPhone 12' },
+                { id: 2, time: '5 min ago', user: 'bob', type: 'genuine', confidence: 87.5, status: 'success', device: 'Android' },
+                { id: 3, time: '12 min ago', user: 'charlie', type: 'forgery', confidence: 23.1, status: 'blocked', device: 'Desktop' },
+                { id: 4, time: '18 min ago', user: 'diana', type: 'genuine', confidence: 91.8, status: 'success', device: 'iPad' },
+                { id: 5, time: '25 min ago', user: 'eve', type: 'genuine', confidence: 95.6, status: 'success', device: 'Android' }
+            ],
+            userDetails: {
+                alice: {
+                    enrolledDate: '2024-01-15',
+                    totalAuths: 234,
+                    successRate: 94.5,
+                    avgConfidence: 93.2,
+                    signatures: [
+                        { date: '2024-01-15', samples: 3, consistency: 0.92 },
+                        { date: '2024-02-01', samples: 2, consistency: 0.88 },
+                        { date: '2024-02-15', samples: 3, consistency: 0.95 }
+                    ],
+                    devices: ['iPhone 12', 'iPad Pro', 'MacBook Pro'],
+                    recentAttempts: [
+                        { time: '2 min ago', confidence: 94.2, status: 'success' },
+                        { time: '1 hour ago', confidence: 92.8, status: 'success' },
+                        { time: '3 hours ago', confidence: 93.5, status: 'success' }
+                    ]
+                }
+            }
+        };
+        
+        // Initialize WebSocket connection
+        function initWebSocket() {
+            // In production, use wss:// for secure WebSocket
+            const wsUrl = 'wss://chickenscratch.onrender.com/ws';
+            
+            try {
+                // For demo, we'll simulate WebSocket with periodic updates
+                console.log('Connecting to WebSocket...');
+                
+                // Simulate real-time updates
+                if (realtimeEnabled) {
+                    simulateRealtimeUpdates();
+                }
+            } catch (error) {
+                console.error('WebSocket error:', error);
+                scheduleReconnect();
+            }
+        }
+        
+        // Simulate real-time updates for demo
+        function simulateRealtimeUpdates() {
+            const interval = setInterval(() => {
+                if (!realtimeEnabled) {
+                    clearInterval(interval);
+                    return;
+                }
+                
+                // Simulate new authentication attempt
+                const users = ['alice', 'bob', 'charlie', 'diana', 'eve', 'frank', 'grace'];
+                const devices = ['iPhone 12', 'Android', 'Desktop', 'iPad', 'MacBook'];
+                const isGenuine = Math.random() > 0.2;
+                const confidence = isGenuine ? 80 + Math.random() * 20 : 10 + Math.random() * 40;
+                
+                const newActivity = {
+                    id: Date.now(),
+                    time: 'just now',
+                    user: users[Math.floor(Math.random() * users.length)],
+                    type: isGenuine ? 'genuine' : 'forgery',
+                    confidence: confidence.toFixed(1),
+                    status: confidence > 50 ? 'success' : 'blocked',
+                    device: devices[Math.floor(Math.random() * devices.length)]
+                };
+                
+                // Add to activity table
+                addActivityRow(newActivity, true);
+                
+                // Update metrics
+                mockData.authAttempts++;
+                if (!isGenuine && confidence > 50) {
+                    mockData.falsePositiveRate = Math.min(5, mockData.falsePositiveRate + 0.1);
+                }
+                
+                updateMetrics();
+                
+                // Update charts with new data point
+                updateChartsRealtime();
+                
+            }, 5000); // Update every 5 seconds
+        }
+        
+        // Toggle real-time updates
+        function toggleRealtimeUpdates() {
+            realtimeEnabled = !realtimeEnabled;
+            const btn = document.getElementById('realtimeBtn');
+            const status = document.getElementById('realtimeStatus');
+            
+            if (realtimeEnabled) {
+                status.textContent = '🟢';
+                btn.classList.add('active');
+                initWebSocket();
+                showNotification('Real-time updates enabled', 'success');
+            } else {
+                status.textContent = '🔴';
+                btn.classList.remove('active');
+                showNotification('Real-time updates disabled', 'info');
+            }
+        }
+        
+        // User detail modal functions
+        async function showUserDetails(username) {
+            const modal = document.getElementById('userModal');
+            const content = document.getElementById('userDetailsContent');
+            
+            // Show loading state
+            content.innerHTML = '<div class="spinner"></div><p style="text-align: center; margin-top: 10px;">Loading user details...</p>';
+            modal.style.display = 'block';
+            
+            try {
+                // Fetch real user data
+                const response = await fetch(`${API_URL}/api/user/${username}/details`);
+                if (response.ok) {
+                    const userInfo = await response.json();
+                    
+                    document.getElementById('modalUserName').textContent = `User: ${username}`;
+                    
+                    content.innerHTML = `
+                <div class="dashboard-grid" style="margin-bottom: 20px;">
+                    <div class="card">
+                        <div class="metric-label">Enrolled Date</div>
+                        <div style="font-size: 18px; font-weight: 600;">${userInfo.enrolledDate}</div>
+                    </div>
+                    <div class="card">
+                        <div class="metric-label">Total Authentications</div>
+                        <div style="font-size: 18px; font-weight: 600;">${userInfo.totalAuths}</div>
+                    </div>
+                    <div class="card">
+                        <div class="metric-label">Success Rate</div>
+                        <div style="font-size: 18px; font-weight: 600;">${userInfo.successRate.toFixed(1)}%</div>
+                    </div>
+                    <div class="card">
+                        <div class="metric-label">Avg Confidence</div>
+                        <div style="font-size: 18px; font-weight: 600;">${userInfo.avgConfidence.toFixed(1)}%</div>
+                    </div>
+                </div>
+                
+                <h3 style="margin: 20px 0 10px;">Signature History</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Samples</th>
+                            <th>Consistency</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${userInfo.signatures.map(sig => `
+                            <tr>
+                                <td>${sig.date}</td>
+                                <td>${sig.samples}</td>
+                                <td><span class="badge ${sig.consistency > 0.9 ? 'badge-success' : 'badge-warning'}">${(sig.consistency * 100).toFixed(0)}%</span></td>
+                                <td><button class="filter-btn" onclick="viewSignatureSamples('${username}', '${sig.date}')">View Samples</button></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                
+                <h3 style="margin: 20px 0 10px;">Devices Used</h3>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    ${userInfo.devices.map(device => `
+                        <span class="badge badge-success">${device}</span>
+                    `).join('')}
+                </div>
+                
+                <h3 style="margin: 20px 0 10px;">Recent Authentication Attempts</h3>
+                <canvas id="userConfidenceChart" style="height: 200px; margin-top: 20px;"></canvas>
+            `;
+            
+            modal.style.display = 'block';
+            
+            // Create user-specific confidence chart
+            setTimeout(() => {
+                const ctx = document.getElementById('userConfidenceChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['6h ago', '5h ago', '4h ago', '3h ago', '2h ago', '1h ago', 'now'],
+                        datasets: [{
+                            label: 'Confidence Score',
+                            data: [92, 93.5, 91, 94.2, 92.8, 93.5, 94.2],
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                min: 0,
+                                max: 100
+                            }
+                        }
+                    }
+                });
+            }, 100);
+                    
+                    // Update confidence chart with real data if available
+                    if (userInfo.recentAttempts && userInfo.recentAttempts.length > 0) {
+                        const labels = userInfo.recentAttempts.map(a => a.time).reverse();
+                        const data = userInfo.recentAttempts.map(a => a.confidence).reverse();
+                        
+                        setTimeout(() => {
+                            const ctx = document.getElementById('userConfidenceChart').getContext('2d');
+                            new Chart(ctx, {
+                                type: 'line',
+                                data: {
+                                    labels: labels,
+                                    datasets: [{
+                                        label: 'Confidence Score',
+                                        data: data,
+                                        borderColor: '#667eea',
+                                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                                        tension: 0.4
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    scales: {
+                                        y: {
+                                            beginAtZero: false,
+                                            min: 0,
+                                            max: 100
+                                        }
+                                    }
+                                }
+                            });
+                        }, 100);
+                    }
+                } else {
+                    throw new Error('Failed to fetch user details');
+                }
+            } catch (error) {
+                console.error('Error fetching user details:', error);
+                // Fall back to mock data
+                const userInfo = mockData.userDetails[username] || {
+                    enrolledDate: '2024-01-20',
+                    totalAuths: Math.floor(Math.random() * 500),
+                    successRate: 85 + Math.random() * 10,
+                    avgConfidence: 85 + Math.random() * 10,
+                    signatures: [
+                        { date: '2024-01-20', samples: 3, consistency: 0.85 + Math.random() * 0.1 }
+                    ],
+                    devices: ['Unknown Device'],
+                    recentAttempts: []
+                };
+                
+                // Render with mock data
+                document.getElementById('modalUserName').textContent = `User: ${username}`;
+                content.innerHTML = `
+                    <div class="dashboard-grid" style="margin-bottom: 20px;">
+                        <div class="card">
+                            <div class="metric-label">Enrolled Date</div>
+                            <div style="font-size: 18px; font-weight: 600;">${userInfo.enrolledDate}</div>
+                        </div>
+                        <div class="card">
+                            <div class="metric-label">Total Authentications</div>
+                            <div style="font-size: 18px; font-weight: 600;">${userInfo.totalAuths}</div>
+                        </div>
+                        <div class="card">
+                            <div class="metric-label">Success Rate</div>
+                            <div style="font-size: 18px; font-weight: 600;">${userInfo.successRate.toFixed(1)}%</div>
+                        </div>
+                        <div class="card">
+                            <div class="metric-label">Avg Confidence</div>
+                            <div style="font-size: 18px; font-weight: 600;">${userInfo.avgConfidence.toFixed(1)}%</div>
+                        </div>
+                    </div>
+                    <p style="color: #ff6b6b; text-align: center;">Using demo data - backend not connected</p>
+                `;
+            }
+        }
+        
+        function closeUserModal() {
+            document.getElementById('userModal').style.display = 'none';
+        }
+        
+        function viewSignatureSamples(username, date) {
+            showNotification(`Viewing signature samples for ${username} from ${date}`, 'info');
+            // In production, this would open a detailed view of the signature samples
+        }
+        
+        // Model retraining functions
+        function openRetrainModal() {
+            document.getElementById('retrainModal').style.display = 'block';
+        }
+        
+        function closeRetrainModal() {
+            document.getElementById('retrainModal').style.display = 'none';
+            document.getElementById('retrainProgress').style.display = 'none';
+            document.getElementById('startRetrainBtn').style.display = 'inline-block';
+        }
+        
+        async function startRetraining() {
+            const progressDiv = document.getElementById('retrainProgress');
+            const progressBar = document.getElementById('retrainProgressBar');
+            const statusText = document.getElementById('retrainStatus');
+            const startBtn = document.getElementById('startRetrainBtn');
+            
+            progressDiv.style.display = 'block';
+            startBtn.style.display = 'none';
+            
+            // Simulate retraining process
+            const steps = [
+                { progress: 10, status: 'Loading training data...' },
+                { progress: 25, status: 'Preprocessing signatures...' },
+                { progress: 40, status: 'Extracting features...' },
+                { progress: 60, status: 'Training neural network...' },
+                { progress: 80, status: 'Validating model...' },
+                { progress: 95, status: 'Saving model...' },
+                { progress: 100, status: 'Complete!' }
+            ];
+            
+            for (const step of steps) {
+                progressBar.style.width = step.progress + '%';
+                statusText.textContent = step.status;
+                await new Promise(resolve => setTimeout(resolve, 1500));
+            }
+            
+            // Show success
+            showNotification('Model retrained successfully! New accuracy: 94.7%', 'success');
+            
+            // Update metrics
+            mockData.accuracy = 94.7;
+            updateMetrics();
+            
+            setTimeout(() => {
+                closeRetrainModal();
+            }, 2000);
+            
+            // Try to call real API
+            try {
+                const response = await fetch(`${ML_API_URL}/api/retrain-model`, { method: 'POST' });
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('Retraining initiated:', result);
+                }
+            } catch (error) {
+                console.error('Error calling retrain API:', error);
+            }
+        }
+        
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `message ${type === 'error' ? 'error' : 'success'}`;
+            notification.textContent = message;
+            notification.style.position = 'fixed';
+            notification.style.top = '20px';
+            notification.style.right = '20px';
+            notification.style.zIndex = '2000';
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+        
+        // Initialize dashboard
+        async function initDashboard() {
+            // Update metrics
+            updateMetrics();
+            
+            // Initialize charts
+            initPerformanceChart();
+            initDistributionChart();
+            initUserTypeChart();
+            
+            // Load activity table
+            loadActivityTable();
+            
+            // Set up filters
+            setupFilters();
+            
+            // Fetch ML-specific data
+            fetchMLData();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(() => {
+                updateMetrics();
+                fetchDashboardData();
+                fetchMLData();
+            }, 30000);
+        }
+        
+        // Update metrics
+        function updateMetrics() {
+            // Animate number changes
+            animateValue('totalUsers', 0, mockData.users, 1000);
+            animateValue('modelAccuracy', 0, mockData.accuracy, 1000, '%');
+            animateValue('authAttempts', 0, mockData.authAttempts, 1000);
+            animateValue('falsePositiveRate', 0, mockData.falsePositiveRate, 1000, '%');
+            
+            // Update progress bars
+            document.getElementById('accuracyProgress').style.width = mockData.accuracy + '%';
+            
+            // Update training data stats
+            animateValue('genuineSamples', 0, mockData.genuineSamples, 1000);
+            animateValue('forgerySamples', 0, mockData.forgerySamples, 1000);
+            animateValue('avgSamplesPerUser', 0, Math.round(mockData.genuineSamples / mockData.users), 1000);
+            
+            const balance = (mockData.forgerySamples / (mockData.genuineSamples + mockData.forgerySamples) * 100).toFixed(1);
+            animateValue('dataBalance', 0, balance, 1000, '%');
+        }
+        
+        // Animate value changes
+        function animateValue(id, start, end, duration, suffix = '') {
+            const element = document.getElementById(id);
+            if (!element) return;
+            
+            const range = end - start;
+            const increment = range / (duration / 16);
+            let current = start;
+            
+            const timer = setInterval(() => {
+                current += increment;
+                if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+                    current = end;
+                    clearInterval(timer);
+                }
+                element.textContent = Math.round(current) + suffix;
+            }, 16);
+        }
+        
+        // Initialize performance chart
+        function initPerformanceChart() {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            
+            charts.performance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [
+                        {
+                            label: 'Accuracy',
+                            data: [89.2, 90.5, 91.1, 90.8, 91.9, 92.1, 92.3],
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'False Positive Rate',
+                            data: [3.2, 2.8, 2.5, 2.7, 2.3, 2.2, 2.1],
+                            borderColor: '#ff6b6b',
+                            backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Update charts with real-time data
+        function updateChartsRealtime() {
+            if (charts.performance && realtimeEnabled) {
+                // Add new data point
+                const now = new Date();
+                const timeLabel = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                
+                // Shift data if too many points
+                if (charts.performance.data.labels.length > 20) {
+                    charts.performance.data.labels.shift();
+                    charts.performance.data.datasets[0].data.shift();
+                    charts.performance.data.datasets[1].data.shift();
+                }
+                
+                // Add new data
+                charts.performance.data.labels.push(timeLabel);
+                charts.performance.data.datasets[0].data.push(mockData.accuracy);
+                charts.performance.data.datasets[1].data.push(mockData.falsePositiveRate);
+                
+                charts.performance.update('none'); // Update without animation for smooth real-time
+            }
+        }
+        
+        // Initialize distribution chart
+        function initDistributionChart() {
+            const ctx = document.getElementById('distributionChart').getContext('2d');
+            
+            charts.distribution = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Consistent', 'Variable', 'Needs Training'],
+                    datasets: [{
+                        data: [65, 25, 10],
+                        backgroundColor: ['#667eea', '#764ba2', '#ff6b6b']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Initialize user type chart
+        function initUserTypeChart() {
+            const ctx = document.getElementById('userTypeChart').getContext('2d');
+            
+            charts.userType = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Desktop', 'Mobile', 'Tablet'],
+                    datasets: [{
+                        label: 'Success Rate',
+                        data: [94.5, 91.2, 93.8],
+                        backgroundColor: '#667eea'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Load activity table
+        function loadActivityTable() {
+            const tbody = document.getElementById('activityTable');
+            
+            // Clear loading state
+            tbody.innerHTML = '';
+            
+            // Add activity rows
+            mockData.recentActivity.forEach(activity => {
+                addActivityRow(activity);
+            });
+        }
+        
+        // Add a single activity row
+        function addActivityRow(activity, prepend = false) {
+            const tbody = document.getElementById('activityTable');
+            const row = document.createElement('tr');
+            
+            const statusBadge = activity.status === 'success' ? 
+                '<span class="badge badge-success">✓ Success</span>' : 
+                '<span class="badge badge-danger">✗ Blocked</span>';
+            
+            const confidenceBadge = activity.confidence > 80 ? 
+                'badge-success' : activity.confidence > 50 ? 
+                'badge-warning' : 'badge-danger';
+            
+            row.innerHTML = `
+                <td>${activity.time}</td>
+                <td><strong>${activity.user}</strong></td>
+                <td>${activity.type}</td>
+                <td><span class="badge ${confidenceBadge}">${activity.confidence}%</span></td>
+                <td>${statusBadge}</td>
+                <td>${activity.device}</td>
+                <td>
+                    <button class="filter-btn" onclick="showUserDetails('${activity.user}')" style="padding: 4px 8px; font-size: 12px;">
+                        View Details
+                    </button>
+                </td>
+            `;
+            
+            if (prepend) {
+                tbody.insertBefore(row, tbody.firstChild);
+                row.style.backgroundColor = '#f5f3ff';
+                setTimeout(() => {
+                    row.style.backgroundColor = '';
+                    row.style.transition = 'background-color 2s';
+                }, 100);
+                
+                // Remove old rows if too many
+                if (tbody.children.length > 10) {
+                    tbody.removeChild(tbody.lastChild);
+                }
+            } else {
+                tbody.appendChild(row);
+            }
+        }
+        
+        // Setup filters
+        function setupFilters() {
+            const filterBtns = document.querySelectorAll('.filters > .filter-btn');
+            
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Remove active class from all period filters
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    
+                    // Add active to clicked
+                    btn.classList.add('active');
+                    
+                    // Update data based on period
+                    const period = btn.dataset.period;
+                    console.log('Filter changed to:', period);
+                    
+                    // In real implementation, this would fetch new data
+                    updateMetrics();
+                });
+            });
+        }
+        
+        // Fetch ML-specific data
+        async function fetchMLData() {
+            // Fetch feature importance
+            try {
+                const response = await fetch(`${ML_API_URL}/api/feature-importance`);
+                if (response.ok) {
+                    const data = await response.json();
+                    updateFeatureImportance(data.features);
+                }
+            } catch (error) {
+                console.error('Error fetching feature importance:', error);
+            }
+            
+            // Fetch ML model stats
+            try {
+                const mlStatsResponse = await fetch(`${ML_API_URL}/api/ml-stats`);
+                if (mlStatsResponse.ok) {
+                    const mlStats = await mlStatsResponse.json();
+                    
+                    // Update ML-specific metrics
+                    if (mlStats.modelAccuracy) {
+                        mockData.accuracy = mlStats.modelAccuracy;
+                        mockData.falsePositiveRate = mlStats.falsePositiveRate;
+                    }
+                    
+                    updateMetrics();
+                }
+            } catch (error) {
+                console.error('Error fetching ML model stats:', error);
+            }
+            
+            // Also fetch ML dashboard stats from ML API
+            try {
+                const mlDashboardResponse = await fetch(`${ML_API_URL}/api/dashboard-stats`);
+                if (mlDashboardResponse.ok) {
+                    const mlDashboard = await mlDashboardResponse.json();
+                    
+                    // Update performance history if available
+                    if (mlDashboard.performanceHistory) {
+                        updatePerformanceChart(mlDashboard.performanceHistory);
+                    }
+                    
+                    // Update training data stats
+                    if (mlDashboard.genuineSamples) mockData.genuineSamples = mlDashboard.genuineSamples;
+                    if (mlDashboard.forgerySamples) mockData.forgerySamples = mlDashboard.forgerySamples;
+                    
+                    updateMetrics();
+                }
+            } catch (error) {
+                console.error('Error fetching ML dashboard stats:', error);
+            }
+        }
+        
+        // Update feature importance display
+        function updateFeatureImportance(features) {
+            const featureGrid = document.getElementById('featureGrid');
+            if (!features || features.length === 0) return;
+            
+            featureGrid.innerHTML = '';
+            features.slice(0, 4).forEach(feature => {
+                const featureItem = document.createElement('div');
+                featureItem.className = 'feature-item';
+                featureItem.innerHTML = `
+                    <div class="feature-value">${Math.round(feature.importance)}%</div>
+                    <div class="feature-label">${feature.name}</div>
+                `;
+                featureGrid.appendChild(featureItem);
+            });
+        }
+        
+        // Update performance chart with new data
+        function updatePerformanceChart(historyData) {
+            if (!historyData || !charts.performance) return;
+            
+            // Update the chart data
+            charts.performance.data.labels = historyData.labels;
+            charts.performance.data.datasets[0].data = historyData.accuracy;
+            charts.performance.data.datasets[1].data = historyData.falsePositives;
+            charts.performance.update();
+        }
+        
+        // Fetch real data from API
+        async function fetchDashboardData() {
+            try {
+                const response = await fetch(`${API_URL}/api/dashboard-stats`);
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Update mock data with real data
+                    mockData.users = data.users;
+                    mockData.accuracy = data.accuracy;
+                    mockData.authAttempts = data.authAttempts;
+                    mockData.falsePositiveRate = data.falsePositiveRate;
+                    mockData.genuineSamples = data.genuineSamples;
+                    mockData.forgerySamples = data.forgerySamples;
+                    
+                    // Update metrics with real data
+                    updateMetrics();
+                }
+            } catch (error) {
+                console.error('Error fetching dashboard data:', error);
+                // Fall back to mock data
+            }
+            
+            // Fetch recent activity
+            try {
+                const activityResponse = await fetch(`${API_URL}/api/recent-activity`);
+                if (activityResponse.ok) {
+                    const activityData = await activityResponse.json();
+                    if (activityData.activities && activityData.activities.length > 0) {
+                        mockData.recentActivity = activityData.activities;
+                        loadActivityTable();
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching activity data:', error);
+            }
+        }
+        
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            initDashboard();
+            
+            // Try to fetch real data
+            fetchDashboardData();
+        });
+    </script>
+</body>
+</html>
