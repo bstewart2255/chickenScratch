@@ -42,6 +42,19 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
+// Body parser middleware - IMPORTANT: Must be before routes
+app.use(express.json({ limit: '10mb' })); // Increase limit for drawing data
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Request logging middleware
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+    if (req.method === 'POST') {
+        console.log('Request body size:', JSON.stringify(req.body).length, 'bytes');
+    }
+    next();
+});
+
 // Helper functions remain the same
 function extractSignatureFeatures(signatureDataUrl) {
     const base64Data = signatureDataUrl.split(',')[1] || '';
@@ -98,7 +111,9 @@ app.post('/register', async (req, res) => {
     }
     
     try {
-        console.log('Starting registration transaction...');
+        console.log('Starting registration transaction for user:', username);
+        console.log('Data received - signatures:', signatures?.length, 'shapes:', Object.keys(shapes || {}).length, 'drawings:', Object.keys(drawings || {}).length);
+        
         // Start transaction
         await pool.query('BEGIN');
         
@@ -162,10 +177,14 @@ app.post('/register', async (req, res) => {
         }
         
         // Save creative drawings
+        console.log('Saving creative drawings...');
         for (const [drawingType, drawingData] of Object.entries(drawings)) {
             try {
+                console.log(`Processing drawing: ${drawingType}`);
                 // Limit the size of drawing data to prevent database errors
                 const drawingDataStr = JSON.stringify(drawingData);
+                console.log(`Drawing ${drawingType} size: ${drawingDataStr.length} bytes`);
+                
                 if (drawingDataStr.length > 50000) {
                     console.warn(`Drawing ${drawingType} data too large (${drawingDataStr.length} chars), storing compressed version`);
                     // Store only essential data for large drawings
@@ -550,7 +569,32 @@ app.get('/api/user/:username/details', async (req, res) => {
     }
 });
 
+// Global error handler - must be last middleware
+app.use((err, req, res, next) => {
+    console.error('Unhandled error:', err);
+    console.error('Error stack:', err.stack);
+    
+    // Send error response
+    res.status(500).json({
+        error: 'Internal server error',
+        message: err.message || 'An unexpected error occurred',
+        // Include more details in development
+        ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    });
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+    console.error('UNCAUGHT EXCEPTION:', err);
+    console.error('Stack:', err.stack);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('UNHANDLED REJECTION at:', promise, 'reason:', reason);
+});
+
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
     console.log('Connected to PostgreSQL database');
+    console.log('Body size limit: 10MB');
 });
