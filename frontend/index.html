@@ -880,9 +880,26 @@
         
         // Calculate comprehensive metrics for ML dashboard
         function calculateComprehensiveMetrics(rawData, duration) {
+            console.log('Raw data format:', rawData);
+            console.log('First stroke:', rawData[0]);
+            
             // Basic counts
             const strokeCount = rawData.length;
-            const totalPoints = rawData.reduce((sum, stroke) => sum + stroke.length, 0);
+            let totalPoints = 0;
+            
+            // Safely calculate total points
+            try {
+                totalPoints = rawData.reduce((sum, stroke) => {
+                    if (Array.isArray(stroke)) {
+                        return sum + stroke.length;
+                    }
+                    console.warn('Non-array stroke found:', stroke);
+                    return sum;
+                }, 0);
+            } catch (e) {
+                console.error('Error calculating total points:', e);
+                totalPoints = 0;
+            }
             
             // Calculate bounding box
             let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
@@ -892,12 +909,24 @@
             let strokeDurations = [];
             
             rawData.forEach((stroke, strokeIndex) => {
+                // Check if stroke is an array of points
+                if (!Array.isArray(stroke) || stroke.length === 0) {
+                    console.warn(`Stroke ${strokeIndex} is not a valid array:`, stroke);
+                    return;
+                }
+                
                 let strokeLength = 0;
                 let strokeStartTime = stroke[0]?.time || 0;
                 let strokeEndTime = stroke[stroke.length - 1]?.time || 0;
                 let strokeDuration = strokeEndTime - strokeStartTime;
                 
                 stroke.forEach((point, pointIndex) => {
+                    // Ensure point has required properties
+                    if (!point || typeof point.x !== 'number' || typeof point.y !== 'number') {
+                        console.warn(`Invalid point at stroke ${strokeIndex}, point ${pointIndex}:`, point);
+                        return;
+                    }
+                    
                     // Update bounding box
                     minX = Math.min(minX, point.x);
                     minY = Math.min(minY, point.y);
@@ -909,17 +938,21 @@
                     // Calculate velocity between points
                     if (pointIndex > 0) {
                         const prevPoint = stroke[pointIndex - 1];
-                        const dx = point.x - prevPoint.x;
-                        const dy = point.y - prevPoint.y;
-                        const distance = Math.sqrt(dx * dx + dy * dy);
-                        const dt = (point.time - prevPoint.time) || 1; // Avoid division by zero
-                        const velocity = distance / dt * 1000; // pixels per second
-                        velocities.push(velocity);
-                        strokeLength += distance;
+                        if (prevPoint && typeof prevPoint.x === 'number' && typeof prevPoint.y === 'number') {
+                            const dx = point.x - prevPoint.x;
+                            const dy = point.y - prevPoint.y;
+                            const distance = Math.sqrt(dx * dx + dy * dy);
+                            const dt = (point.time - prevPoint.time) || 1; // Avoid division by zero
+                            const velocity = distance / dt * 1000; // pixels per second
+                            velocities.push(velocity);
+                            strokeLength += distance;
+                        }
                     }
                 });
                 
-                strokeLengths.push(strokeLength);
+                if (strokeLength > 0) {
+                    strokeLengths.push(strokeLength);
+                }
                 if (strokeDuration > 0) {
                     strokeDurations.push(strokeDuration);
                 }
