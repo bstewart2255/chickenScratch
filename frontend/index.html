@@ -883,13 +883,21 @@
             console.log('Raw data format:', rawData);
             console.log('First stroke:', rawData[0]);
             
+            // SignaturePad v4 returns strokes as objects with points array
+            // Convert to expected format if needed
+            let strokes = rawData;
+            if (rawData.length > 0 && rawData[0].points) {
+                console.log('Converting SignaturePad v4 format to points array');
+                strokes = rawData.map(stroke => stroke.points || []);
+            }
+            
             // Basic counts
-            const strokeCount = rawData.length;
+            const strokeCount = strokes.length;
             let totalPoints = 0;
             
             // Safely calculate total points
             try {
-                totalPoints = rawData.reduce((sum, stroke) => {
+                totalPoints = strokes.reduce((sum, stroke) => {
                     if (Array.isArray(stroke)) {
                         return sum + stroke.length;
                     }
@@ -908,7 +916,7 @@
             let strokeLengths = [];
             let strokeDurations = [];
             
-            rawData.forEach((stroke, strokeIndex) => {
+            strokes.forEach((stroke, strokeIndex) => {
                 // Check if stroke is an array of points
                 if (!Array.isArray(stroke) || stroke.length === 0) {
                     console.warn(`Stroke ${strokeIndex} is not a valid array:`, stroke);
