@@ -55,6 +55,71 @@ app.use((req, res, next) => {
     next();
 });
 
+// Helper function to calculate all 19 ML features from signature data
+function calculateMLFeatures(signatureData) {
+    // If the frontend already calculated metrics, use them
+    if (signatureData.metrics && Object.keys(signatureData.metrics).length > 15) {
+        return signatureData.metrics;
+    }
+    
+    // Otherwise, calculate from raw data if available
+    const rawData = signatureData.raw || [];
+    if (rawData.length === 0) {
+        // Return default values if no raw data
+        return {
+            stroke_count: 0,
+            total_points: 0,
+            total_duration_ms: 0,
+            avg_points_per_stroke: 0,
+            avg_velocity: 0,
+            max_velocity: 0,
+            min_velocity: 0,
+            velocity_std: 0,
+            width: 0,
+            height: 0,
+            area: 0,
+            aspect_ratio: 0,
+            center_x: 0,
+            center_y: 0,
+            avg_stroke_length: 0,
+            total_length: 0,
+            length_variation: 0,
+            avg_stroke_duration: 0,
+            duration_variation: 0
+        };
+    }
+    
+    // Extract basic metrics from frontend if available
+    const basicMetrics = signatureData.metrics?.basic || {};
+    const boundingBox = basicMetrics.bounding_box || {};
+    
+    // Use frontend-calculated values where available, calculate missing ones
+    return {
+        stroke_count: basicMetrics.stroke_count || rawData.length || 0,
+        total_points: basicMetrics.total_points || 0,
+        total_duration_ms: basicMetrics.duration_ms || signatureData.metrics?.total_duration_ms || 0,
+        avg_points_per_stroke: basicMetrics.stroke_count > 0 ? 
+            (basicMetrics.total_points / basicMetrics.stroke_count) : 0,
+        avg_velocity: parseFloat(basicMetrics.avg_speed) || 0,
+        max_velocity: 0, // Would need point-by-point data
+        min_velocity: 0, // Would need point-by-point data
+        velocity_std: 0, // Would need point-by-point data
+        width: boundingBox.width || 0,
+        height: boundingBox.height || 0,
+        area: (boundingBox.width || 0) * (boundingBox.height || 0),
+        aspect_ratio: boundingBox.height > 0 ? (boundingBox.width / boundingBox.height) : 0,
+        center_x: boundingBox.center_x || 0,
+        center_y: boundingBox.center_y || 0,
+        avg_stroke_length: basicMetrics.stroke_count > 0 ? 
+            (basicMetrics.total_distance / basicMetrics.stroke_count) : 0,
+        total_length: basicMetrics.total_distance || 0,
+        length_variation: 0, // Would need per-stroke data
+        avg_stroke_duration: basicMetrics.stroke_count > 0 && basicMetrics.duration_ms > 0 ? 
+            (basicMetrics.duration_ms / basicMetrics.stroke_count) : 0,
+        duration_variation: 0 // Would need per-stroke data
+    };
+}
+
 // Helper functions remain the same
 function extractSignatureFeatures(signatureDataUrl) {
     const base64Data = signatureDataUrl.split(',')[1] || '';
@@ -145,16 +210,19 @@ app.post('/register', async (req, res) => {
         for (let i = 0; i < signatures.length; i++) {
             const signature = signatures[i];
             try {
+                // Calculate full ML features
+                const mlFeatures = calculateMLFeatures(signature);
+                
                 await pool.query(
                     'INSERT INTO signatures (user_id, signature_data, features, metrics) VALUES ($1, $2, $3, $4)',
                     [
                         userId, 
                         JSON.stringify(signature), 
                         JSON.stringify(extractSignatureFeatures(signature.data)),
-                        JSON.stringify(signature.metrics || {})  // Add metrics
+                        JSON.stringify(mlFeatures)  // Store calculated ML features
                     ]
                 );
-                console.log(`✅ Saved signature ${i + 1}/${signatures.length}`);
+                console.log(`✅ Saved signature ${i + 1}/${signatures.length} with ${Object.keys(mlFeatures).length} ML features`);
             } catch (sigError) {
                 console.error(`Error saving signature ${i + 1}:`, sigError);
                 throw sigError;
@@ -812,8 +880,15 @@ app.get('/api/user/:username/details', async (req, res) => {
         const devices = [...new Set(authAttempts.rows.map(a => a.device_info).filter(d => d))];
         
         // Build recent attempts with ML features
-        const recentAttemptsWithFeatures = recentAuthSignatures.rows.map(sig => {
+        const recentAttemptsWithFeatures = recentAuthSignatures.rows.map((sig, index) => {
             const attemptScores = {};
+            
+            // Debug logging
+            console.log(`Processing signature ${index + 1}:`, {
+                hasMetrics: !!sig.metrics,
+                metricsType: typeof sig.metrics,
+                metricsKeys: sig.metrics ? Object.keys(sig.metrics) : []
+            });
             
             // Extract ML features from the signature metrics
             if (sig.metrics && typeof sig.metrics === 'object') {
@@ -833,6 +908,11 @@ app.get('/api/user/:username/details', async (req, res) => {
                     }
                 });
             }
+            
+            console.log(`Attempt ${index + 1} scores:`, {
+                scoreCount: Object.keys(attemptScores).length,
+                hasNonZeroValues: Object.values(attemptScores).some(v => v !== 0)
+            });
             
             return {
                 time: new Date(sig.auth_time).toLocaleString(),
