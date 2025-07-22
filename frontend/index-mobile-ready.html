@@ -501,8 +501,11 @@
         ];
         
         const signInSteps = [
-            // Just signature for sign-in
-            { type: 'signature', instruction: 'Sign your name' }
+            // Signature + risk-based challenges for sign-in
+            { type: 'signature', instruction: 'Sign your name' },
+            { type: 'shape', instruction: 'Draw a circle' },
+            { type: 'shape', instruction: 'Draw a square' },
+            { type: 'drawing', instruction: 'Draw a star' }
         ];
         
         let flowSteps = signUpSteps; // Default
@@ -518,8 +521,6 @@
         
         function startSignIn() {
             isSignUp = false;
-            totalSteps = 1;
-            flowSteps = signInSteps;
             currentSessionId = null;
             showUsernameInput();
         }
@@ -578,9 +579,14 @@
             // Check username with backend
             checkUsernameAvailability(username)
                 .then(() => {
-                    // Username is valid, proceed
+                    // Username is valid, proceed to appropriate flow
                     document.getElementById('usernameContainer').style.display = 'none';
-                    startSigning();
+                    
+                    if (isSignUp) {
+                        startSigning(); // Direct to signing for sign-up
+                    } else {
+                        proceedToSignInFlow(); // Get challenges for sign-in
+                    }
                 })
                 .catch((error) => {
                     // Show error and reset button
@@ -635,6 +641,44 @@
             }
         }
         
+        async function getSignInChallenges(username) {
+            try {
+                const response = await fetch(`${API_URL}/auth/challenges/${username}`);
+                if (!response.ok) {
+                    throw new Error('Failed to get challenges');
+                }
+                
+                const data = await response.json();
+                
+                // Convert backend challenge format to our flow format
+                return data.challenges.required.map(challenge => ({
+                    type: challenge.type,
+                    instruction: challenge.type === 'signature' ? 'Sign your name' :
+                                challenge.type === 'shape' ? `Draw a ${challenge.shape}` :
+                                challenge.prompt || challenge.name
+                }));
+            } catch (error) {
+                throw error;
+            }
+        }
+        
+        function proceedToSignInFlow() {
+            // Get adaptive challenges from backend
+            getSignInChallenges(currentUsername)
+                .then((challenges) => {
+                    totalSteps = challenges.length;
+                    flowSteps = challenges;
+                    startSigning();
+                })
+                .catch((error) => {
+                    // Fallback to default challenges
+                    console.warn('Failed to get adaptive challenges, using defaults:', error);
+                    totalSteps = 4; // signature + 3 challenges
+                    flowSteps = signInSteps;
+                    startSigning();
+                });
+        }
+        
         function continueToSignIn() {
             // After sign-up completion, start sign-in flow
             userJustSignedUp = true;
@@ -656,6 +700,18 @@
                 });
             }
             
+            // Request fullscreen mode
+            const element = document.documentElement;
+            if (element.requestFullscreen) {
+                element.requestFullscreen().catch(err => console.log('Fullscreen failed:', err));
+            } else if (element.webkitRequestFullscreen) {
+                element.webkitRequestFullscreen(); // Safari
+            } else if (element.mozRequestFullScreen) {
+                element.mozRequestFullScreen(); // Firefox
+            } else if (element.msRequestFullscreen) {
+                element.msRequestFullscreen(); // IE/Edge
+            }
+            
             // Initialize canvas
             initializeCanvas();
             
@@ -669,16 +725,29 @@
             // Set canvas size based on screen
             function resizeCanvas() {
                 const container = canvas.parentElement;
-                const rect = container.getBoundingClientRect();
                 
                 if (window.innerWidth > window.innerHeight) {
-                    // Landscape mode
-                    canvas.width = window.innerWidth - 40;
-                    canvas.height = window.innerHeight - 40;
+                    // Landscape mode - use full screen dimensions with proper DPI scaling
+                    const devicePixelRatio = window.devicePixelRatio || 1;
+                    
+                    // Set canvas actual size (in memory)
+                    canvas.width = window.innerWidth * devicePixelRatio;
+                    canvas.height = window.innerHeight * devicePixelRatio;
+                    
+                    // Set canvas display size (CSS)
+                    canvas.style.width = window.innerWidth + 'px';
+                    canvas.style.height = window.innerHeight + 'px';
+                    
+                    // Scale context to match device pixel ratio
+                    const ctx = canvas.getContext('2d');
+                    ctx.scale(devicePixelRatio, devicePixelRatio);
                 } else {
                     // Portrait fallback
+                    const rect = container.getBoundingClientRect();
                     canvas.width = rect.width * 0.9;
                     canvas.height = rect.height * 0.6;
+                    canvas.style.width = (rect.width * 0.9) + 'px';
+                    canvas.style.height = (rect.height * 0.6) + 'px';
                 }
                 
                 // Clear and reinitialize signature pad
@@ -691,16 +760,32 @@
                     penColor: 'black',
                     minWidth: 2,
                     maxWidth: 4,
+                    // Improved settings for mobile accuracy
+                    velocityFilterWeight: 0.7,
+                    throttle: 16,
+                    minDistance: 2,
                 });
                 
                 // Listen for drawing start
                 signaturePad.addEventListener("beginStroke", onDrawingStart);
+                
+                // Debug touch accuracy (remove in production)
+                signaturePad.addEventListener("beginStroke", function(event) {
+                    const rect = canvas.getBoundingClientRect();
+                    const scaleX = canvas.width / rect.width;
+                    const scaleY = canvas.height / rect.height;
+                    console.log('Touch debug - Canvas rect:', rect, 'Scale:', scaleX, scaleY, 'DPR:', window.devicePixelRatio);
+                });
             }
             
             resizeCanvas();
-            window.addEventListener('resize', resizeCanvas);
-            window.addEventListener('orientationchange', () => {
+            // Handle orientation changes with delay for mobile
+            window.addEventListener('resize', () => {
                 setTimeout(resizeCanvas, 100);
+            });
+            
+            window.addEventListener('orientationchange', () => {
+                setTimeout(resizeCanvas, 200);
             });
         }
         
@@ -839,11 +924,33 @@
             nextBtn.disabled = true;
             nextBtn.textContent = 'Finishing...';
             
+            // Exit fullscreen
+            if (document.exitFullscreen) {
+                document.exitFullscreen().catch(err => console.log('Exit fullscreen failed:', err));
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+            
             // Send final completion to backend
             completeAuthFlow()
                 .then((result) => {
                     // Hide modal
                     document.getElementById('signingModal').classList.remove('active');
+                    
+                    // Exit fullscreen
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    } else if (document.mozCancelFullScreen) {
+                        document.mozCancelFullScreen();
+                    } else if (document.msExitFullscreen) {
+                        document.msExitFullscreen();
+                    }
                     
                     // Unlock screen orientation
                     if (screen.orientation && screen.orientation.unlock) {
@@ -855,6 +962,17 @@
                 .catch((error) => {
                     // Show failure message
                     document.getElementById('signingModal').classList.remove('active');
+                    
+                    // Exit fullscreen
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    } else if (document.mozCancelFullScreen) {
+                        document.mozCancelFullScreen();
+                    } else if (document.msExitFullscreen) {
+                        document.msExitFullscreen();
+                    }
                     
                     if (screen.orientation && screen.orientation.unlock) {
                         screen.orientation.unlock();
@@ -1054,6 +1172,18 @@
                 if (modal.classList.contains('active')) {
                     // Exit signing mode
                     modal.classList.remove('active');
+                    
+                    // Exit fullscreen
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    } else if (document.mozCancelFullScreen) {
+                        document.mozCancelFullScreen();
+                    } else if (document.msExitFullscreen) {
+                        document.msExitFullscreen();
+                    }
+                    
                     if (screen.orientation && screen.orientation.unlock) {
                         screen.orientation.unlock();
                     }
@@ -1068,6 +1198,18 @@
             const modal = document.getElementById('signingModal');
             if (modal.classList.contains('active')) {
                 modal.classList.remove('active');
+                
+                // Exit fullscreen
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+                
                 if (screen.orientation && screen.orientation.unlock) {
                     screen.orientation.unlock();
                 }
