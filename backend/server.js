@@ -55,6 +55,21 @@ app.use((req, res, next) => {
     next();
 });
 
+// Temporary storage for step-by-step drawing data
+// In production, consider using Redis or a temporary table
+const temporaryDrawingStorage = new Map();
+
+// Clean up old temporary data every hour
+setInterval(() => {
+    const oneHourAgo = Date.now() - (60 * 60 * 1000);
+    for (const [key, data] of temporaryDrawingStorage.entries()) {
+        if (data.timestamp < oneHourAgo) {
+            temporaryDrawingStorage.delete(key);
+            console.log(`Cleaned up temporary data for: ${key}`);
+        }
+    }
+}, 60 * 60 * 1000);
+
 // Helper function to calculate all 19 ML features from signature data
 function calculateMLFeatures(signatureData) {
     // If the frontend already calculated metrics, use them
@@ -156,7 +171,55 @@ app.post('/register', async (req, res) => {
     console.log('Request body type:', typeof req.body);
     console.log('Request body keys:', req.body ? Object.keys(req.body) : 'undefined body');
     
-    const { username, signatures, shapes, drawings, metadata } = req.body;
+    let { username, signatures, shapes, drawings, metadata, useTemporaryData } = req.body;
+    
+    // If using temporary data from step-by-step flow
+    if (useTemporaryData && username) {
+        const userKey = username.toLowerCase();
+        const tempData = temporaryDrawingStorage.get(userKey);
+        
+        if (tempData && tempData.drawings.length > 0) {
+            console.log(`Using temporary data for ${username}: ${tempData.drawings.length} drawings`);
+            
+            // Organize temporary data into expected format
+            signatures = [];
+            shapes = {};
+            drawings = {};
+            
+            tempData.drawings.forEach(item => {
+                if (item.type === 'signature') {
+                    signatures.push({
+                        data: item.signature,
+                        raw: item.raw,
+                        metrics: item.metrics || {},
+                        timestamp: item.timestamp
+                    });
+                } else if (item.type === 'shape') {
+                    shapes[item.instruction || 'shape'] = {
+                        data: item.signature,
+                        raw: item.raw,
+                        metrics: item.metrics || {},
+                        timestamp: item.timestamp
+                    };
+                } else if (item.type === 'drawing') {
+                    drawings[item.instruction || 'drawing'] = {
+                        data: item.signature,
+                        raw: item.raw,
+                        metrics: item.metrics || {},
+                        timestamp: item.timestamp
+                    };
+                }
+            });
+            
+            // Clear temporary data after using it
+            temporaryDrawingStorage.delete(userKey);
+            console.log(`Cleared temporary data for ${username}`);
+        } else {
+            return res.status(400).json({ 
+                error: 'No temporary data found for this user. Please complete the enrollment process.' 
+            });
+        }
+    }
     
     // Log incoming data structure for debugging
     console.log('Registration request received:', {
@@ -164,7 +227,8 @@ app.post('/register', async (req, res) => {
         signaturesCount: signatures?.length,
         shapesCount: shapes ? Object.keys(shapes).length : 0,
         drawingsCount: drawings ? Object.keys(drawings).length : 0,
-        hasMetadata: !!metadata
+        hasMetadata: !!metadata,
+        usingTemporaryData: !!useTemporaryData
     });
     
     // Validation
@@ -439,10 +503,40 @@ app.post('/login', async (req, res) => {
         hasSignature: !!req.body.signature,
         hasShapes: !!req.body.shapes,
         hasDrawings: !!req.body.drawings,
+        useTemporaryData: !!req.body.useTemporaryData,
         bodyKeys: Object.keys(req.body)
     });
     
-    const { username, signature, shapes, drawings, deviceInfo } = req.body;
+    let { username, signature, shapes, drawings, deviceInfo, useTemporaryData, metadata } = req.body;
+    
+    // If using temporary data from mobile flow
+    if (useTemporaryData && username) {
+        const userKey = username.toLowerCase();
+        const tempData = temporaryDrawingStorage.get(userKey);
+        
+        if (tempData && tempData.drawings.length > 0) {
+            console.log(`Using temporary data for login ${username}: ${tempData.drawings.length} drawings`);
+            
+            // For sign-in, we only need the signature
+            const signatureDrawing = tempData.drawings.find(d => d.type === 'signature');
+            if (signatureDrawing) {
+                signature = {
+                    data: signatureDrawing.signature,
+                    raw: signatureDrawing.raw,
+                    metrics: signatureDrawing.metrics || {},
+                    timestamp: signatureDrawing.timestamp
+                };
+            }
+            
+            // Clear temporary data after using it
+            temporaryDrawingStorage.delete(userKey);
+            console.log(`Cleared temporary data for ${username}`);
+        } else {
+            return res.status(400).json({ 
+                error: 'No temporary data found. Please complete the sign-in process.' 
+            });
+        }
+    }
     
     // Minimum requirement is username and signature
     if (!username || !signature) {
@@ -1045,6 +1139,165 @@ app.get('/api/user/:username/ml-features', async (req, res) => {
     } catch (error) {
         console.error('ML features error:', error);
         res.status(500).json({ error: error.message });
+    }
+});
+
+// New endpoints for mobile web experience
+
+// 1. Check if username is available for sign-up
+app.post('/api/check-username', async (req, res) => {
+    const { username } = req.body;
+    
+    if (!username || username.trim() === '') {
+        return res.status(400).json({ error: 'Username is required' });
+    }
+    
+    try {
+        console.log('Checking username availability:', username);
+        
+        const result = await pool.query(
+            'SELECT id FROM users WHERE username = $1',
+            [username.toLowerCase()]
+        );
+        
+        if (result.rows.length > 0) {
+            console.log('Username already taken:', username);
+            res.status(409).json({ 
+                error: 'Username already taken',
+                available: false 
+            });
+        } else {
+            console.log('Username available:', username);
+            res.status(200).json({ 
+                message: 'Username is available',
+                available: true 
+            });
+        }
+    } catch (error) {
+        console.error('Error checking username:', error);
+        res.status(500).json({ error: 'Failed to check username availability' });
+    }
+});
+
+// 2. Check if username exists for sign-in
+app.post('/api/check-user-exists', async (req, res) => {
+    const { username } = req.body;
+    
+    if (!username || username.trim() === '') {
+        return res.status(400).json({ error: 'Username is required' });
+    }
+    
+    try {
+        console.log('Checking if user exists:', username);
+        
+        const result = await pool.query(
+            'SELECT id, username FROM users WHERE username = $1',
+            [username.toLowerCase()]
+        );
+        
+        if (result.rows.length > 0) {
+            console.log('User found:', username);
+            res.status(200).json({ 
+                exists: true,
+                username: result.rows[0].username
+            });
+        } else {
+            console.log('User not found:', username);
+            res.status(404).json({ 
+                error: 'User not found',
+                exists: false 
+            });
+        }
+    } catch (error) {
+        console.error('Error checking user existence:', error);
+        res.status(500).json({ error: 'Failed to check user existence' });
+    }
+});
+
+// 3. Save individual drawing/signature steps during the flow
+app.post('/api/save-drawing', async (req, res) => {
+    const { signature, raw, step, type, instruction, timestamp, username, metrics } = req.body;
+    
+    if (!username || !step || !type) {
+        return res.status(400).json({ 
+            error: 'Username, step, and type are required' 
+        });
+    }
+    
+    try {
+        console.log(`Saving drawing for ${username} - Step ${step}: ${type}`);
+        
+        // Get or create user's temporary storage
+        const userKey = username.toLowerCase();
+        if (!temporaryDrawingStorage.has(userKey)) {
+            temporaryDrawingStorage.set(userKey, {
+                username: userKey,
+                timestamp: Date.now(),
+                drawings: []
+            });
+        }
+        
+        const userData = temporaryDrawingStorage.get(userKey);
+        
+        // Add the new drawing data
+        userData.drawings.push({
+            step,
+            type,
+            instruction,
+            signature,
+            raw,
+            metrics: metrics || {},
+            timestamp: timestamp || Date.now()
+        });
+        
+        // Update timestamp to prevent cleanup
+        userData.timestamp = Date.now();
+        
+        console.log(`Saved drawing step ${step} for ${username}. Total steps: ${userData.drawings.length}`);
+        
+        res.status(200).json({ 
+            success: true,
+            message: `Drawing step ${step} saved successfully`,
+            totalSteps: userData.drawings.length
+        });
+        
+    } catch (error) {
+        console.error('Error saving drawing:', error);
+        res.status(500).json({ error: 'Failed to save drawing' });
+    }
+});
+
+// 4. Get temporary drawing data (for debugging/verification)
+app.get('/api/temp-drawings/:username', async (req, res) => {
+    const { username } = req.params;
+    const userKey = username.toLowerCase();
+    
+    const tempData = temporaryDrawingStorage.get(userKey);
+    if (tempData) {
+        res.json({
+            exists: true,
+            drawingCount: tempData.drawings.length,
+            lastUpdated: new Date(tempData.timestamp).toISOString()
+        });
+    } else {
+        res.json({
+            exists: false,
+            drawingCount: 0
+        });
+    }
+});
+
+// 5. Clear temporary drawing data
+app.delete('/api/temp-drawings/:username', async (req, res) => {
+    const { username } = req.params;
+    const userKey = username.toLowerCase();
+    
+    if (temporaryDrawingStorage.has(userKey)) {
+        temporaryDrawingStorage.delete(userKey);
+        console.log(`Cleared temporary data for: ${username}`);
+        res.json({ success: true, message: 'Temporary data cleared' });
+    } else {
+        res.status(404).json({ error: 'No temporary data found for this user' });
     }
 });
 

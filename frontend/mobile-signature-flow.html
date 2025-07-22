@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signature Modal Flow</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Portrait Mode - Entry Point */
+        .portrait-container, .username-container {
+            display: none;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .portrait-container {
+            display: block;
+        }
+        
+        .auth-button {
+            flex: 1;
+            height: 120px;
+            border: 2px solid #e5e5e5;
+            border-radius: 12px;
+            background: white;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .auth-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        
+        .signup-btn {
+            border-color: #667eea;
+        }
+        
+        .signup-btn:hover {
+            background: #f8f9ff;
+            border-color: #5a67d8;
+        }
+        
+        .signin-btn {
+            border-color: #48bb78;
+        }
+        
+        .signin-btn:hover {
+            background: #f0fff4;
+            border-color: #38a169;
+        }
+        
+        .auth-icon {
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+        
+        .auth-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+        
+        .auth-button small {
+            opacity: 0.7;
+            font-size: 12px;
+            font-weight: 400;
+        }
+        
+        /* Landscape Signing Modal */
+        .signing-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 1000;
+            overflow: hidden;
+        }
+        
+        .signing-modal.active {
+            display: block;
+        }
+        
+        /* Canvas Container */
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #signature-canvas {
+            background: white;
+            border: none;
+            touch-action: none;
+            cursor: crosshair;
+        }
+        
+        /* Controls Overlay - Top Right */
+        .controls-overlay {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            z-index: 10;
+        }
+        
+        .step-counter {
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            min-width: 80px;
+            text-align: center;
+        }
+        
+        .control-button {
+            width: 60px;
+            height: 60px;
+            border: none;
+            border-radius: 50%;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .clear-btn {
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        .clear-btn:hover {
+            background: #e5e5e5;
+            transform: scale(1.05);
+        }
+        
+        .next-btn {
+            background: #667eea;
+            color: white;
+        }
+        
+        .next-btn:hover {
+            background: #5a67d8;
+            transform: scale(1.05);
+        }
+        
+        .next-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Instruction Overlay */
+        .instruction-overlay {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            font-size: 20px;
+            font-weight: 600;
+            text-align: center;
+            z-index: 5;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        
+        .instruction-overlay.hidden {
+            opacity: 0;
+        }
+        
+        /* Completion Message */
+        .completion-message {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .completion-message.show {
+            display: block;
+        }
+        
+        .success-icon {
+            font-size: 72px;
+            margin-bottom: 20px;
+            color: #4CAF50;
+        }
+        
+        .completion-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .completion-btn {
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            background: #e5e5e5;
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background: #d5d5d5;
+        }
+        
+        #usernameInput:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        /* Responsive Canvas Sizing */
+        @media screen and (orientation: landscape) {
+            #signature-canvas {
+                width: calc(100vw - 40px);
+                height: calc(100vh - 40px);
+                max-width: none;
+                max-height: none;
+            }
+        }
+        
+        @media screen and (orientation: portrait) {
+            #signature-canvas {
+                width: 90vw;
+                height: 60vh;
+            }
+        }
+        
+        /* Force landscape message */
+        .rotate-message {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            z-index: 15;
+        }
+        
+        @media screen and (orientation: portrait) {
+            .signing-modal.active .rotate-message {
+                display: block;
+            }
+            .signing-modal.active .canvas-container {
+                filter: blur(5px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Portrait Mode Entry -->
+    <div class="portrait-container" id="portraitContainer">
+        <h1>Signature Authentication</h1>
+        <p style="color: #666; margin: 20px 0;">Sign in or create your account</p>
+        
+        <div style="display: flex; gap: 15px; margin: 30px 0;">
+            <button class="auth-button signup-btn" onclick="startSignUp()">
+                <div class="auth-icon">✨</div>
+                <div class="auth-title">Sign Up</div>
+                <small>Create account</small>
+            </button>
+            
+            <button class="auth-button signin-btn" onclick="startSignIn()">
+                <div class="auth-icon">✍️</div>
+                <div class="auth-title">Sign In</div>
+                <small>Use existing account</small>
+            </button>
+        </div>
+        
+        <p style="color: #999; font-size: 14px;">
+            <span id="flowDescription">Choose an option to continue</span>
+        </p>
+    </div>
+
+    <!-- Username Input Screen -->
+    <div class="username-container" id="usernameContainer">
+        <h1 id="usernameTitle">Create Account</h1>
+        <p style="color: #666; margin: 20px 0;" id="usernameDescription">Choose your username</p>
+        
+        <div style="margin: 30px 0;">
+            <input type="text" id="usernameInput" placeholder="Enter username" style="
+                width: 100%;
+                padding: 15px;
+                font-size: 18px;
+                border: 2px solid #e5e5e5;
+                border-radius: 12px;
+                text-align: center;
+                outline: none;
+                transition: border-color 0.3s ease;
+            ">
+        </div>
+        
+        <div style="display: flex; gap: 12px;">
+            <button class="completion-btn btn-secondary" onclick="goBackToAuth()">
+                Back
+            </button>
+            <button class="completion-btn btn-primary" onclick="proceedToSigning()" style="flex: 1;">
+                Continue
+            </button>
+        </div>
+        
+        <p style="color: #999; font-size: 14px; margin-top: 20px;">
+            <span id="usernameHint">This will be used to identify your signature</span>
+        </p>
+    </div>
+
+    <!-- Landscape Signing Modal -->
+    <div class="signing-modal" id="signingModal">
+        <div class="rotate-message">
+            <h2>Please rotate your device</h2>
+            <p>Turn to landscape mode to continue</p>
+            <div style="font-size: 48px; margin: 20px 0;">📱 ↻</div>
+        </div>
+        
+        <div class="canvas-container">
+            <!-- Controls Overlay -->
+            <div class="controls-overlay">
+                <div class="step-counter" id="stepCounter">1 of 11</div>
+                <button class="control-button clear-btn" onclick="clearCanvas()" title="Clear">
+                    Clear
+                </button>
+                <button class="control-button next-btn" id="nextBtn" onclick="nextStep()" title="Next">
+                    Next
+                </button>
+            </div>
+            
+            <!-- Instruction Overlay -->
+            <div class="instruction-overlay" id="instructionOverlay">
+                Sign your name
+            </div>
+            
+            <!-- Canvas -->
+            <canvas id="signature-canvas"></canvas>
+        </div>
+    </div>
+
+    <!-- Completion Message -->
+    <div class="completion-message" id="completionMessage">
+        <div class="success-icon">✅</div>
+        <h2>All Set!</h2>
+        <p style="color: #666; margin: 20px 0;">Your signature authentication is ready</p>
+        <div class="completion-buttons" id="completionButtons">
+            <button onclick="resetDemo()" style="background: #667eea; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer;">
+                Try Again
+            </button>
+        </div>
+    </div>
+
+    <!-- Load signature_pad library -->
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+    
+    <script>
+        // API URL configuration - adjust based on environment
+        const API_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:3000' 
+            : 'https://chickenscratch.onrender.com';
+        
+        let signaturePad;
+        let currentStep = 1;
+        let totalSteps = 11; // Default to sign-up flow
+        let hasDrawn = false;
+        let isSignUp = true; // Track which flow we're in
+        let userJustSignedUp = false; // Track if they just completed sign-up
+        let currentUsername = ''; // Store username
+        let currentSessionId = null; // Store session ID
+        let drawingStartTime = null; // Track drawing duration
+        
+        // Flow definitions
+        const signUpSteps = [
+            // Signatures (1-3)
+            { type: 'signature', instruction: 'Sign your name' },
+            { type: 'signature', instruction: 'Sign your name again' },
+            { type: 'signature', instruction: 'Sign your name one more time' },
+            
+            // Shapes (4-6)
+            { type: 'shape', instruction: 'Draw a circle' },
+            { type: 'shape', instruction: 'Draw a square' },
+            { type: 'shape', instruction: 'Draw a triangle' },
+            
+            // Drawings (7-11)
+            { type: 'drawing', instruction: 'Draw a simple face' },
+            { type: 'drawing', instruction: 'Draw a star' },
+            { type: 'drawing', instruction: 'Draw an arrow' },
+            { type: 'drawing', instruction: 'Draw a house' },
+            { type: 'drawing', instruction: 'Connect these dots' }
+        ];
+        
+        const signInSteps = [
+            // Just signature for sign-in
+            { type: 'signature', instruction: 'Sign your name' }
+        ];
+        
+        let flowSteps = signUpSteps; // Default
+        
+        function startSignUp() {
+            isSignUp = true;
+            totalSteps = 11;
+            flowSteps = signUpSteps;
+            userJustSignedUp = false;
+            currentSessionId = null;
+            showUsernameInput();
+        }
+        
+        function startSignIn() {
+            isSignUp = false;
+            totalSteps = 1;
+            flowSteps = signInSteps;
+            currentSessionId = null;
+            showUsernameInput();
+        }
+        
+        function showUsernameInput() {
+            // Hide auth buttons
+            document.getElementById('portraitContainer').style.display = 'none';
+            
+            // Show username input
+            const usernameContainer = document.getElementById('usernameContainer');
+            const title = document.getElementById('usernameTitle');
+            const description = document.getElementById('usernameDescription');
+            const hint = document.getElementById('usernameHint');
+            
+            if (isSignUp) {
+                title.textContent = 'Create Account';
+                description.textContent = 'Choose your username';
+                hint.textContent = 'This will be used to identify your signature';
+            } else {
+                title.textContent = 'Welcome Back';
+                description.textContent = 'Enter your username';
+                hint.textContent = 'We\'ll verify your signature';
+            }
+            
+            usernameContainer.style.display = 'block';
+            document.getElementById('usernameInput').focus();
+        }
+        
+        function goBackToAuth() {
+            document.getElementById('usernameContainer').style.display = 'none';
+            document.getElementById('portraitContainer').style.display = 'block';
+            document.getElementById('usernameInput').value = '';
+        }
+        
+        function proceedToSigning() {
+            const username = document.getElementById('usernameInput').value.trim();
+            
+            if (!username) {
+                alert('Please enter a username');
+                return;
+            }
+            
+            if (username.length < 2) {
+                alert('Username must be at least 2 characters');
+                return;
+            }
+            
+            currentUsername = username;
+            
+            // Show processing state
+            const continueBtn = document.querySelector('#usernameContainer .btn-primary');
+            const originalText = continueBtn.textContent;
+            continueBtn.disabled = true;
+            continueBtn.textContent = 'Checking...';
+            
+            // Check username with backend
+            checkUsernameAvailability(username)
+                .then(() => {
+                    // Username is valid, proceed
+                    document.getElementById('usernameContainer').style.display = 'none';
+                    startSigning();
+                })
+                .catch((error) => {
+                    // Show error and reset button
+                    alert(error.message);
+                    continueBtn.disabled = false;
+                    continueBtn.textContent = originalText;
+                });
+        }
+        
+        async function checkUsernameAvailability(username) {
+            try {
+                if (isSignUp) {
+                    // For sign-up: check if username is available
+                    const response = await fetch(`${API_URL}/api/check-username`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username })
+                    });
+                    
+                    if (!response.ok) {
+                        if (response.status === 409) {
+                            throw new Error('Username already taken, please choose another');
+                        }
+                        throw new Error('Error checking username availability');
+                    }
+                    
+                    const data = await response.json();
+                    return data;
+                } else {
+                    // For sign-in: check if username exists
+                    const response = await fetch(`${API_URL}/api/check-user-exists`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username })
+                    });
+                    
+                    if (!response.ok) {
+                        if (response.status === 404) {
+                            throw new Error('Username does not exist, please sign up first');
+                        }
+                        throw new Error('Error checking username');
+                    }
+                    
+                    const data = await response.json();
+                    return data;
+                }
+            } catch (error) {
+                if (error.message.includes('fetch')) {
+                    throw new Error('Connection error, please try again');
+                }
+                throw error;
+            }
+        }
+        
+        function continueToSignIn() {
+            // After sign-up completion, start sign-in flow
+            userJustSignedUp = true;
+            startSignIn();
+        }
+        
+        function startSigning() {
+            // Hide portrait container
+            document.getElementById('portraitContainer').style.display = 'none';
+            
+            // Show signing modal
+            const modal = document.getElementById('signingModal');
+            modal.classList.add('active');
+            
+            // Try to lock screen orientation to landscape
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape').catch(err => {
+                    console.log('Orientation lock not supported:', err);
+                });
+            }
+            
+            // Initialize canvas
+            initializeCanvas();
+            
+            // Show first instruction
+            showInstruction();
+        }
+        
+        function initializeCanvas() {
+            const canvas = document.getElementById('signature-canvas');
+            
+            // Set canvas size based on screen
+            function resizeCanvas() {
+                const container = canvas.parentElement;
+                const rect = container.getBoundingClientRect();
+                
+                if (window.innerWidth > window.innerHeight) {
+                    // Landscape mode
+                    canvas.width = window.innerWidth - 40;
+                    canvas.height = window.innerHeight - 40;
+                } else {
+                    // Portrait fallback
+                    canvas.width = rect.width * 0.9;
+                    canvas.height = rect.height * 0.6;
+                }
+                
+                // Clear and reinitialize signature pad
+                if (signaturePad) {
+                    signaturePad.clear();
+                }
+                
+                signaturePad = new SignaturePad(canvas, {
+                    backgroundColor: 'white',
+                    penColor: 'black',
+                    minWidth: 2,
+                    maxWidth: 4,
+                });
+                
+                // Listen for drawing start
+                signaturePad.addEventListener("beginStroke", onDrawingStart);
+            }
+            
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            window.addEventListener('orientationchange', () => {
+                setTimeout(resizeCanvas, 100);
+            });
+        }
+        
+        function onDrawingStart() {
+            if (!hasDrawn) {
+                hasDrawn = true;
+                drawingStartTime = Date.now();
+                hideInstruction();
+            }
+        }
+        
+        function showInstruction() {
+            const overlay = document.getElementById('instructionOverlay');
+            const step = flowSteps[currentStep - 1];
+            
+            overlay.textContent = step.instruction;
+            overlay.classList.remove('hidden');
+            hasDrawn = false;
+            drawingStartTime = null;
+        }
+        
+        function hideInstruction() {
+            const overlay = document.getElementById('instructionOverlay');
+            overlay.classList.add('hidden');
+        }
+        
+        function clearCanvas() {
+            if (signaturePad) {
+                signaturePad.clear();
+                hasDrawn = false;
+                drawingStartTime = null;
+                showInstruction();
+            }
+        }
+        
+        function nextStep() {
+            if (signaturePad && signaturePad.isEmpty()) {
+                alert('Please complete the drawing before continuing');
+                return;
+            }
+            
+            // Show processing state
+            const nextBtn = document.getElementById('nextBtn');
+            const originalText = nextBtn.textContent;
+            nextBtn.disabled = true;
+            nextBtn.textContent = 'Saving...';
+            
+            // Calculate drawing duration
+            const duration = drawingStartTime ? Date.now() - drawingStartTime : 0;
+            
+            // Extract metrics from the signature pad data
+            const rawData = signaturePad.toData();
+            const metrics = {
+                stroke_count: rawData.length,
+                total_points: rawData.reduce((sum, stroke) => sum + stroke.length, 0),
+                duration_ms: duration
+            };
+            
+            // Save current drawing data
+            const drawingData = {
+                signature: signaturePad.toDataURL(),
+                raw: rawData,
+                step: currentStep,
+                type: flowSteps[currentStep - 1].type,
+                instruction: flowSteps[currentStep - 1].instruction,
+                timestamp: Date.now(),
+                username: currentUsername,
+                metrics: metrics,
+                sessionId: currentSessionId
+            };
+            
+            // Send to backend
+            saveDrawingData(drawingData)
+                .then((result) => {
+                    // Store session ID from first response
+                    if (result.sessionId && !currentSessionId) {
+                        currentSessionId = result.sessionId;
+                    }
+                    
+                    // Move to next step
+                    currentStep++;
+                    
+                    if (currentStep > totalSteps) {
+                        completeFlow();
+                        return;
+                    }
+                    
+                    // Update UI for next step
+                    updateStepCounter();
+                    clearCanvas();
+                    showInstruction();
+                    
+                    // Reset button
+                    nextBtn.disabled = false;
+                    nextBtn.textContent = originalText;
+                })
+                .catch((error) => {
+                    // Handle save error
+                    alert('Error saving: ' + error.message);
+                    nextBtn.disabled = false;
+                    nextBtn.textContent = originalText;
+                });
+        }
+        
+        async function saveDrawingData(drawingData) {
+            try {
+                const response = await fetch(`${API_URL}/api/save-drawing`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(drawingData)
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to save drawing');
+                }
+                
+                const result = await response.json();
+                console.log(`Step ${drawingData.step} saved successfully:`, result);
+                return result;
+            } catch (error) {
+                if (error.message.includes('fetch')) {
+                    throw new Error('Connection error, please try again');
+                }
+                throw error;
+            }
+        }
+        
+        function updateStepCounter() {
+            document.getElementById('stepCounter').textContent = `${currentStep} of ${totalSteps}`;
+        }
+        
+        function completeFlow() {
+            // Show processing state
+            const nextBtn = document.getElementById('nextBtn');
+            nextBtn.disabled = true;
+            nextBtn.textContent = 'Finishing...';
+            
+            // Send final completion to backend
+            completeAuthFlow()
+                .then((result) => {
+                    // Hide modal
+                    document.getElementById('signingModal').classList.remove('active');
+                    
+                    // Unlock screen orientation
+                    if (screen.orientation && screen.orientation.unlock) {
+                        screen.orientation.unlock();
+                    }
+                    
+                    showCompletionMessage(result);
+                })
+                .catch((error) => {
+                    // Show failure message
+                    document.getElementById('signingModal').classList.remove('active');
+                    
+                    if (screen.orientation && screen.orientation.unlock) {
+                        screen.orientation.unlock();
+                    }
+                    
+                    showFailureMessage(error.message);
+                });
+        }
+        
+        async function completeAuthFlow() {
+            try {
+                if (isSignUp) {
+                    // Complete sign-up using temporary data
+                    console.log('Completing sign-up for:', currentUsername);
+                    
+                    const response = await fetch(`${API_URL}/register`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            username: currentUsername,
+                            useTemporaryData: true,
+                            sessionId: currentSessionId,
+                            metadata: {
+                                device: navigator.userAgent,
+                                timestamp: Date.now(),
+                                flowType: 'mobile-step-by-step'
+                            }
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Registration failed');
+                    }
+                    
+                    const result = await response.json();
+                    return { 
+                        type: 'signup', 
+                        username: currentUsername,
+                        ...result 
+                    };
+                } else {
+                    // Complete sign-in with single signature
+                    console.log('Completing sign-in for:', currentUsername);
+                    
+                    const response = await fetch(`${API_URL}/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            username: currentUsername,
+                            useTemporaryData: true,
+                            sessionId: currentSessionId,
+                            metadata: {
+                                device: navigator.userAgent,
+                                timestamp: Date.now(),
+                                flowType: 'mobile-sign-in'
+                            }
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        
+                        // Handle specific authentication failure
+                        if (response.status === 401) {
+                            throw new Error('Signature verification failed. Please try again.');
+                        }
+                        
+                        throw new Error(errorData.error || 'Sign-in failed');
+                    }
+                    
+                    const result = await response.json();
+                    return { 
+                        type: 'signin', 
+                        username: currentUsername,
+                        ...result 
+                    };
+                }
+            } catch (error) {
+                if (error.message.includes('fetch')) {
+                    throw new Error('Connection error, please try again');
+                }
+                throw error;
+            }
+        }
+        
+        function showCompletionMessage(result) {
+            const completionEl = document.getElementById('completionMessage');
+            const successIcon = completionEl.querySelector('.success-icon');
+            const title = completionEl.querySelector('h2');
+            const description = completionEl.querySelector('p');
+            const buttonsContainer = document.getElementById('completionButtons');
+            
+            if (result.type === 'signup') {
+                // Just completed sign-up - offer to test sign-in
+                successIcon.textContent = '✅';
+                title.textContent = 'Account Created!';
+                description.textContent = 'Your signature authentication is ready';
+                buttonsContainer.innerHTML = `
+                    <button class="completion-btn btn-primary" onclick="continueToSignIn()">
+                        Sign In Now
+                    </button>
+                    <button class="completion-btn btn-secondary" onclick="resetDemo()">
+                        Maybe Later
+                    </button>
+                `;
+            } else if (userJustSignedUp) {
+                // Just completed sign-in after sign-up - full success
+                successIcon.textContent = '🎉';
+                title.textContent = 'All Set!';
+                description.textContent = `Welcome ${result.username}! You've successfully created and tested your account`;
+                buttonsContainer.innerHTML = `
+                    <button class="completion-btn btn-primary" onclick="goToApp()">
+                        Continue to App
+                    </button>
+                    <button class="completion-btn btn-secondary" onclick="resetDemo()">
+                        Try Again
+                    </button>
+                `;
+            } else {
+                // Regular sign-in (returning user)
+                successIcon.textContent = '👋';
+                title.textContent = 'Welcome Back!';
+                description.textContent = `Hello ${result.username}! You have been signed in successfully`;
+                buttonsContainer.innerHTML = `
+                    <button class="completion-btn btn-primary" onclick="goToApp()">
+                        Continue to App
+                    </button>
+                    <button class="completion-btn btn-secondary" onclick="resetDemo()">
+                        Sign Out
+                    </button>
+                `;
+            }
+            
+            completionEl.classList.add('show');
+        }
+        
+        function showFailureMessage(errorMessage) {
+            const completionEl = document.getElementById('completionMessage');
+            const successIcon = completionEl.querySelector('.success-icon');
+            const title = completionEl.querySelector('h2');
+            const description = completionEl.querySelector('p');
+            const buttonsContainer = document.getElementById('completionButtons');
+            
+            successIcon.textContent = '❌';
+            title.textContent = 'Authentication Failed';
+            description.textContent = errorMessage;
+            buttonsContainer.innerHTML = `
+                <button class="completion-btn btn-primary" onclick="resetDemo()">
+                    Try Again
+                </button>
+            `;
+            
+            completionEl.classList.add('show');
+        }
+        
+        function goToApp() {
+            // Redirect to main app or dashboard
+            window.location.href = '/';
+        }
+        
+        function resetDemo() {
+            // Reset state
+            currentStep = 1;
+            hasDrawn = false;
+            userJustSignedUp = false;
+            currentUsername = '';
+            currentSessionId = null;
+            drawingStartTime = null;
+            
+            // Hide completion message
+            document.getElementById('completionMessage').classList.remove('show');
+            
+            // Hide username container
+            document.getElementById('usernameContainer').style.display = 'none';
+            
+            // Show portrait container
+            document.getElementById('portraitContainer').style.display = 'block';
+            
+            // Clear username input
+            document.getElementById('usernameInput').value = '';
+            
+            // Update counter
+            updateStepCounter();
+        }
+        
+        // Handle back button or escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('signingModal');
+                if (modal.classList.contains('active')) {
+                    // Exit signing mode
+                    modal.classList.remove('active');
+                    if (screen.orientation && screen.orientation.unlock) {
+                        screen.orientation.unlock();
+                    }
+                    document.getElementById('portraitContainer').style.display = 'block';
+                }
+            }
+        });
+        
+        // Handle browser back button
+        window.addEventListener('popstate', function(event) {
+            // If signing modal is active, exit it
+            const modal = document.getElementById('signingModal');
+            if (modal.classList.contains('active')) {
+                modal.classList.remove('active');
+                if (screen.orientation && screen.orientation.unlock) {
+                    screen.orientation.unlock();
+                }
+                // Don't reset completely, just go back to portrait
+                document.getElementById('portraitContainer').style.display = 'block';
+                return;
+            }
+            
+            // If on username screen, go back to auth choice
+            const usernameContainer = document.getElementById('usernameContainer');
+            if (usernameContainer.style.display !== 'none') {
+                goBackToAuth();
+                return;
+            }
+            
+            // If on completion screen, reset to start
+            const completionMessage = document.getElementById('completionMessage');
+            if (completionMessage.classList.contains('show')) {
+                resetDemo();
+                return;
+            }
+        });
+
+        // Handle enter key on username input
+        document.getElementById('usernameInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                proceedToSigning();
+            }
+        });
+    </script>
+</body>
+</html>

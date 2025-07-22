@@ -9,7 +9,8 @@
     "update-db": "node updateDatabase.js",
     "verify-metrics": "node verifyMetrics.js",
     "verify-tables": "node verifyTables.js",
-    "update-ml-features": "node updateMLFeatures.js"
+    "update-ml-features": "node updateMLFeatures.js",
+    "add-temp-enrollments": "node updateDatabaseTempEnrollments.js"
   },
   "keywords": [],
   "author": "",

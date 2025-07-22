@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Mobile Endpoints</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .response {
+            background: #f5f5f5;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+            white-space: pre-wrap;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Mobile API Endpoints</h1>
+    
+    <!-- Test 1: Check Username Availability -->
+    <div class="test-section">
+        <h2>1. Check Username Availability (Sign-up)</h2>
+        <input type="text" id="username1" placeholder="Enter username" value="testuser">
+        <button onclick="checkUsername()">Check Username</button>
+        <div id="response1" class="response"></div>
+    </div>
+
+    <!-- Test 2: Check User Exists -->
+    <div class="test-section">
+        <h2>2. Check User Exists (Sign-in)</h2>
+        <input type="text" id="username2" placeholder="Enter username" value="testuser">
+        <button onclick="checkUserExists()">Check User Exists</button>
+        <div id="response2" class="response"></div>
+    </div>
+
+    <!-- Test 3: Save Drawing -->
+    <div class="test-section">
+        <h2>3. Save Drawing Step</h2>
+        <input type="text" id="username3" placeholder="Username" value="testuser">
+        <input type="number" id="step" placeholder="Step #" value="1">
+        <select id="type">
+            <option value="signature">Signature</option>
+            <option value="shape">Shape</option>
+            <option value="drawing">Drawing</option>
+        </select>
+        <input type="text" id="instruction" placeholder="Instruction" value="Draw your signature">
+        <button onclick="saveDrawing()">Save Drawing</button>
+        <div id="response3" class="response"></div>
+    </div>
+
+    <!-- Test 4: Check Temp Data -->
+    <div class="test-section">
+        <h2>4. Check Temporary Data</h2>
+        <input type="text" id="username4" placeholder="Username" value="testuser">
+        <button onclick="checkTempData()">Check Temp Data</button>
+        <button onclick="clearTempData()">Clear Temp Data</button>
+        <div id="response4" class="response"></div>
+    </div>
+
+    <!-- Test 5: Register with Temp Data -->
+    <div class="test-section">
+        <h2>5. Register Using Temporary Data</h2>
+        <input type="text" id="username5" placeholder="Username" value="testuser">
+        <button onclick="registerWithTempData()">Register with Temp Data</button>
+        <div id="response5" class="response"></div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000'; // Change to your server URL
+
+        async function checkUsername() {
+            const username = document.getElementById('username1').value;
+            try {
+                const response = await fetch(`${API_URL}/api/check-username`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username })
+                });
+                const data = await response.json();
+                document.getElementById('response1').textContent = 
+                    `Status: ${response.status}\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                document.getElementById('response1').textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function checkUserExists() {
+            const username = document.getElementById('username2').value;
+            try {
+                const response = await fetch(`${API_URL}/api/check-user-exists`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username })
+                });
+                const data = await response.json();
+                document.getElementById('response2').textContent = 
+                    `Status: ${response.status}\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                document.getElementById('response2').textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function saveDrawing() {
+            const username = document.getElementById('username3').value;
+            const step = parseInt(document.getElementById('step').value);
+            const type = document.getElementById('type').value;
+            const instruction = document.getElementById('instruction').value;
+            
+            // Create fake drawing data
+            const drawingData = {
+                username,
+                step,
+                type,
+                instruction,
+                signature: 'data:image/png;base64,fakeDataURL',
+                raw: [{ x: 100, y: 100, time: Date.now() }],
+                metrics: {
+                    stroke_count: 1,
+                    total_points: 10,
+                    duration_ms: 1000
+                },
+                timestamp: Date.now()
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/api/save-drawing`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(drawingData)
+                });
+                const data = await response.json();
+                document.getElementById('response3').textContent = 
+                    `Status: ${response.status}\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                document.getElementById('response3').textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function checkTempData() {
+            const username = document.getElementById('username4').value;
+            try {
+                const response = await fetch(`${API_URL}/api/temp-drawings/${username}`);
+                const data = await response.json();
+                document.getElementById('response4').textContent = 
+                    `Status: ${response.status}\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                document.getElementById('response4').textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function clearTempData() {
+            const username = document.getElementById('username4').value;
+            try {
+                const response = await fetch(`${API_URL}/api/temp-drawings/${username}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                document.getElementById('response4').textContent = 
+                    `Status: ${response.status}\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                document.getElementById('response4').textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function registerWithTempData() {
+            const username = document.getElementById('username5').value;
+            try {
+                const response = await fetch(`${API_URL}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        username,
+                        useTemporaryData: true,
+                        metadata: {
+                            device: 'test-device',
+                            timestamp: Date.now()
+                        }
+                    })
+                });
+                const data = await response.json();
+                document.getElementById('response5').textContent = 
+                    `Status: ${response.status}\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                document.getElementById('response5').textContent = `Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
