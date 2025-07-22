@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Signature Modal Flow</title>
     <style>
         * {
@@ -31,6 +31,21 @@
             width: 100%;
             text-align: center;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Prevent viewport shift when keyboard appears */
+        @supports (-webkit-touch-callout: none) {
+            /* iOS Safari */
+            .username-container {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                max-height: 90vh;
+                overflow-y: auto;
+            }
         }
         
         .portrait-container {
@@ -280,9 +295,22 @@
             background: #d5d5d5;
         }
         
+        #usernameInput {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+        
         #usernameInput:focus {
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        /* Prevent zoom on input focus on iOS */
+        @media screen and (max-width: 768px) {
+            input[type="text"] {
+                font-size: 16px !important;
+            }
         }
         
         /* Responsive Canvas Sizing */
@@ -514,7 +542,15 @@
             }
             
             usernameContainer.style.display = 'block';
-            document.getElementById('usernameInput').focus();
+            
+            // Delay focus to prevent immediate keyboard on mobile
+            setTimeout(() => {
+                const input = document.getElementById('usernameInput');
+                // Only focus on desktop/tablet, not on mobile phones
+                if (window.innerWidth > 768) {
+                    input.focus();
+                }
+            }, 300);
         }
         
         function goBackToAuth() {
@@ -667,7 +703,12 @@
             
             // After sign-up completion, start sign-in flow
             userJustSignedUp = true;
-            startSignIn();
+            isSignUp = false;
+            currentSessionId = null;
+            
+            // Skip username input since we already have it
+            // Go directly to getting challenges and starting the signing flow
+            proceedToSignInFlow();
         }
         
         function startSigning() {
@@ -1222,6 +1263,26 @@
             if (e.key === 'Enter') {
                 proceedToSigning();
             }
+        });
+        
+        // Handle viewport changes when keyboard appears/disappears
+        let viewportHeight = window.innerHeight;
+        window.addEventListener('resize', function() {
+            const currentHeight = window.innerHeight;
+            const usernameContainer = document.getElementById('usernameContainer');
+            
+            // If username container is visible and height changed significantly (keyboard)
+            if (usernameContainer.style.display !== 'none' && Math.abs(currentHeight - viewportHeight) > 100) {
+                if (currentHeight < viewportHeight) {
+                    // Keyboard appeared - adjust container position
+                    usernameContainer.style.marginTop = '-50px';
+                } else {
+                    // Keyboard disappeared - reset position
+                    usernameContainer.style.marginTop = '0';
+                }
+            }
+            
+            viewportHeight = currentHeight;
         });
         
         // Toggle fullscreen function

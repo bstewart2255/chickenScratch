@@ -206,7 +206,8 @@ app.post('/register', async (req, res) => {
                         data: item.signature,
                         raw: item.raw,
                         metrics: item.metrics || {},
-                        timestamp: item.timestamp
+                        timestamp: item.timestamp,
+                        prompt: item.instruction
                     };
                 }
             });
@@ -468,10 +469,12 @@ app.get('/auth/challenges/:username', async (req, res) => {
             
             drawingsResult.rows.forEach((row, index) => {
                 const drawingData = row.shape_data;
+                // Use more descriptive fallbacks for drawings
+                const fallbackPrompts = ['Draw a star', 'Draw a simple face'];
                 challenges.required.push({
                     type: 'drawing',
-                    name: drawingData.prompt || `Drawing ${index + 1}`,
-                    prompt: drawingData.prompt,
+                    name: drawingData.prompt || fallbackPrompts[index] || `Drawing ${index + 1}`,
+                    prompt: drawingData.prompt || fallbackPrompts[index] || `Drawing ${index + 1}`,
                     drawingType: row.shape_type
                 });
             });

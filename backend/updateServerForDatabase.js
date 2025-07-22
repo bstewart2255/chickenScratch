@@ -284,7 +284,10 @@ app.post('/register', async (req, res) => {
                 } else if (step.step_type === 'shape') {
                     shapes[step.instruction || 'shape'] = data;
                 } else if (step.step_type === 'drawing') {
-                    drawings[step.instruction || 'drawing'] = data;
+                    drawings[step.instruction || 'drawing'] = {
+                        ...data,
+                        prompt: step.instruction
+                    };
                 }
             });
             
