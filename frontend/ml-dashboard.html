@@ -261,6 +261,13 @@
         /* Large card for charts */
         .card-large {
             grid-column: span 2;
+            max-height: 400px;
+            overflow: hidden;
+        }
+        
+        .card-large .chart-container {
+            height: 280px !important;
+            max-height: 280px;
         }
         
         @media (max-width: 768px) {
@@ -451,7 +458,9 @@
             <!-- Performance Over Time -->
             <div class="card card-large">
                 <h3 class="card-title">Performance Metrics Over Time</h3>
-                <canvas id="performanceChart" class="chart-container"></canvas>
+                <div style="position: relative; height: 280px;">
+                    <canvas id="performanceChart"></canvas>
+                </div>
             </div>
             
             <!-- Feature Importance -->
