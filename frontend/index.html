@@ -1041,7 +1041,19 @@
             
             // Extract metrics from the signature pad data
             const rawData = signaturePad.toData();
-            const metrics = calculateComprehensiveMetrics(rawData, duration);
+            let metrics;
+            try {
+                metrics = calculateComprehensiveMetrics(rawData, duration);
+                console.log('Calculated metrics:', metrics);
+            } catch (metricsError) {
+                console.error('Error calculating metrics:', metricsError);
+                // Fallback to basic metrics
+                metrics = {
+                    stroke_count: rawData.length,
+                    total_points: rawData.reduce((sum, stroke) => sum + stroke.length, 0),
+                    duration_ms: duration
+                };
+            }
             
             // Save current drawing data
             const drawingData = {
@@ -1057,8 +1069,10 @@
             };
             
             // Send to backend
+            console.log('Sending drawing data to backend...');
             saveDrawingData(drawingData)
                 .then((result) => {
+                    console.log('Drawing saved successfully:', result);
                     // Store session ID from first response
                     if (result.sessionId && !currentSessionId) {
                         currentSessionId = result.sessionId;
@@ -1083,6 +1097,7 @@
                 })
                 .catch((error) => {
                     // Handle save error
+                    console.error('Error saving drawing:', error);
                     alert('Error saving: ' + error.message);
                     nextBtn.disabled = false;
                     nextBtn.textContent = originalText;
