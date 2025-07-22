@@ -878,6 +878,123 @@
             }
         }
         
+        // Calculate comprehensive metrics for ML dashboard
+        function calculateComprehensiveMetrics(rawData, duration) {
+            // Basic counts
+            const strokeCount = rawData.length;
+            const totalPoints = rawData.reduce((sum, stroke) => sum + stroke.length, 0);
+            
+            // Calculate bounding box
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            let allPoints = [];
+            let velocities = [];
+            let strokeLengths = [];
+            let strokeDurations = [];
+            
+            rawData.forEach((stroke, strokeIndex) => {
+                let strokeLength = 0;
+                let strokeStartTime = stroke[0]?.time || 0;
+                let strokeEndTime = stroke[stroke.length - 1]?.time || 0;
+                let strokeDuration = strokeEndTime - strokeStartTime;
+                
+                stroke.forEach((point, pointIndex) => {
+                    // Update bounding box
+                    minX = Math.min(minX, point.x);
+                    minY = Math.min(minY, point.y);
+                    maxX = Math.max(maxX, point.x);
+                    maxY = Math.max(maxY, point.y);
+                    
+                    allPoints.push(point);
+                    
+                    // Calculate velocity between points
+                    if (pointIndex > 0) {
+                        const prevPoint = stroke[pointIndex - 1];
+                        const dx = point.x - prevPoint.x;
+                        const dy = point.y - prevPoint.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        const dt = (point.time - prevPoint.time) || 1; // Avoid division by zero
+                        const velocity = distance / dt * 1000; // pixels per second
+                        velocities.push(velocity);
+                        strokeLength += distance;
+                    }
+                });
+                
+                strokeLengths.push(strokeLength);
+                if (strokeDuration > 0) {
+                    strokeDurations.push(strokeDuration);
+                }
+            });
+            
+            // Calculate bounding box dimensions
+            const width = (minX !== Infinity && maxX !== -Infinity) ? maxX - minX : 0;
+            const height = (minY !== Infinity && maxY !== -Infinity) ? maxY - minY : 0;
+            const area = width * height;
+            const aspectRatio = height > 0 ? width / height : 0;
+            const centerX = (minX !== Infinity && maxX !== -Infinity) ? (minX + maxX) / 2 : 0;
+            const centerY = (minY !== Infinity && maxY !== -Infinity) ? (minY + maxY) / 2 : 0;
+            
+            // Calculate velocity statistics
+            const avgVelocity = velocities.length > 0 ? 
+                velocities.reduce((a, b) => a + b, 0) / velocities.length : 0;
+            const maxVelocity = velocities.length > 0 ? Math.max(...velocities) : 0;
+            const minVelocity = velocities.length > 0 ? Math.min(...velocities) : 0;
+            
+            // Calculate velocity standard deviation
+            let velocityStd = 0;
+            if (velocities.length > 1) {
+                const velocityVariance = velocities.reduce((sum, v) => 
+                    sum + Math.pow(v - avgVelocity, 2), 0) / velocities.length;
+                velocityStd = Math.sqrt(velocityVariance);
+            }
+            
+            // Calculate length statistics
+            const totalLength = strokeLengths.reduce((a, b) => a + b, 0);
+            const avgStrokeLength = strokeCount > 0 ? totalLength / strokeCount : 0;
+            
+            // Calculate length variation
+            let lengthVariation = 0;
+            if (strokeLengths.length > 1) {
+                const lengthVariance = strokeLengths.reduce((sum, len) => 
+                    sum + Math.pow(len - avgStrokeLength, 2), 0) / strokeLengths.length;
+                lengthVariation = Math.sqrt(lengthVariance);
+            }
+            
+            // Calculate duration statistics
+            const avgStrokeDuration = strokeDurations.length > 0 ? 
+                strokeDurations.reduce((a, b) => a + b, 0) / strokeDurations.length : 
+                (duration / strokeCount);
+            
+            // Calculate duration variation
+            let durationVariation = 0;
+            if (strokeDurations.length > 1) {
+                const durationVariance = strokeDurations.reduce((sum, dur) => 
+                    sum + Math.pow(dur - avgStrokeDuration, 2), 0) / strokeDurations.length;
+                durationVariation = Math.sqrt(durationVariance);
+            }
+            
+            return {
+                stroke_count: strokeCount,
+                total_points: totalPoints,
+                total_duration_ms: duration,
+                avg_points_per_stroke: strokeCount > 0 ? totalPoints / strokeCount : 0,
+                avg_velocity: avgVelocity,
+                max_velocity: maxVelocity,
+                min_velocity: minVelocity,
+                velocity_std: velocityStd,
+                width: width,
+                height: height,
+                area: area,
+                aspect_ratio: aspectRatio,
+                center_x: centerX,
+                center_y: centerY,
+                avg_stroke_length: avgStrokeLength,
+                total_length: totalLength,
+                length_variation: lengthVariation,
+                avg_stroke_duration: avgStrokeDuration,
+                duration_variation: durationVariation
+            };
+        }
+        
         function showInstruction() {
             const overlay = document.getElementById('instructionOverlay');
             const step = flowSteps[currentStep - 1];
@@ -924,11 +1041,7 @@
             
             // Extract metrics from the signature pad data
             const rawData = signaturePad.toData();
-            const metrics = {
-                stroke_count: rawData.length,
-                total_points: rawData.reduce((sum, stroke) => sum + stroke.length, 0),
-                duration_ms: duration
-            };
+            const metrics = calculateComprehensiveMetrics(rawData, duration);
             
             // Save current drawing data
             const drawingData = {
