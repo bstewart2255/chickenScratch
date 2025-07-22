@@ -943,6 +943,16 @@
                     const hasBaseline = userInfo.userBaseline && Object.keys(userInfo.userBaseline).length > 0;
                     const hasMLFeatures = userInfo.recentAttemptsWithFeatures && userInfo.recentAttemptsWithFeatures.length > 0;
                     
+                    // Debug logging
+                    console.log('User details response:', {
+                        username: userInfo.username,
+                        hasBaseline: hasBaseline,
+                        hasMLFeatures: hasMLFeatures,
+                        baselineKeys: hasBaseline ? Object.keys(userInfo.userBaseline) : [],
+                        attemptsWithFeatures: userInfo.recentAttemptsWithFeatures ? userInfo.recentAttemptsWithFeatures.length : 0,
+                        regularAttempts: userInfo.recentAttempts ? userInfo.recentAttempts.length : 0
+                    });
+                    
                     // Function to safely get value with fallback
                     const safeGetValue = (obj, key, defaultValue = 0) => {
                         return obj && obj[key] !== undefined && obj[key] !== null ? obj[key] : defaultValue;
@@ -1113,9 +1123,10 @@
                         <div id="mlFeaturesContainer">
                             ${hasMLFeatures ? 
                                 renderMLFeatures(userInfo.recentAttemptsWithFeatures[0]) : 
-                                userInfo.recentAttempts && userInfo.recentAttempts.length > 0 ?
-                                    renderMLFeatures(null) :
-                                    '<p style="color: #718096; text-align: center; margin-top: 20px;">No ML feature data available</p>'
+                                `<div class="ml-features-section">
+                                    <h3 style="margin-bottom: 20px;">ML Feature Analysis</h3>
+                                    <p style="color: #718096; text-align: center;">No ML feature data available</p>
+                                </div>`
                             }
                         </div>
                     `;
@@ -1123,29 +1134,48 @@
                     // Store user info globally for attempt selection
                     window.currentUserInfo = userInfo;
                     
-                    // If we have attempts but no ML features, try to fetch them separately
+                    // If we have attempts but no ML features, show appropriate message
                     if (!hasMLFeatures && userInfo.recentAttempts && userInfo.recentAttempts.length > 0) {
-                        // Show loading state for ML features
-                        document.getElementById('mlFeaturesContainer').innerHTML = renderMLFeatures(null, true);
+                        // Don't show loading state indefinitely - show message immediately
+                        const noDataMessage = `
+                            <div class="ml-features-section">
+                                <h3 style="margin-bottom: 20px;">ML Feature Analysis</h3>
+                                <div class="message" style="background: #e3f2fd; color: #1565c0; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                                    <strong>ML Features Not Available</strong><br>
+                                    Detailed ML feature analysis is not available for these authentication attempts. 
+                                    This may be because:<br>
+                                    • The authentication system is running without ML metrics collection<br>
+                                    • These are older attempts before ML features were enabled<br>
+                                    • The metrics data was not properly saved
+                                </div>
+                            </div>
+                        `;
                         
-                        // Try to fetch ML features separately (backwards compatibility)
-                        setTimeout(async () => {
-                            try {
-                                const mlResponse = await fetch(`${API_URL}/api/user/${username}/ml-features`);
-                                if (mlResponse.ok) {
-                                    const mlData = await mlResponse.json();
-                                    // Update the container with ML data
-                                    console.log('Fetched ML features separately:', mlData);
-                                    // You can process and display this data if needed
+                        // Update immediately with no data message
+                        setTimeout(() => {
+                            const container = document.getElementById('mlFeaturesContainer');
+                            if (container) {
+                                container.innerHTML = noDataMessage;
+                            }
+                        }, 100);
+                        
+                        // Still try to fetch ML features separately, but don't show loading state
+                        fetch(`${API_URL}/api/user/${username}/ml-features`)
+                            .then(response => {
+                                if (response.ok) {
+                                    return response.json();
                                 }
-                            } catch (mlError) {
-                                console.error('Failed to fetch ML features separately:', mlError);
-                            }
-                            // Remove loading state if no data available
-                            if (!window.currentUserInfo.recentAttemptsWithFeatures) {
-                                document.getElementById('mlFeaturesContainer').innerHTML = renderMLFeatures(null);
-                            }
-                        }, 500);
+                                throw new Error('ML features not available');
+                            })
+                            .then(mlData => {
+                                console.log('ML features endpoint response:', mlData);
+                                // If we get valid ML data, we could process it here
+                                // But for now, we'll stick with the no data message
+                            })
+                            .catch(error => {
+                                console.log('ML features endpoint not available or returned error:', error.message);
+                                // Keep the no data message displayed
+                            });
                     }
                     
                 } else {
