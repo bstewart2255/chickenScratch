@@ -353,6 +353,51 @@
                 filter: blur(5px);
             }
         }
+        
+        /* Tablet & Desktop Responsive Styles */
+        @media (min-width: 768px) {
+            .portrait-container {
+                max-width: 500px;
+                margin: 40px auto;
+                padding: 40px 20px;
+                border-radius: 12px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            }
+            
+            .username-container {
+                max-width: 500px;
+                margin: 40px auto;
+                padding: 40px 20px;
+            }
+            
+            .signing-modal {
+                position: relative !important;
+                width: 90vw;
+                height: 80vh;
+                max-width: 1000px;
+                margin: 20px auto;
+                border-radius: 12px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+                background: white;
+            }
+            
+            .rotate-message {
+                display: none !important;
+            }
+            
+            #signature-canvas {
+                width: calc(100% - 40px) !important;
+                height: calc(100% - 40px) !important;
+            }
+            
+            .completion-message {
+                max-width: 500px;
+                margin: 40px auto;
+                padding: 40px;
+                border-radius: 12px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            }
+        }
     </style>
 </head>
 <body>
@@ -712,6 +757,8 @@
         }
         
         function startSigning() {
+            const isMobile = window.innerWidth < 768;
+            
             // Hide portrait container
             document.getElementById('portraitContainer').style.display = 'none';
             
@@ -719,100 +766,108 @@
             const modal = document.getElementById('signingModal');
             modal.classList.add('active');
             
-            // Try to lock screen orientation to landscape
-            if (screen.orientation && screen.orientation.lock) {
-                screen.orientation.lock('landscape').catch(err => {
-                    console.log('Orientation lock not supported:', err);
-                });
+            // Mobile-only behaviors
+            if (isMobile) {
+                // Try to lock screen orientation to landscape
+                if (screen.orientation && screen.orientation.lock) {
+                    screen.orientation.lock('landscape').catch(err => {
+                        console.log('Orientation lock not supported:', err);
+                    });
+                }
+                
+                // Request fullscreen mode
+                const element = document.documentElement;
+                if (element.requestFullscreen) {
+                    element.requestFullscreen().catch(err => console.log('Fullscreen failed:', err));
+                } else if (element.webkitRequestFullscreen) {
+                    element.webkitRequestFullscreen(); // Safari
+                } else if (element.mozRequestFullScreen) {
+                    element.mozRequestFullScreen(); // Firefox
+                } else if (element.msRequestFullscreen) {
+                    element.msRequestFullscreen(); // IE/Edge
+                }
             }
             
-            // Request fullscreen mode
-            const element = document.documentElement;
-            if (element.requestFullscreen) {
-                element.requestFullscreen().catch(err => console.log('Fullscreen failed:', err));
-            } else if (element.webkitRequestFullscreen) {
-                element.webkitRequestFullscreen(); // Safari
-            } else if (element.mozRequestFullScreen) {
-                element.mozRequestFullScreen(); // Firefox
-            } else if (element.msRequestFullscreen) {
-                element.msRequestFullscreen(); // IE/Edge
-            }
-            
-            // Initialize canvas
+            // Initialize canvas and controls (for all devices)
             initializeCanvas();
-            
-            // Show first instruction
+            updateStepCounter();
             showInstruction();
         }
         
         function initializeCanvas() {
             const canvas = document.getElementById('signature-canvas');
+            const container = canvas.parentElement;
+            const isMobile = window.innerWidth < 768;
             
             // Set canvas size based on screen
             function resizeCanvas() {
-                const container = canvas.parentElement;
+                const containerRect = container.getBoundingClientRect();
+                const devicePixelRatio = window.devicePixelRatio || 1;
                 
-                if (window.innerWidth > window.innerHeight) {
-                    // Landscape mode - use full screen dimensions with proper DPI scaling
-                    const devicePixelRatio = window.devicePixelRatio || 1;
+                if (isMobile) {
+                    // Mobile: Use viewport dimensions with padding
+                    const width = window.innerWidth - 40;
+                    const height = window.innerHeight - 40;
                     
-                    // Set canvas actual size (in memory)
-                    canvas.width = window.innerWidth * devicePixelRatio;
-                    canvas.height = window.innerHeight * devicePixelRatio;
+                    // Set canvas actual size (in memory) with DPI scaling
+                    canvas.width = width * devicePixelRatio;
+                    canvas.height = height * devicePixelRatio;
                     
                     // Set canvas display size (CSS)
-                    canvas.style.width = window.innerWidth + 'px';
-                    canvas.style.height = window.innerHeight + 'px';
+                    canvas.style.width = width + 'px';
+                    canvas.style.height = height + 'px';
                     
                     // Scale context to match device pixel ratio
                     const ctx = canvas.getContext('2d');
                     ctx.scale(devicePixelRatio, devicePixelRatio);
                 } else {
-                    // Portrait fallback
-                    const rect = container.getBoundingClientRect();
-                    canvas.width = rect.width * 0.9;
-                    canvas.height = rect.height * 0.6;
-                    canvas.style.width = (rect.width * 0.9) + 'px';
-                    canvas.style.height = (rect.height * 0.6) + 'px';
+                    // Desktop/Tablet: Size to container
+                    const width = containerRect.width - 40;
+                    const height = containerRect.height - 40;
+                    
+                    // Set canvas actual size
+                    canvas.width = width;
+                    canvas.height = height;
+                    
+                    // Set canvas display size
+                    canvas.style.width = width + 'px';
+                    canvas.style.height = height + 'px';
                 }
                 
-                // Clear and reinitialize signature pad
+                // Initialize or reinitialize signature pad
                 if (signaturePad) {
+                    const currentData = signaturePad.toData();
                     signaturePad.clear();
+                    signaturePad = new SignaturePad(canvas, {
+                        backgroundColor: 'rgba(255,255,255,0)',
+                        penColor: 'rgb(0, 0, 0)',
+                        minWidth: 2,
+                        maxWidth: 4,
+                        velocityFilterWeight: 0.7,
+                        throttle: 16,
+                        minDistance: 2,
+                    });
+                    // Restore previous data if any
+                    if (currentData.length > 0) {
+                        signaturePad.fromData(currentData);
+                    }
+                } else {
+                    signaturePad = new SignaturePad(canvas, {
+                        backgroundColor: 'rgba(255,255,255,0)',
+                        penColor: 'rgb(0, 0, 0)',
+                        minWidth: 2,
+                        maxWidth: 4,
+                        velocityFilterWeight: 0.7,
+                        throttle: 16,
+                        minDistance: 2,
+                    });
                 }
-                
-                signaturePad = new SignaturePad(canvas, {
-                    backgroundColor: 'white',
-                    penColor: 'black',
-                    minWidth: 2,
-                    maxWidth: 4,
-                    // Improved settings for mobile accuracy
-                    velocityFilterWeight: 0.7,
-                    throttle: 16,
-                    minDistance: 2,
-                });
                 
                 // Listen for drawing start
                 signaturePad.addEventListener("beginStroke", onDrawingStart);
-                
-                // Debug touch accuracy (remove in production)
-                signaturePad.addEventListener("beginStroke", function(event) {
-                    const rect = canvas.getBoundingClientRect();
-                    const scaleX = canvas.width / rect.width;
-                    const scaleY = canvas.height / rect.height;
-                    console.log('Touch debug - Canvas rect:', rect, 'Scale:', scaleX, scaleY, 'DPR:', window.devicePixelRatio);
-                });
             }
             
             resizeCanvas();
-            // Handle orientation changes with delay for mobile
-            window.addEventListener('resize', () => {
-                setTimeout(resizeCanvas, 100);
-            });
-            
-            window.addEventListener('orientationchange', () => {
-                setTimeout(resizeCanvas, 200);
-            });
         }
         
         function onDrawingStart() {
@@ -955,60 +1010,16 @@
             nextBtn.disabled = true;
             nextBtn.textContent = 'Finishing...';
             
-            // Exit fullscreen
-            if (document.exitFullscreen) {
-                document.exitFullscreen().catch(err => console.log('Exit fullscreen failed:', err));
-            } else if (document.webkitExitFullscreen) {
-                document.webkitExitFullscreen();
-            } else if (document.mozCancelFullScreen) {
-                document.mozCancelFullScreen();
-            } else if (document.msExitFullscreen) {
-                document.msExitFullscreen();
-            }
-            
             // Send final completion to backend
             completeAuthFlow()
                 .then((result) => {
-                    // Hide modal
-                    document.getElementById('signingModal').classList.remove('active');
-                    
-                    // Exit fullscreen
-                    if (document.exitFullscreen) {
-                        document.exitFullscreen();
-                    } else if (document.webkitExitFullscreen) {
-                        document.webkitExitFullscreen();
-                    } else if (document.mozCancelFullScreen) {
-                        document.mozCancelFullScreen();
-                    } else if (document.msExitFullscreen) {
-                        document.msExitFullscreen();
-                    }
-                    
-                    // Unlock screen orientation
-                    if (screen.orientation && screen.orientation.unlock) {
-                        screen.orientation.unlock();
-                    }
-                    
+                    // Exit modal with proper cleanup
+                    exitSigningModal();
                     showCompletionMessage(result);
                 })
                 .catch((error) => {
-                    // Show failure message
-                    document.getElementById('signingModal').classList.remove('active');
-                    
-                    // Exit fullscreen
-                    if (document.exitFullscreen) {
-                        document.exitFullscreen();
-                    } else if (document.webkitExitFullscreen) {
-                        document.webkitExitFullscreen();
-                    } else if (document.mozCancelFullScreen) {
-                        document.mozCancelFullScreen();
-                    } else if (document.msExitFullscreen) {
-                        document.msExitFullscreen();
-                    }
-                    
-                    if (screen.orientation && screen.orientation.unlock) {
-                        screen.orientation.unlock();
-                    }
-                    
+                    // Exit modal with proper cleanup
+                    exitSigningModal();
                     showFailureMessage(error.message);
                 });
         }
@@ -1190,29 +1201,12 @@
             updateStepCounter();
         }
         
-        // Handle back button or escape key
+        // Handle escape key (desktop) and back button
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 const modal = document.getElementById('signingModal');
                 if (modal.classList.contains('active')) {
-                    // Exit signing mode
-                    modal.classList.remove('active');
-                    
-                    // Exit fullscreen
-                    if (document.exitFullscreen) {
-                        document.exitFullscreen();
-                    } else if (document.webkitExitFullscreen) {
-                        document.webkitExitFullscreen();
-                    } else if (document.mozCancelFullScreen) {
-                        document.mozCancelFullScreen();
-                    } else if (document.msExitFullscreen) {
-                        document.msExitFullscreen();
-                    }
-                    
-                    if (screen.orientation && screen.orientation.unlock) {
-                        screen.orientation.unlock();
-                    }
-                    document.getElementById('portraitContainer').style.display = 'block';
+                    exitSigningModal();
                 }
             }
         });
@@ -1222,24 +1216,8 @@
             // If signing modal is active, exit it
             const modal = document.getElementById('signingModal');
             if (modal.classList.contains('active')) {
-                modal.classList.remove('active');
-                
-                // Exit fullscreen
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                } else if (document.webkitExitFullscreen) {
-                    document.webkitExitFullscreen();
-                } else if (document.mozCancelFullScreen) {
-                    document.mozCancelFullScreen();
-                } else if (document.msExitFullscreen) {
-                    document.msExitFullscreen();
-                }
-                
-                if (screen.orientation && screen.orientation.unlock) {
-                    screen.orientation.unlock();
-                }
-                // Don't reset completely, just go back to portrait
-                document.getElementById('portraitContainer').style.display = 'block';
+                // Exit signing mode with proper cleanup
+                exitSigningModal();
                 return;
             }
             
@@ -1265,7 +1243,15 @@
             }
         });
         
-        // Handle viewport changes when keyboard appears/disappears
+        // Update window resize handler for responsive canvas
+        window.addEventListener('resize', function() {
+            if (signaturePad && document.getElementById('signingModal').classList.contains('active')) {
+                // Reinitialize canvas on resize
+                setTimeout(initializeCanvas, 100);
+            }
+        });
+        
+        // Handle viewport changes when keyboard appears/disappears (mobile)
         let viewportHeight = window.innerHeight;
         window.addEventListener('resize', function() {
             const currentHeight = window.innerHeight;
@@ -1288,6 +1274,12 @@
         // Toggle fullscreen function
         function toggleFullscreen() {
             const icon = document.getElementById('fullscreenIcon');
+            const isMobile = window.innerWidth < 768;
+            
+            // Only allow fullscreen toggle on mobile devices
+            if (!isMobile) {
+                return;
+            }
             
             if (!document.fullscreenElement && !document.webkitFullscreenElement && 
                 !document.mozFullScreenElement && !document.msFullscreenElement) {
@@ -1316,6 +1308,34 @@
                 }
                 icon.textContent = '⛶';
             }
+        }
+        
+        // Exit signing modal with proper cleanup
+        function exitSigningModal() {
+            const isMobile = window.innerWidth < 768;
+            const modal = document.getElementById('signingModal');
+            modal.classList.remove('active');
+            
+            // Mobile-only cleanup
+            if (isMobile) {
+                // Exit fullscreen
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+                
+                // Unlock screen orientation
+                if (screen.orientation && screen.orientation.unlock) {
+                    screen.orientation.unlock();
+                }
+            }
+            
+            document.getElementById('portraitContainer').style.display = 'block';
         }
         
         // Draw dots function for connect-the-dots challenge
