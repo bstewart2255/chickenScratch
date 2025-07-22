@@ -1315,6 +1315,7 @@
         }
         
         // Complete authentication
+        // Complete authentication with score display
         async function completeAuthentication() {
             const username = document.getElementById('username').value.trim();
             if (!username) {
@@ -1366,7 +1367,61 @@
                 if (response.ok) {
                     const result = await response.json();
                     
-                    // Also verify with ML
+                    // Display authentication scores
+                    console.log('🎯 Authentication Results:', result);
+                    
+                    // Build score display message
+                    let scoreMessage = `✅ Welcome back, ${username}!<br><br>`;
+                    scoreMessage += `<strong>Your Authentication Scores:</strong><br>`;
+                    
+                    if (result.scores) {
+                        scoreMessage += `• Signature: ${result.scores.signature}%<br>`;
+                        
+                        // Show shape scores
+                        Object.keys(result.scores).forEach(key => {
+                            if (key !== 'signature' && key !== 'average' && !key.startsWith('drawing_')) {
+                                scoreMessage += `• ${key.charAt(0).toUpperCase() + key.slice(1)}: ${result.scores[key]}%<br>`;
+                            }
+                        });
+                        
+                        // Show drawing scores
+                        let drawingCount = 1;
+                        Object.keys(result.scores).forEach(key => {
+                            if (key.startsWith('drawing_')) {
+                                scoreMessage += `• Drawing ${drawingCount++}: ${result.scores[key]}%<br>`;
+                            }
+                        });
+                        
+                        scoreMessage += `<br><strong>Overall Score: ${result.scores.average}%</strong>`;
+                        scoreMessage += ` (Threshold: ${result.threshold || 45}%)`;
+                        
+                        // Store this attempt in localStorage for comparison
+                        const authHistory = JSON.parse(localStorage.getItem('authHistory_' + username) || '[]');
+                        authHistory.push({
+                            timestamp: new Date().toISOString(),
+                            scores: result.scores,
+                            success: true
+                        });
+                        // Keep only last 5 attempts
+                        if (authHistory.length > 5) {
+                            authHistory.shift();
+                        }
+                        localStorage.setItem('authHistory_' + username, JSON.stringify(authHistory));
+                        
+                        // Show comparison with previous attempt
+                        if (authHistory.length > 1) {
+                            const previousAttempt = authHistory[authHistory.length - 2];
+                            const scoreDiff = result.scores.average - previousAttempt.scores.average;
+                            scoreMessage += `<br><br><em>Score change from last attempt: ${scoreDiff > 0 ? '+' : ''}${scoreDiff.toFixed(1)}%</em>`;
+                        }
+                    }
+                    
+                    // Show the detailed message
+                    const messageDiv = document.getElementById('message');
+                    messageDiv.className = 'message success';
+                    messageDiv.innerHTML = scoreMessage;
+                    
+                    // Try ML verification (optional)
                     try {
                         const mlResponse = await fetch(`${ML_API_URL}/api/verify-ml`, {
                             method: 'POST',
@@ -1379,29 +1434,38 @@
                             })
                         });
                         
-                        const mlResult = await mlResponse.json();
-                        
-                        if (mlResult.success && mlResult.is_genuine) {
-                            showMessage(`✅ Welcome back, ${username}! ML Confidence: ${mlResult.confidence.toFixed(0)}%`);
-                        } else if (mlResult.success && !mlResult.is_genuine) {
-                            showMessage('⚠️ Signature verification failed - additional verification required', true);
+                        if (mlResponse.ok) {
+                            const mlResult = await mlResponse.json();
+                            if (mlResult.success) {
+                                console.log('ML Verification:', mlResult);
+                            }
                         }
                     } catch (mlError) {
+                        // ML verification is optional, ignore errors
                         console.error('ML verification error:', mlError);
-                        showMessage(`Welcome back, ${username}!`);
                     }
                     
-                    // Show success UI
+                    // Show success UI after a longer delay to let user read scores
                     setTimeout(() => {
+                        // Add a "View Authentication History" button to the success screen
                         document.getElementById('mainContainer').innerHTML = `
                             <div style="text-align: center; padding: 40px;">
                                 <div style="font-size: 72px; margin-bottom: 20px;">👋</div>
                                 <h2>Welcome back, ${username}!</h2>
                                 <p style="color: #666; margin: 20px 0;">You've been successfully authenticated.</p>
-                                <button class="primary" onclick="location.reload()">Sign Out</button>
+                                <div style="background: #f5f3ff; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                                    <h3 style="margin-bottom: 10px;">Your Score: ${result.scores.average}%</h3>
+                                    <button class="primary" onclick="showAuthHistory('${username}')" style="margin: 10px;">
+                                        View Authentication History
+                                    </button>
+                                    <button class="primary" onclick="location.reload()" style="margin: 10px;">
+                                        Sign Out
+                                    </button>
+                                </div>
                             </div>
                         `;
-                    }, 2000);
+                    }, 5000); // Give user 5 seconds to read scores
+                    
                 } else {
                     let errorMessage = 'Authentication failed';
                     try {
@@ -1409,6 +1473,24 @@
                         if (contentType && contentType.includes("application/json")) {
                             const error = await response.json();
                             errorMessage = error.message || error.error || errorMessage;
+                            
+                            // Store failed attempt
+                            if (error.scores) {
+                                const authHistory = JSON.parse(localStorage.getItem('authHistory_' + username) || '[]');
+                                authHistory.push({
+                                    timestamp: new Date().toISOString(),
+                                    scores: error.scores,
+                                    success: false
+                                });
+                                if (authHistory.length > 5) {
+                                    authHistory.shift();
+                                }
+                                localStorage.setItem('authHistory_' + username, JSON.stringify(authHistory));
+                                
+                                // Show detailed failure message with scores
+                                errorMessage += `<br><br>Your scores: Signature ${error.scores.signature}%, Overall ${error.scores.average}%`;
+                                errorMessage += `<br>Required threshold: ${error.threshold}%`;
+                            }
                         } else {
                             errorMessage = `Server error (${response.status}): ${response.statusText}`;
                         }
@@ -1426,6 +1508,138 @@
                 nextButton.disabled = false;
                 nextButton.textContent = 'Sign In';
             }
+        }
+
+        // Add this function to show authentication history
+        function showAuthHistory(username) {
+            const history = JSON.parse(localStorage.getItem('authHistory_' + username) || '[]');
+            
+            let historyHTML = `
+                <div style="text-align: center; padding: 40px;">
+                    <h2>Authentication History for ${username}</h2>
+                    <div style="max-width: 600px; margin: 0 auto;">
+            `;
+            
+            if (history.length === 0) {
+                historyHTML += '<p>No previous authentication attempts found.</p>';
+            } else {
+                historyHTML += `
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                        <thead>
+                            <tr style="background: #f5f3ff;">
+                                <th style="padding: 12px; text-align: left;">Date/Time</th>
+                                <th style="padding: 12px;">Signature</th>
+                                <th style="padding: 12px;">Overall Score</th>
+                                <th style="padding: 12px;">Change</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                history.forEach((attempt, index) => {
+                    const date = new Date(attempt.timestamp);
+                    const previousScore = index > 0 ? history[index - 1].scores.average : null;
+                    const change = previousScore ? attempt.scores.average - previousScore : 0;
+                    
+                    historyHTML += `
+                        <tr style="border-bottom: 1px solid #e0e0e0;">
+                            <td style="padding: 12px;">${date.toLocaleDateString()} ${date.toLocaleTimeString()}</td>
+                            <td style="padding: 12px;">${attempt.scores.signature}%</td>
+                            <td style="padding: 12px;"><strong>${attempt.scores.average}%</strong></td>
+                            <td style="padding: 12px; color: ${change >= 0 ? '#1e7e34' : '#e53e3e'};">
+                                ${index > 0 ? (change >= 0 ? '+' : '') + change.toFixed(1) + '%' : '-'}
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                historyHTML += `
+                        </tbody>
+                    </table>
+                    <div style="margin-top: 20px;">
+                        <canvas id="scoreChart" width="600" height="300"></canvas>
+                    </div>
+                `;
+            }
+            
+            historyHTML += `
+                    </div>
+                    <button class="primary" onclick="location.reload()" style="margin-top: 20px;">
+                        Back to Sign In
+                    </button>
+                </div>
+            `;
+            
+            document.getElementById('mainContainer').innerHTML = historyHTML;
+            
+            // Draw a simple chart if there's history
+            if (history.length > 1) {
+                drawScoreChart(history);
+            }
+        }
+
+        // Simple chart drawing function
+        function drawScoreChart(history) {
+            const canvas = document.getElementById('scoreChart');
+            const ctx = canvas.getContext('2d');
+            
+            // Set up chart dimensions
+            const padding = 40;
+            const chartWidth = canvas.width - padding * 2;
+            const chartHeight = canvas.height - padding * 2;
+            
+            // Clear canvas
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw axes
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, canvas.height - padding);
+            ctx.lineTo(canvas.width - padding, canvas.height - padding);
+            ctx.stroke();
+            
+            // Draw data points and lines
+            const scores = history.map(h => h.scores.average);
+            const maxScore = 100;
+            const minScore = 0;
+            
+            ctx.strokeStyle = '#667eea';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            
+            history.forEach((attempt, index) => {
+                const x = padding + (index / (history.length - 1)) * chartWidth;
+                const y = canvas.height - padding - ((attempt.scores.average - minScore) / (maxScore - minScore)) * chartHeight;
+                
+                if (index === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+                
+                // Draw point
+                ctx.fillStyle = '#667eea';
+                ctx.beginPath();
+                ctx.arc(x, y, 5, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Draw score label
+                ctx.fillStyle = '#333';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(attempt.scores.average + '%', x, y - 10);
+            });
+            
+            ctx.stroke();
+            
+            // Draw title
+            ctx.fillStyle = '#333';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Authentication Score Trend', canvas.width / 2, 20);
         }
         
         // Skip to sign in
