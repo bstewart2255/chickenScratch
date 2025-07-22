@@ -542,6 +542,29 @@ app.post('/login', async (req, res) => {
         
         const isSuccess = averageScore >= threshold;
         
+        // Save authentication signature with ML features for tracking
+        let authSignatureId = null;
+        try {
+            // Calculate ML features for the authentication signature
+            const mlFeatures = calculateMLFeatures(signature);
+            
+            // Save the authentication signature
+            const sigResult = await pool.query(
+                'INSERT INTO signatures (user_id, signature_data, features, metrics) VALUES ($1, $2, $3, $4) RETURNING id, created_at',
+                [
+                    userId,
+                    JSON.stringify(signature),
+                    JSON.stringify(extractSignatureFeatures(signature.data)),
+                    JSON.stringify(mlFeatures)
+                ]
+            );
+            authSignatureId = sigResult.rows[0].id;
+            const sigCreatedAt = sigResult.rows[0].created_at;
+            console.log('Saved auth signature with ID:', authSignatureId, 'at:', sigCreatedAt);
+        } catch (err) {
+            console.error('Failed to save auth signature:', err);
+        }
+        
         // Record authentication attempt
         try {
             await pool.query(
@@ -856,13 +879,21 @@ app.get('/api/user/:username/details', async (req, res) => {
         );
         
         // Get recent signatures used in authentication attempts (last 10)
+        // Note: We match signatures created within 5 seconds of auth attempts
+        // This accounts for the signature being saved just before the auth attempt
         const recentAuthSignatures = await pool.query(`
             SELECT s.*, a.created_at as auth_time, a.success, a.confidence 
             FROM signatures s
             JOIN auth_attempts a ON a.user_id = s.user_id 
-                AND a.created_at >= s.created_at - INTERVAL '1 minute'
-                AND a.created_at <= s.created_at + INTERVAL '1 minute'
+                AND a.created_at >= s.created_at - INTERVAL '5 seconds'
+                AND a.created_at <= s.created_at + INTERVAL '5 seconds'
             WHERE s.user_id = $1
+                AND s.id NOT IN (
+                    SELECT MIN(id) FROM signatures 
+                    WHERE user_id = $1 
+                    GROUP BY user_id
+                    HAVING COUNT(*) >= 3
+                )  -- Exclude enrollment signatures (first 3)
             ORDER BY a.created_at DESC
             LIMIT 10
         `, [user.id]);

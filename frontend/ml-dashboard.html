@@ -950,7 +950,8 @@
                         hasMLFeatures: hasMLFeatures,
                         baselineKeys: hasBaseline ? Object.keys(userInfo.userBaseline) : [],
                         attemptsWithFeatures: userInfo.recentAttemptsWithFeatures ? userInfo.recentAttemptsWithFeatures.length : 0,
-                        regularAttempts: userInfo.recentAttempts ? userInfo.recentAttempts.length : 0
+                        regularAttempts: userInfo.recentAttempts ? userInfo.recentAttempts.length : 0,
+                        rawResponse: userInfo  // Log full response for debugging
                     });
                     
                     // Function to safely get value with fallback
@@ -1471,11 +1472,14 @@
             initDistributionChart();
             initUserTypeChart();
             
-            // Load activity table
-            loadActivityTable();
+            // Load activity table - but wait for real data first
+            // loadActivityTable();  // Comment out initial mock data load
             
             // Set up filters
             setupFilters();
+            
+            // Fetch real data immediately
+            await fetchDashboardData();  // Wait for real data before continuing
             
             // Fetch ML-specific data
             fetchMLData();
@@ -1834,8 +1838,13 @@
                 if (activityResponse.ok) {
                     const activityData = await activityResponse.json();
                     if (activityData.activities && activityData.activities.length > 0) {
+                        // Replace mock data with real data
                         mockData.recentActivity = activityData.activities;
                         loadActivityTable();
+                        
+                        // Log for debugging
+                        console.log('Loaded real activity data:', activityData.activities.length, 'activities');
+                        console.log('Sample users:', activityData.activities.slice(0, 3).map(a => a.user));
                     }
                 }
             } catch (error) {
