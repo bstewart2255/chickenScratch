@@ -703,7 +703,62 @@ app.get('/api/recent-activity', async (req, res) => {
     }
 });
 
-// User details endpoint
+// Helper function to calculate baseline metrics from enrollment signatures
+function calculateUserBaseline(signatures) {
+    const mlFeatures = [
+        'stroke_count', 'total_points', 'total_duration_ms', 'avg_points_per_stroke',
+        'avg_velocity', 'max_velocity', 'min_velocity', 'velocity_std',
+        'width', 'height', 'area', 'aspect_ratio', 'center_x', 'center_y',
+        'avg_stroke_length', 'total_length', 'length_variation', 
+        'avg_stroke_duration', 'duration_variation'
+    ];
+    
+    const baseline = {};
+    
+    // Initialize sums for each feature
+    mlFeatures.forEach(feature => {
+        baseline[feature] = { sum: 0, count: 0, values: [] };
+    });
+    
+    // Aggregate metrics from all enrollment signatures
+    signatures.forEach(sig => {
+        if (sig.metrics && typeof sig.metrics === 'object') {
+            mlFeatures.forEach(feature => {
+                if (sig.metrics[feature] !== undefined && sig.metrics[feature] !== null) {
+                    const value = parseFloat(sig.metrics[feature]);
+                    if (!isNaN(value)) {
+                        baseline[feature].sum += value;
+                        baseline[feature].count += 1;
+                        baseline[feature].values.push(value);
+                    }
+                }
+            });
+        }
+    });
+    
+    // Calculate averages and standard deviations
+    const result = {};
+    mlFeatures.forEach(feature => {
+        if (baseline[feature].count > 0) {
+            const avg = baseline[feature].sum / baseline[feature].count;
+            result[feature] = parseFloat(avg.toFixed(2));
+            
+            // Calculate std deviation for variability metrics
+            if (baseline[feature].values.length > 1) {
+                const variance = baseline[feature].values.reduce((acc, val) => {
+                    return acc + Math.pow(val - avg, 2);
+                }, 0) / baseline[feature].values.length;
+                result[`${feature}_std`] = parseFloat(Math.sqrt(variance).toFixed(2));
+            }
+        } else {
+            result[feature] = 0;
+        }
+    });
+    
+    return result;
+}
+
+// User details endpoint with ML features
 app.get('/api/user/:username/details', async (req, res) => {
     try {
         const userResult = await pool.query(
@@ -717,17 +772,32 @@ app.get('/api/user/:username/details', async (req, res) => {
         
         const user = userResult.rows[0];
         
-        // Get user's signatures
+        // Get user's enrollment signatures with metrics
         const signatures = await pool.query(
             'SELECT * FROM signatures WHERE user_id = $1 ORDER BY created_at DESC',
             [user.id]
         );
         
-        // Get user's auth attempts
+        // Calculate user baseline from enrollment signatures
+        const userBaseline = calculateUserBaseline(signatures.rows);
+        
+        // Get user's auth attempts with detailed metrics
         const authAttempts = await pool.query(
             'SELECT * FROM auth_attempts WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50',
             [user.id]
         );
+        
+        // Get recent signatures used in authentication attempts (last 10)
+        const recentAuthSignatures = await pool.query(`
+            SELECT s.*, a.created_at as auth_time, a.success, a.confidence 
+            FROM signatures s
+            JOIN auth_attempts a ON a.user_id = s.user_id 
+                AND a.created_at >= s.created_at - INTERVAL '1 minute'
+                AND a.created_at <= s.created_at + INTERVAL '1 minute'
+            WHERE s.user_id = $1
+            ORDER BY a.created_at DESC
+            LIMIT 10
+        `, [user.id]);
         
         // Calculate success rate
         const successCount = authAttempts.rows.filter(a => a.success).length;
@@ -741,6 +811,38 @@ app.get('/api/user/:username/details', async (req, res) => {
         // Get unique devices
         const devices = [...new Set(authAttempts.rows.map(a => a.device_info).filter(d => d))];
         
+        // Build recent attempts with ML features
+        const recentAttemptsWithFeatures = recentAuthSignatures.rows.map(sig => {
+            const attemptScores = {};
+            
+            // Extract ML features from the signature metrics
+            if (sig.metrics && typeof sig.metrics === 'object') {
+                const mlFeatures = [
+                    'stroke_count', 'total_points', 'total_duration_ms', 'avg_points_per_stroke',
+                    'avg_velocity', 'max_velocity', 'min_velocity', 'velocity_std',
+                    'width', 'height', 'area', 'aspect_ratio', 'center_x', 'center_y',
+                    'avg_stroke_length', 'total_length', 'length_variation',
+                    'avg_stroke_duration', 'duration_variation'
+                ];
+                
+                mlFeatures.forEach(feature => {
+                    if (sig.metrics[feature] !== undefined) {
+                        attemptScores[feature] = parseFloat(sig.metrics[feature]) || 0;
+                    } else {
+                        attemptScores[feature] = 0;
+                    }
+                });
+            }
+            
+            return {
+                time: new Date(sig.auth_time).toLocaleString(),
+                confidence: sig.confidence || 0,
+                status: sig.success ? 'success' : 'blocked',
+                attempt_scores: attemptScores,
+                user_baseline: userBaseline
+            };
+        });
+        
         res.json({
             username: user.username,
             enrolledDate: user.created_at,
@@ -748,20 +850,89 @@ app.get('/api/user/:username/details', async (req, res) => {
             totalAuths: authAttempts.rows.length,
             successRate: parseFloat(successRate),
             avgConfidence: avgConfidence.toFixed(1),
+            userBaseline: userBaseline,
             signatures: signatures.rows.map(sig => ({
                 date: sig.created_at,
-                samples: 1, // Each signature is one sample
-                consistency: 0.9 // This would come from ML analysis
+                samples: 1,
+                consistency: 0.9,
+                metrics: sig.metrics || {}
             })),
             devices: devices.length > 0 ? devices : ['Unknown Device'],
             recentAttempts: authAttempts.rows.slice(0, 10).map(attempt => ({
                 time: new Date(attempt.created_at).toLocaleString(),
                 confidence: attempt.confidence || 0,
                 status: attempt.success ? 'success' : 'blocked'
-            }))
+            })),
+            recentAttemptsWithFeatures: recentAttemptsWithFeatures
         });
     } catch (error) {
         console.error('User details error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// API endpoint for ML feature comparison visualization
+app.get('/api/user/:username/ml-features', async (req, res) => {
+    try {
+        const userResult = await pool.query(
+            'SELECT id FROM users WHERE username = $1',
+            [req.params.username]
+        );
+        
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        const userId = userResult.rows[0].id;
+        
+        // Get enrollment signatures
+        const enrollmentSigs = await pool.query(
+            'SELECT metrics, created_at FROM signatures WHERE user_id = $1 ORDER BY created_at ASC LIMIT 5',
+            [userId]
+        );
+        
+        // Calculate baseline
+        const baseline = calculateUserBaseline(enrollmentSigs.rows);
+        
+        // Get recent auth signatures with metrics
+        const recentSigs = await pool.query(`
+            SELECT s.metrics, s.created_at, a.success, a.confidence
+            FROM signatures s
+            JOIN auth_attempts a ON a.user_id = s.user_id 
+                AND ABS(EXTRACT(EPOCH FROM (a.created_at - s.created_at))) < 60
+            WHERE s.user_id = $1 AND s.metrics IS NOT NULL
+            ORDER BY s.created_at DESC
+            LIMIT 20
+        `, [userId]);
+        
+        // Format response for visualization
+        const mlFeatures = [
+            'stroke_count', 'total_points', 'total_duration_ms', 'avg_velocity',
+            'area', 'width', 'height', 'aspect_ratio'
+        ];
+        
+        const featureComparison = {};
+        mlFeatures.forEach(feature => {
+            featureComparison[feature] = {
+                baseline: baseline[feature] || 0,
+                recent_values: recentSigs.rows.map(sig => ({
+                    value: sig.metrics?.[feature] || 0,
+                    success: sig.success,
+                    confidence: sig.confidence,
+                    timestamp: sig.created_at
+                }))
+            };
+        });
+        
+        res.json({
+            username: req.params.username,
+            baseline: baseline,
+            features: featureComparison,
+            feature_names: mlFeatures
+        });
+        
+    } catch (error) {
+        console.error('ML features error:', error);
         res.status(500).json({ error: error.message });
     }
 });
