@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Signature Authentication - ChickenScratch</title>
+    <title>Signature Modal Flow</title>
     <style>
         * {
             box-sizing: border-box;
@@ -21,26 +21,6 @@
             justify-content: center;
         }
         
-        /* Navigation Links */
-        .nav-links {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            display: flex;
-            gap: 15px;
-            font-size: 14px;
-        }
-        
-        .nav-links a {
-            color: #667eea;
-            text-decoration: none;
-            transition: opacity 0.2s;
-        }
-        
-        .nav-links a:hover {
-            opacity: 0.8;
-        }
-        
         /* Portrait Mode - Entry Point */
         .portrait-container, .username-container {
             display: none;
@@ -51,7 +31,6 @@
             width: 100%;
             text-align: center;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            position: relative;
         }
         
         .portrait-container {
@@ -115,20 +94,6 @@
             font-weight: 400;
         }
         
-        .desktop-link {
-            margin-top: 30px;
-            font-size: 14px;
-        }
-        
-        .desktop-link a {
-            color: #667eea;
-            text-decoration: none;
-        }
-        
-        .desktop-link a:hover {
-            text-decoration: underline;
-        }
-        
         /* Landscape Signing Modal */
         .signing-modal {
             display: none;
@@ -173,6 +138,16 @@
             align-items: center;
             gap: 15px;
             z-index: 10;
+        }
+        
+        .fullscreen-btn {
+            background: #333;
+            color: white;
+        }
+        
+        .fullscreen-btn:hover {
+            background: #555;
+            transform: scale(1.05);
         }
         
         .step-counter {
@@ -231,15 +206,14 @@
         .instruction-overlay {
             position: absolute;
             top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
+            left: 20px;
             background: rgba(0, 0, 0, 0.9);
             color: white;
-            padding: 15px 25px;
-            border-radius: 12px;
-            font-size: 20px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
             font-weight: 600;
-            text-align: center;
+            text-align: left;
             z-index: 5;
             transition: opacity 0.3s ease;
             pointer-events: none;
@@ -356,11 +330,6 @@
 <body>
     <!-- Portrait Mode Entry -->
     <div class="portrait-container" id="portraitContainer">
-        <!-- Navigation Links -->
-        <div class="nav-links">
-            <a href="ml-dashboard.html">📊 ML Dashboard</a>
-        </div>
-        
         <h1>Signature Authentication</h1>
         <p style="color: #666; margin: 20px 0;">Sign in or create your account</p>
         
@@ -380,10 +349,6 @@
         
         <p style="color: #999; font-size: 14px;">
             <span id="flowDescription">Choose an option to continue</span>
-        </p>
-        
-        <p class="desktop-link">
-            <a href="index-desktop.html">💻 Use Desktop Version (More Features)</a>
         </p>
     </div>
 
@@ -431,6 +396,9 @@
             <!-- Controls Overlay -->
             <div class="controls-overlay">
                 <div class="step-counter" id="stepCounter">1 of 11</div>
+                <button class="control-button fullscreen-btn" onclick="toggleFullscreen()" title="Fullscreen">
+                    <span id="fullscreenIcon">⛶</span>
+                </button>
                 <button class="control-button clear-btn" onclick="clearCanvas()" title="Clear">
                     Clear
                 </button>
@@ -651,12 +619,26 @@
                 const data = await response.json();
                 
                 // Convert backend challenge format to our flow format
-                return data.challenges.required.map(challenge => ({
-                    type: challenge.type,
-                    instruction: challenge.type === 'signature' ? 'Sign your name' :
-                                challenge.type === 'shape' ? `Draw a ${challenge.shape}` :
-                                challenge.prompt || challenge.name
-                }));
+                return data.challenges.required.map(challenge => {
+                    let instruction = '';
+                    
+                    if (challenge.type === 'signature') {
+                        instruction = 'Sign your name';
+                    } else if (challenge.type === 'shape' && challenge.shape) {
+                        instruction = `Draw a ${challenge.shape}`;
+                    } else if (challenge.type === 'drawing') {
+                        // Use the prompt field if available, otherwise use name field
+                        instruction = challenge.prompt || challenge.name || 'Complete the drawing';
+                    } else {
+                        // Fallback
+                        instruction = challenge.prompt || challenge.name || 'Complete the challenge';
+                    }
+                    
+                    return {
+                        type: challenge.type,
+                        instruction: instruction
+                    };
+                });
             } catch (error) {
                 throw error;
             }
@@ -680,6 +662,9 @@
         }
         
         function continueToSignIn() {
+            // Hide the completion message first
+            document.getElementById('completionMessage').classList.remove('show');
+            
             // After sign-up completion, start sign-in flow
             userJustSignedUp = true;
             startSignIn();
@@ -805,6 +790,11 @@
             overlay.classList.remove('hidden');
             hasDrawn = false;
             drawingStartTime = null;
+            
+            // Check if this is a connect dots challenge
+            if (step.instruction && step.instruction.toLowerCase().includes('dots')) {
+                setTimeout(() => drawDots(), 100);
+            }
         }
         
         function hideInstruction() {
@@ -1130,14 +1120,8 @@
         }
         
         function goToApp() {
-            // Check if coming from ML dashboard
-            const referrer = document.referrer;
-            if (referrer.includes('ml-dashboard.html')) {
-                window.location.href = 'ml-dashboard.html';
-            } else {
-                // Default to desktop version for full features
-                window.location.href = 'index-desktop.html';
-            }
+            // Redirect to main app or dashboard
+            window.location.href = '/';
         }
         
         function resetDemo() {
@@ -1239,6 +1223,75 @@
                 proceedToSigning();
             }
         });
+        
+        // Toggle fullscreen function
+        function toggleFullscreen() {
+            const icon = document.getElementById('fullscreenIcon');
+            
+            if (!document.fullscreenElement && !document.webkitFullscreenElement && 
+                !document.mozFullScreenElement && !document.msFullscreenElement) {
+                // Enter fullscreen
+                const element = document.documentElement;
+                if (element.requestFullscreen) {
+                    element.requestFullscreen();
+                } else if (element.webkitRequestFullscreen) {
+                    element.webkitRequestFullscreen();
+                } else if (element.mozRequestFullScreen) {
+                    element.mozRequestFullScreen();
+                } else if (element.msRequestFullscreen) {
+                    element.msRequestFullscreen();
+                }
+                icon.textContent = '⛶';
+            } else {
+                // Exit fullscreen
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+                icon.textContent = '⛶';
+            }
+        }
+        
+        // Draw dots function for connect-the-dots challenge
+        function drawDots() {
+            const canvas = document.getElementById('signature-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Save the current signature data
+            const currentData = signaturePad.toData();
+            
+            // Clear and redraw
+            signaturePad.clear();
+            
+            // Account for device pixel ratio
+            const dpr = window.devicePixelRatio || 1;
+            
+            // Define 4 dot positions (spread across canvas)
+            const dots = [
+                { x: canvas.width * 0.25 / dpr, y: canvas.height * 0.25 / dpr },
+                { x: canvas.width * 0.75 / dpr, y: canvas.height * 0.25 / dpr },
+                { x: canvas.width * 0.25 / dpr, y: canvas.height * 0.75 / dpr },
+                { x: canvas.width * 0.75 / dpr, y: canvas.height * 0.75 / dpr }
+            ];
+            
+            // Draw the dots WITHOUT numbers
+            ctx.fillStyle = '#667eea';
+            dots.forEach(dot => {
+                ctx.beginPath();
+                ctx.arc(dot.x, dot.y, 10, 0, 2 * Math.PI);
+                ctx.fill();
+            });
+            
+            // Restore previous strokes if any
+            if (currentData.length > 0) {
+                signaturePad.fromData(currentData);
+            }
+        }
     </script>
 </body>
 </html>
