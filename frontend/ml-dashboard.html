@@ -1470,8 +1470,24 @@
             const mlStatusEl = document.getElementById('mlStatus');
             const mlStatusBtn = document.getElementById('mlStatusBtn');
             
+            // Determine ML API URL based on current environment
+            const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+            const mlApiUrl = isProduction 
+                ? 'https://your-ml-server.onrender.com/api/health'  // TODO: Deploy ML server and update this
+                : 'http://localhost:5002/api/health';
+            
+            if (isProduction && mlApiUrl.includes('your-ml-server')) {
+                // ML server not deployed yet
+                mlStatusEl.innerHTML = '⏸️ ML Not Deployed';
+                mlStatusBtn.style.background = '#6b7280';
+                mlStatusBtn.style.color = 'white';
+                console.log('ML server needs to be deployed for production use');
+                showNotification('ML server needs to be deployed for production. Using rule-based scoring.', 'info');
+                return;
+            }
+            
             try {
-                const response = await fetch('http://localhost:5002/api/health');
+                const response = await fetch(mlApiUrl);
                 if (response.ok) {
                     const data = await response.json();
                     if (data.model_loaded) {

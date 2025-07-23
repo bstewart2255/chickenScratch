@@ -129,10 +129,13 @@ def reload_model():
     })
 
 if __name__ == '__main__':
-    port = int(os.environ.get('ML_PORT', 5002))
-    print(f"🚀 ML API Server starting on http://localhost:{port}")
+    port = int(os.environ.get('PORT', os.environ.get('ML_PORT', 5002)))  # Render uses PORT
+    debug = os.environ.get('FLASK_ENV') != 'production'
+    
+    print(f"🚀 ML API Server starting on port {port}")
     print("Available endpoints:")
     print("  POST /api/predict - Get signature prediction")
     print("  GET  /api/health - Health check")
     print("  POST /api/reload-model - Reload latest model")
-    app.run(host='0.0.0.0', port=port, debug=True)
+    
+    app.run(host='0.0.0.0', port=port, debug=debug)
