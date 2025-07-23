@@ -1,0 +1,36 @@
+{
+  "user_id": "test12",
+  "timestamp": 1753164637665,
+  "type": "genuine",
+  "features": {
+    "basic_stats": {
+      "stroke_count": 8,
+      "total_points": 153,
+      "total_duration_ms": 19940,
+      "average_points_per_stroke": 19.125
+    },
+    "velocity_features": {
+      "average_velocity": 0.052,
+      "max_velocity": 0,
+      "min_velocity": 0,
+      "velocity_std": 0
+    },
+    "shape_features": {
+      "width": 412,
+      "height": 76,
+      "area": 31312,
+      "aspect_ratio": 5.421052631578948,
+      "center_x": 224,
+      "center_y": 52.78125
+    },
+    "stroke_features": {
+      "average_stroke_length": 130.5,
+      "total_length": 1044,
+      "length_variation": 0,
+      "average_stroke_duration": 2492.5,
+      "duration_variation": 0
+    }
+  },
+  "auth_success": null,
+  "confidence": null
+}

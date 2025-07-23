@@ -10,7 +10,8 @@
     "verify-metrics": "node verifyMetrics.js",
     "verify-tables": "node verifyTables.js",
     "update-ml-features": "node updateMLFeatures.js",
-    "add-temp-enrollments": "node updateDatabaseTempEnrollments.js"
+    "add-temp-enrollments": "node updateDatabaseTempEnrollments.js",
+    "export-ml-data": "node exportMLData.js"
   },
   "keywords": [],
   "author": "",

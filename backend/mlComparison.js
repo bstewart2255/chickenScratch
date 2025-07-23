@@ -63,20 +63,21 @@ async function compareSignaturesML(storedMetrics, currentMetrics, username) {
             score: score.toFixed(1)
         });
         
-        // TODO: When ML model is ready, replace with:
-        /*
-        const ML_API_URL = process.env.ML_API_URL || 'http://localhost:5000';
-        const response = await axios.post(`${ML_API_URL}/api/predict`, {
-            username: username,
-            stored_features: storedMetrics,
-            current_features: currentMetrics,
-            differences: featureDifferences
-        });
-        
-        return response.data.confidence_score;
-        */
-        
-        return score;
+        // Try to use ML model first, fall back to rule-based if unavailable
+        try {
+            const ML_API_URL = process.env.ML_API_URL || 'http://localhost:5000';
+            const response = await axios.post(`${ML_API_URL}/api/predict`, {
+                username: username,
+                stored_features: storedMetrics,
+                current_features: currentMetrics
+            });
+            
+            console.log(`ML API Response:`, response.data);
+            return response.data.confidence_score;
+        } catch (mlError) {
+            console.warn('ML API not available, using rule-based scoring:', mlError.message);
+            return score;
+        }
         
     } catch (error) {
         console.error('ML comparison error:', error);

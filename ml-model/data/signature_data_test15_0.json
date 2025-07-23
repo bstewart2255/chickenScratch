@@ -1,0 +1,36 @@
+{
+  "user_id": "test15",
+  "timestamp": 1753257993251,
+  "type": "forgery",
+  "features": {
+    "basic_stats": {
+      "stroke_count": 8,
+      "total_points": 319,
+      "total_duration_ms": 16899,
+      "average_points_per_stroke": 39.875
+    },
+    "velocity_features": {
+      "average_velocity": 0.38033435975162916,
+      "max_velocity": 1.6547752868592158,
+      "min_velocity": 0.016441676305145512,
+      "velocity_std": 0.2931949860706203
+    },
+    "shape_features": {
+      "width": 650,
+      "height": 197,
+      "area": 128050,
+      "aspect_ratio": 3.299492385786802,
+      "center_x": 407,
+      "center_y": 186.09375
+    },
+    "stroke_features": {
+      "average_stroke_length": 262.7986532090432,
+      "total_length": 2102.3892256723457,
+      "length_variation": 234.90168986732408,
+      "average_stroke_duration": 1074.7142857142858,
+      "duration_variation": 772.2524965109191
+    }
+  },
+  "auth_success": false,
+  "confidence": "24.89"
+}

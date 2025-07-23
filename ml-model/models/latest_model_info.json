@@ -1,0 +1,27 @@
+{
+  "model_path": "models/signature_model_20250722_182331.pkl",
+  "scaler_path": "models/scaler_20250722_182331.pkl",
+  "feature_path": "models/features_20250722_182331.json",
+  "timestamp": "20250722_182331",
+  "feature_names": [
+    "stroke_count",
+    "total_points",
+    "total_duration_ms",
+    "avg_points_per_stroke",
+    "avg_velocity",
+    "max_velocity",
+    "min_velocity",
+    "velocity_std",
+    "width",
+    "height",
+    "area",
+    "aspect_ratio",
+    "center_x",
+    "center_y",
+    "avg_stroke_length",
+    "total_length",
+    "length_variation",
+    "avg_stroke_duration",
+    "duration_variation"
+  ]
+}
