@@ -732,8 +732,9 @@
         }
         
         function continueToSignIn() {
-            // Hide the completion message first
+            // Hide the completion message and overlay
             document.getElementById('completionMessage').classList.remove('show');
+            document.getElementById('completionOverlay').classList.remove('show');
             
             // After sign-up completion, start sign-in flow
             userJustSignedUp = true;
@@ -747,6 +748,10 @@
             
             // Hide portrait container
             document.getElementById('portraitContainer').style.display = 'none';
+            
+            // Set up for sign-in flow
+            totalSteps = 6;
+            flowSteps = signInSteps;
             
             // Add a small delay to ensure database commit is complete
             setTimeout(() => {
@@ -1319,6 +1324,13 @@
             const description = completionEl.querySelector('p');
             const buttonsContainer = document.getElementById('completionButtons');
             
+            // Reset the Next button state
+            const nextBtn = document.getElementById('nextBtn');
+            if (nextBtn) {
+                nextBtn.disabled = false;
+                nextBtn.textContent = 'Next';
+            }
+            
             if (result.type === 'signup') {
                 // Sign-up Success Completion
                 successIcon.textContent = '✅';
@@ -1357,6 +1369,13 @@
             const title = completionEl.querySelector('h2');
             const description = completionEl.querySelector('p');
             const buttonsContainer = document.getElementById('completionButtons');
+            
+            // Reset the Next button state
+            const nextBtn = document.getElementById('nextBtn');
+            if (nextBtn) {
+                nextBtn.disabled = false;
+                nextBtn.textContent = 'Next';
+            }
             
             if (isSignUp) {
                 // Sign-up Failure Completion
