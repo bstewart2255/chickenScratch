@@ -164,7 +164,11 @@ function extractSignatureFeatures(signatureDataUrl) {
     };
 }
 
-function compareSignatures(signature1, signature2) {
+// Import ML comparison functions
+const { compareSignaturesML, compareMultipleSignaturesML } = require('./mlComparison');
+
+// Legacy comparison function (kept for fallback)
+function compareSignaturesLegacy(signature1, signature2) {
     const features1 = extractSignatureFeatures(signature1);
     const features2 = extractSignatureFeatures(signature2);
     
@@ -177,6 +181,17 @@ function compareSignatures(signature1, signature2) {
     if (features1.suffix === features2.suffix) score += 35;
     
     return score;
+}
+
+// New ML-based comparison wrapper
+async function compareSignatures(signature1, signature2, metrics1, metrics2, username) {
+    // If we have ML metrics, use ML comparison
+    if (metrics1 && metrics2 && Object.keys(metrics1).length >= 15 && Object.keys(metrics2).length >= 15) {
+        return await compareSignaturesML(metrics1, metrics2, username);
+    }
+    // Fallback to legacy comparison
+    console.warn('Using legacy comparison - ML metrics not available');
+    return compareSignaturesLegacy(signature1, signature2);
 }
 
 // Updated Register endpoint to match enhanced frontend
@@ -594,9 +609,16 @@ app.post('/login', async (req, res) => {
         }
         
         const storedSignature = storedSigResult.rows[0].signature_data;
+        const storedMetrics = storedSigResult.rows[0].metrics || {};
         
-        // Calculate signature score (always required)
-        const signatureScore = compareSignatures(storedSignature.data, signature.data);
+        // Calculate signature score (always required) - now using ML
+        const signatureScore = await compareSignatures(
+            storedSignature.data, 
+            signature.data,
+            storedMetrics,
+            authSignatureMetrics,
+            username
+        );
         let totalScore = signatureScore;
         let scoreCount = 1;
         
@@ -607,32 +629,53 @@ app.post('/login', async (req, res) => {
         // If shapes were provided, verify them
         if (shapes) {
             const storedShapesResult = await pool.query(
-                'SELECT shape_type, shape_data FROM shapes WHERE user_id = $1 AND shape_type IN ($2, $3, $4)',
+                'SELECT shape_type, shape_data, metrics FROM shapes WHERE user_id = $1 AND shape_type IN ($2, $3, $4)',
                 [userId, 'circle', 'square', 'triangle']
             );
             
             const storedShapes = {};
             storedShapesResult.rows.forEach(row => {
-                storedShapes[row.shape_type] = row.shape_data;
+                storedShapes[row.shape_type] = {
+                    data: row.shape_data,
+                    metrics: row.metrics || {}
+                };
             });
             
             // Verify each provided shape
             if (shapes.circle && storedShapes.circle) {
-                const circleScore = compareSignatures(storedShapes.circle.data, shapes.circle.data);
+                const circleScore = await compareSignatures(
+                    storedShapes.circle.data.data, 
+                    shapes.circle.data,
+                    storedShapes.circle.metrics,
+                    shapes.circle.metrics || {},
+                    username
+                );
                 scores.circle = Math.round(circleScore);
                 totalScore += circleScore;
                 scoreCount++;
             }
             
             if (shapes.square && storedShapes.square) {
-                const squareScore = compareSignatures(storedShapes.square.data, shapes.square.data);
+                const squareScore = await compareSignatures(
+                    storedShapes.square.data.data, 
+                    shapes.square.data,
+                    storedShapes.square.metrics,
+                    shapes.square.metrics || {},
+                    username
+                );
                 scores.square = Math.round(squareScore);
                 totalScore += squareScore;
                 scoreCount++;
             }
             
             if (shapes.triangle && storedShapes.triangle) {
-                const triangleScore = compareSignatures(storedShapes.triangle.data, shapes.triangle.data);
+                const triangleScore = await compareSignatures(
+                    storedShapes.triangle.data.data, 
+                    shapes.triangle.data,
+                    storedShapes.triangle.metrics,
+                    shapes.triangle.metrics || {},
+                    username
+                );
                 scores.triangle = Math.round(triangleScore);
                 totalScore += triangleScore;
                 scoreCount++;
