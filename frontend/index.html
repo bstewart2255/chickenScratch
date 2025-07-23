@@ -751,7 +751,7 @@
             // After sign-up completion, start sign-in flow
             userJustSignedUp = true;
             isSignUp = false;
-            currentSessionId = null;
+            currentSessionId = null; // Reset session ID for new sign-in flow
             
             // Skip username input since we already have it from sign-up
             // currentUsername is already set from the sign-up flow
@@ -768,6 +768,10 @@
         
         function startSigning() {
             const isMobile = window.innerWidth < 768;
+            
+            // Reset step counter for new flow
+            currentStep = 1;
+            hasDrawn = false;
             
             // Hide portrait container
             document.getElementById('portraitContainer').style.display = 'none';
@@ -1150,15 +1154,16 @@
                         currentSessionId = result.sessionId;
                     }
                     
-                    // Move to next step
-                    currentStep++;
-                    console.log(`Step ${currentStep - 1} completed. Moving to step ${currentStep} of ${totalSteps}`);
-                    
-                    if (currentStep > totalSteps) {
-                        console.log(`All steps completed (${currentStep - 1}/${totalSteps}). Completing flow...`);
+                    // Check if all steps are completed
+                    if (currentStep >= totalSteps) {
+                        console.log(`All steps completed (${currentStep}/${totalSteps}). Completing flow...`);
                         completeFlow();
                         return;
                     }
+                    
+                    // Move to next step
+                    currentStep++;
+                    console.log(`Step ${currentStep - 1} completed. Moving to step ${currentStep} of ${totalSteps}`);
                     
                     // Update UI for next step
                     updateStepCounter();
