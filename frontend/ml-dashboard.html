@@ -669,6 +669,9 @@
                     <button class="filter-btn" onclick="openRetrainModal()">
                         🔄 Retrain Model
                     </button>
+                    <button class="filter-btn" id="mlStatusBtn" onclick="checkMLStatus()">
+                        <span id="mlStatus">🤖 ML Status</span>
+                    </button>
                 </div>
             </div>
             <div class="fixed-height-table">
@@ -1462,6 +1465,37 @@
             }, 3000);
         }
         
+        // Check ML API status
+        async function checkMLStatus() {
+            const mlStatusEl = document.getElementById('mlStatus');
+            const mlStatusBtn = document.getElementById('mlStatusBtn');
+            
+            try {
+                const response = await fetch('http://localhost:5002/api/health');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.model_loaded) {
+                        mlStatusEl.innerHTML = '🟢 ML Active';
+                        mlStatusBtn.style.background = '#10b981';
+                        mlStatusBtn.style.color = 'white';
+                        showNotification('ML model is active and ready!', 'success');
+                    } else {
+                        mlStatusEl.innerHTML = '🟡 ML Loading';
+                        mlStatusBtn.style.background = '#f59e0b';
+                        mlStatusBtn.style.color = 'white';
+                    }
+                } else {
+                    throw new Error('ML API not responding');
+                }
+            } catch (error) {
+                mlStatusEl.innerHTML = '🔴 ML Offline';
+                mlStatusBtn.style.background = '#ef4444';
+                mlStatusBtn.style.color = 'white';
+                console.log('ML API not available:', error.message);
+                showNotification('ML server is offline. Backend using rule-based scoring.', 'error');
+            }
+        }
+        
         // Initialize dashboard
         async function initDashboard() {
             // Update metrics
@@ -1855,6 +1889,12 @@
         // Initialize on load
         document.addEventListener('DOMContentLoaded', () => {
             initDashboard();
+            
+            // Check ML status
+            checkMLStatus();
+            
+            // Check ML status periodically
+            setInterval(checkMLStatus, 30000); // Every 30 seconds
             
             // Try to fetch real data
             fetchDashboardData();
