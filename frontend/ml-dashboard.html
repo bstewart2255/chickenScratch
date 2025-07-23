@@ -663,11 +663,11 @@
             <div class="card-header">
                 <h3 class="card-title">Recent Authentication Activity</h3>
                 <div style="display: flex; gap: 10px;">
-                    <button class="filter-btn" onclick="toggleRealtimeUpdates()" id="realtimeBtn">
-                        <span id="realtimeStatus">🔴</span> Real-time
+                    <button class="filter-btn" onclick="refreshDashboard()" title="Refresh data">
+                        🔄 Refresh
                     </button>
                     <button class="filter-btn" onclick="openRetrainModal()">
-                        🔄 Retrain Model
+                        🧠 Retrain Model
                     </button>
                     <button class="filter-btn" id="mlStatusBtn" onclick="checkMLStatus()">
                         <span id="mlStatus">🤖 ML Status</span>
@@ -1893,6 +1893,12 @@
             }
         }
         
+        // Refresh dashboard data
+        async function refreshDashboard() {
+            await fetchDashboardData();
+            updateMetrics();
+        }
+        
         // Initialize on load
         document.addEventListener('DOMContentLoaded', () => {
             initDashboard();
@@ -1905,6 +1911,9 @@
             
             // Try to fetch real data
             fetchDashboardData();
+            
+            // Refresh data every 10 seconds
+            setInterval(refreshDashboard, 10000);
         });
     </script>
 </body>
