@@ -76,12 +76,12 @@ def predict():
         probability = model.predict_proba(features_scaled)[0]
         
         # Convert to confidence score (0-100)
-        # If prediction is 1 (genuine), use the probability of genuine class
-        # If prediction is 0 (forgery), use 1 - probability of forgery class
-        if prediction == 1:
-            confidence_score = probability[1] * 100
-        else:
-            confidence_score = (1 - probability[0]) * 100
+        # Confidence score represents how likely the signature is genuine
+        # probability[1] is the probability of being genuine
+        confidence_score = probability[1] * 100
+        
+        # Ensure minimum confidence of 5% (even poor matches have some similarity)
+        confidence_score = max(5.0, confidence_score)
         
         # Log for debugging
         print(f"ML Prediction for {username}:")
