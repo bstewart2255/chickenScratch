@@ -67,7 +67,7 @@ async function compareSignaturesML(storedMetrics, currentMetrics, username) {
         try {
             // Use environment variable or default based on NODE_ENV
             const defaultMLUrl = process.env.NODE_ENV === 'production' 
-                ? 'https://your-ml-server.onrender.com'  // TODO: Update when ML server is deployed
+                ? 'https://chickenscratch-ml.onrender.com'
                 : 'http://localhost:5002';
             const ML_API_URL = process.env.ML_API_URL || defaultMLUrl;
             const response = await axios.post(`${ML_API_URL}/api/predict`, {

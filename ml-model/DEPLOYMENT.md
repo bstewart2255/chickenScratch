@@ -15,6 +15,7 @@ The ML server needs to be deployed separately from your main backend. Here's how
    - **Environment**: `Python 3`
    - **Build Command**: `pip install -r requirements.txt`
    - **Start Command**: `python ml_api_server.py`
+   - **Environment Variables**: None needed (Render provides PORT automatically)
 
 3. **After deployment, update your code:**
    - In `frontend/ml-dashboard.html`, replace `'https://your-ml-server.onrender.com'` with your actual ML server URL
