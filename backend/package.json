@@ -11,7 +11,8 @@
     "verify-tables": "node verifyTables.js",
     "update-ml-features": "node updateMLFeatures.js",
     "add-temp-enrollments": "node updateDatabaseTempEnrollments.js",
-    "export-ml-data": "node exportMLData.js"
+    "export-ml-data": "node exportMLData.js",
+    "fix-velocity": "node fixVelocityBaselines.js"
   },
   "keywords": [],
   "author": "",
