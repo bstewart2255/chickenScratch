@@ -34,7 +34,7 @@ fi
 # Step 3: Reload model if ML server is running
 echo ""
 echo "🔄 Step 3: Reloading model in ML API server (if running)..."
-curl -X POST http://localhost:5000/api/reload-model 2>/dev/null
+curl -X POST http://localhost:5002/api/reload-model 2>/dev/null
 
 echo ""
 echo "✅ Model retraining complete!"

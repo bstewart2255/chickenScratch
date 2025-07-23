@@ -20,5 +20,5 @@ if ! python3 -c "import flask" 2>/dev/null; then
 fi
 
 # Start the server
-echo "✅ Starting server on http://localhost:5000"
+echo "✅ Starting server on http://localhost:5002"
 python3 ml_api_server.py

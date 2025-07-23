@@ -28,7 +28,7 @@ This script will:
 ./start_ml_server.sh
 ```
 
-The ML API server runs on http://localhost:5000 and provides:
+The ML API server runs on http://localhost:5002 and provides:
 - `POST /api/predict` - Get authenticity prediction for a signature
 - `GET /api/health` - Check if model is loaded
 - `POST /api/reload-model` - Reload latest model after retraining
@@ -117,6 +117,6 @@ Install dependencies: `pip3 install numpy scikit-learn flask flask-cors`
 Run `./retrain_model.sh` to train your first model
 
 ### ML predictions not being used
-1. Check ML server is running: `curl http://localhost:5000/api/health`
+1. Check ML server is running: `curl http://localhost:5002/api/health`
 2. Check backend logs for "ML API Response" messages
 3. Ensure ML_API_URL is set correctly in backend environment

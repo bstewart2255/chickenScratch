@@ -129,9 +129,10 @@ def reload_model():
     })
 
 if __name__ == '__main__':
-    print("🚀 ML API Server starting on http://localhost:5000")
+    port = int(os.environ.get('ML_PORT', 5002))
+    print(f"🚀 ML API Server starting on http://localhost:{port}")
     print("Available endpoints:")
     print("  POST /api/predict - Get signature prediction")
     print("  GET  /api/health - Health check")
     print("  POST /api/reload-model - Reload latest model")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=port, debug=True)

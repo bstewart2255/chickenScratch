@@ -65,7 +65,7 @@ async function compareSignaturesML(storedMetrics, currentMetrics, username) {
         
         // Try to use ML model first, fall back to rule-based if unavailable
         try {
-            const ML_API_URL = process.env.ML_API_URL || 'http://localhost:5000';
+            const ML_API_URL = process.env.ML_API_URL || 'http://localhost:5002';
             const response = await axios.post(`${ML_API_URL}/api/predict`, {
                 username: username,
                 stored_features: storedMetrics,

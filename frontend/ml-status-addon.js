@@ -6,7 +6,7 @@ async function checkMLStatus() {
     const mlStatusBtn = document.getElementById('mlStatusBtn');
     
     try {
-        const response = await fetch('http://localhost:5000/api/health');
+        const response = await fetch('http://localhost:5002/api/health');
         if (response.ok) {
             const data = await response.json();
             if (data.model_loaded) {
