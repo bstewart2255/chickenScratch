@@ -667,7 +667,19 @@
             
             // After sign-up completion, start sign-in flow
             userJustSignedUp = true;
-            startSignIn();
+            isSignUp = false;
+            currentSessionId = null;
+            
+            // Skip username input since we already have it from sign-up
+            console.log('Continuing to sign-in with username:', currentUsername);
+            
+            // Hide portrait container
+            document.getElementById('portraitContainer').style.display = 'none';
+            
+            // Add a small delay to ensure database commit is complete
+            setTimeout(() => {
+                proceedToSignInFlow();
+            }, 500);
         }
         
         function startSigning() {
@@ -1131,6 +1143,9 @@
             userJustSignedUp = false;
             currentUsername = '';
             currentSessionId = null;
+            isSignUp = false;
+            totalSteps = 0;
+            flowSteps = [];
             drawingStartTime = null;
             
             // Hide completion message
