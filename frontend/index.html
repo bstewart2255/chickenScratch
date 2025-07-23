@@ -541,32 +541,40 @@
         let currentUsername = ''; // Store username
         let currentSessionId = null; // Store session ID
         let drawingStartTime = null; // Track drawing duration
+        let collectedData = []; // Store all drawings locally until submission
         
         // Flow definitions
+        // Sign-up flow: 10 drawing steps total
         const signUpSteps = [
-            // Signatures (1-3)
+            // Signatures (Steps 1-3 of 10)
             { type: 'signature', instruction: 'Sign your name' },
             { type: 'signature', instruction: 'Sign your name again' },
             { type: 'signature', instruction: 'Sign your name one more time' },
             
-            // Shapes (4-6)
+            // Shapes (Steps 4-6 of 10)
             { type: 'shape', instruction: 'Draw a circle' },
             { type: 'shape', instruction: 'Draw a square' },
             { type: 'shape', instruction: 'Draw a triangle' },
             
-            // Drawings (7-11)
+            // Creative Drawings (Steps 7-10 of 10)
             { type: 'drawing', instruction: 'Draw a simple face' },
             { type: 'drawing', instruction: 'Draw a star' },
-            { type: 'drawing', instruction: 'Draw an arrow' },
             { type: 'drawing', instruction: 'Draw a house' },
             { type: 'drawing', instruction: 'Connect these dots' }
         ];
         
+        // Sign-in flow: 6 drawing steps total
         const signInSteps = [
-            // Signature + risk-based challenges for sign-in
+            // Signature (Step 1 of 6)
             { type: 'signature', instruction: 'Sign your name' },
+            
+            // Shape Verification (Steps 2-4 of 6)
             { type: 'shape', instruction: 'Draw a circle' },
             { type: 'shape', instruction: 'Draw a square' },
+            { type: 'shape', instruction: 'Draw a triangle' },
+            
+            // Drawing Verification (Steps 5-6 of 6)
+            { type: 'drawing', instruction: 'Draw a simple face' },
             { type: 'drawing', instruction: 'Draw a star' }
         ];
         
@@ -574,16 +582,20 @@
         
         function startSignUp() {
             isSignUp = true;
-            totalSteps = 11;
+            totalSteps = 10; // 10 drawing steps for sign-up
             flowSteps = signUpSteps;
             userJustSignedUp = false;
             currentSessionId = null;
+            collectedData = []; // Reset collected data
             showUsernameInput();
         }
         
         function startSignIn() {
             isSignUp = false;
+            totalSteps = 6; // 6 drawing steps for sign-in
+            flowSteps = signInSteps;
             currentSessionId = null;
+            collectedData = []; // Reset collected data
             showUsernameInput();
         }
         
@@ -711,58 +723,12 @@
             }
         }
         
-        async function getSignInChallenges(username) {
-            try {
-                const response = await fetch(`${API_URL}/auth/challenges/${username}`);
-                if (!response.ok) {
-                    throw new Error('Failed to get challenges');
-                }
-                
-                const data = await response.json();
-                
-                // Convert backend challenge format to our flow format
-                return data.challenges.required.map(challenge => {
-                    let instruction = '';
-                    
-                    if (challenge.type === 'signature') {
-                        instruction = 'Sign your name';
-                    } else if (challenge.type === 'shape' && challenge.shape) {
-                        instruction = `Draw a ${challenge.shape}`;
-                    } else if (challenge.type === 'drawing') {
-                        // Use the prompt field if available, otherwise use name field
-                        instruction = challenge.prompt || challenge.name || 'Complete the drawing';
-                    } else {
-                        // Fallback
-                        instruction = challenge.prompt || challenge.name || 'Complete the challenge';
-                    }
-                    
-                    return {
-                        type: challenge.type,
-                        instruction: instruction
-                    };
-                });
-            } catch (error) {
-                throw error;
-            }
-        }
-        
         function proceedToSignInFlow() {
-            // Get adaptive challenges from backend
-            getSignInChallenges(currentUsername)
-                .then((challenges) => {
-                    console.log('Sign-in challenges received:', challenges);
-                    totalSteps = challenges.length;
-                    flowSteps = challenges;
-                    console.log(`Starting sign-in with ${totalSteps} steps`);
-                    startSigning();
-                })
-                .catch((error) => {
-                    // Fallback to default challenges
-                    console.warn('Failed to get adaptive challenges, using defaults:', error);
-                    totalSteps = 4; // signature + 3 challenges
-                    flowSteps = signInSteps;
-                    startSigning();
-                });
+            // Use fixed sign-in flow (6 steps)
+            console.log('Starting sign-in flow with fixed 6 steps');
+            totalSteps = 6;
+            flowSteps = signInSteps;
+            startSigning();
         }
         
         function continueToSignIn() {
@@ -773,6 +739,7 @@
             userJustSignedUp = true;
             isSignUp = false;
             currentSessionId = null; // Reset session ID for new sign-in flow
+            collectedData = []; // Clear collected data for new flow
             
             // Skip username input since we already have it from sign-up
             // currentUsername is already set from the sign-up flow
@@ -1176,67 +1143,32 @@
                 sessionId: currentSessionId
             };
             
-            // Send to backend
-            console.log('Sending drawing data to backend...');
-            saveDrawingData(drawingData)
-                .then((result) => {
-                    console.log('Drawing saved successfully:', result);
-                    // Store session ID from first response
-                    if (result.sessionId && !currentSessionId) {
-                        currentSessionId = result.sessionId;
-                    }
-                    
-                    // Check if all steps are completed
-                    if (currentStep >= totalSteps) {
-                        console.log(`All steps completed (${currentStep}/${totalSteps}). Completing flow...`);
-                        completeFlow();
-                        return;
-                    }
-                    
-                    // Move to next step
-                    currentStep++;
-                    console.log(`Step ${currentStep - 1} completed. Moving to step ${currentStep} of ${totalSteps}`);
-                    
-                    // Update UI for next step
-                    updateStepCounter();
-                    clearCanvas();
-                    showInstruction();
-                    
-                    // Reset button
-                    nextBtn.disabled = false;
-                    nextBtn.textContent = originalText;
-                })
-                .catch((error) => {
-                    // Handle save error
-                    console.error('Error saving drawing:', error);
-                    alert('Error saving: ' + error.message);
-                    nextBtn.disabled = false;
-                    nextBtn.textContent = originalText;
-                });
-        }
-        
-        async function saveDrawingData(drawingData) {
-            try {
-                const response = await fetch(`${API_URL}/api/save-drawing`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(drawingData)
-                });
-                
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Failed to save drawing');
-                }
-                
-                const result = await response.json();
-                console.log(`Step ${drawingData.step} saved successfully:`, result);
-                return result;
-            } catch (error) {
-                if (error.message.includes('fetch')) {
-                    throw new Error('Connection error, please try again');
-                }
-                throw error;
+            // Store drawing data locally (no server calls during flow)
+            console.log('Storing drawing data locally...');
+            collectedData.push(drawingData);
+            console.log(`Step ${currentStep} data collected. Total collected: ${collectedData.length}`);
+            
+            // Check if all steps are completed
+            if (currentStep >= totalSteps) {
+                console.log(`All steps completed (${currentStep}/${totalSteps}). Submitting all data...`);
+                nextBtn.disabled = false;
+                nextBtn.textContent = originalText;
+                completeFlow();
+                return;
             }
+            
+            // Move to next step
+            currentStep++;
+            console.log(`Step ${currentStep - 1} completed. Moving to step ${currentStep} of ${totalSteps}`);
+            
+            // Update UI for next step
+            updateStepCounter();
+            clearCanvas();
+            showInstruction();
+            
+            // Reset button
+            nextBtn.disabled = false;
+            nextBtn.textContent = originalText;
         }
         
         function updateStepCounter() {
@@ -1266,21 +1198,42 @@
         async function completeAuthFlow() {
             try {
                 if (isSignUp) {
-                    // Complete sign-up using temporary data
+                    // Process collected data for sign-up
                     console.log('Completing sign-up for:', currentUsername);
+                    console.log('Collected data items:', collectedData.length);
+                    
+                    // Organize data by type as per spec
+                    const signatures = [];
+                    const shapes = [];
+                    const drawings = [];
+                    
+                    collectedData.forEach(item => {
+                        const dataItem = {
+                            data: item.signature,
+                            raw: item.raw,
+                            metrics: item.metrics,
+                            timestamp: item.timestamp
+                        };
+                        
+                        if (item.type === 'signature') {
+                            signatures.push(dataItem);
+                        } else if (item.type === 'shape') {
+                            shapes.push(dataItem);
+                        } else if (item.type === 'drawing') {
+                            drawings.push(dataItem);
+                        }
+                    });
                     
                     const response = await fetch(`${API_URL}/register`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             username: currentUsername,
-                            useTemporaryData: true,
-                            sessionId: currentSessionId,
-                            metadata: {
-                                device: navigator.userAgent,
-                                timestamp: Date.now(),
-                                flowType: 'mobile-step-by-step'
-                            }
+                            signatures: signatures,
+                            shapes: shapes,
+                            drawings: drawings,
+                            device_info: navigator.userAgent,
+                            timestamp: new Date().toISOString()
                         })
                     });
                     
@@ -1296,21 +1249,40 @@
                         ...result 
                     };
                 } else {
-                    // Complete sign-in with single signature
+                    // Process collected data for sign-in
                     console.log('Completing sign-in for:', currentUsername);
+                    console.log('Collected data items:', collectedData.length);
+                    
+                    // Extract signature and other verification data
+                    const signature = collectedData.find(item => item.type === 'signature');
+                    const shapes = collectedData.filter(item => item.type === 'shape');
+                    const drawings = collectedData.filter(item => item.type === 'drawing');
                     
                     const response = await fetch(`${API_URL}/login`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             username: currentUsername,
-                            useTemporaryData: true,
-                            sessionId: currentSessionId,
-                            metadata: {
-                                device: navigator.userAgent,
-                                timestamp: Date.now(),
-                                flowType: 'mobile-sign-in'
-                            }
+                            signature: {
+                                data: signature.signature,
+                                raw: signature.raw,
+                                metrics: signature.metrics,
+                                timestamp: signature.timestamp
+                            },
+                            shapes: shapes.map(item => ({
+                                data: item.signature,
+                                raw: item.raw,
+                                metrics: item.metrics,
+                                timestamp: item.timestamp
+                            })),
+                            drawings: drawings.map(item => ({
+                                data: item.signature,
+                                raw: item.raw,
+                                metrics: item.metrics,
+                                timestamp: item.timestamp
+                            })),
+                            device_info: navigator.userAgent,
+                            timestamp: new Date().toISOString()
                         })
                     });
                     
@@ -1319,7 +1291,7 @@
                         
                         // Handle specific authentication failure
                         if (response.status === 401) {
-                            throw new Error('Signature verification failed. Please try again.');
+                            throw new Error('Authentication failed. Unable to verify your identity.');
                         }
                         
                         throw new Error(errorData.error || 'Sign-in failed');
@@ -1348,42 +1320,29 @@
             const buttonsContainer = document.getElementById('completionButtons');
             
             if (result.type === 'signup') {
-                // Just completed sign-up - offer to test sign-in
+                // Sign-up Success Completion
                 successIcon.textContent = '✅';
                 title.textContent = 'Account Created!';
                 description.textContent = 'Your signature authentication is ready';
                 buttonsContainer.innerHTML = `
-                    <button class="completion-btn btn-primary" onclick="continueToSignIn()">
-                        Sign In Now
+                    <button class="completion-btn btn-primary" onclick="resetDemo()">
+                        Home
                     </button>
-                    <button class="completion-btn btn-secondary" onclick="resetDemo()">
-                        Maybe Later
-                    </button>
-                `;
-            } else if (userJustSignedUp) {
-                // Just completed sign-in after sign-up - full success
-                successIcon.textContent = '🎉';
-                title.textContent = 'All Set!';
-                description.textContent = `Welcome ${result.username}! You've successfully created and tested your account`;
-                buttonsContainer.innerHTML = `
-                    <button class="completion-btn btn-primary" onclick="goToApp()">
-                        Continue to App
-                    </button>
-                    <button class="completion-btn btn-secondary" onclick="resetDemo()">
-                        Try Again
+                    <button class="completion-btn btn-secondary" onclick="continueToSignIn()">
+                        Sign In
                     </button>
                 `;
             } else {
-                // Regular sign-in (returning user)
+                // Sign-in Success Completion
                 successIcon.textContent = '👋';
                 title.textContent = 'Welcome Back!';
-                description.textContent = `Hello ${result.username}! You have been signed in successfully`;
+                description.textContent = `Hello ${result.username}! Authentication successful`;
                 buttonsContainer.innerHTML = `
-                    <button class="completion-btn btn-primary" onclick="goToApp()">
-                        Continue to App
+                    <button class="completion-btn btn-primary" onclick="resetDemo()">
+                        Home
                     </button>
-                    <button class="completion-btn btn-secondary" onclick="resetDemo()">
-                        Sign Out
+                    <button class="completion-btn btn-secondary" onclick="goToApp()">
+                        Go to App
                     </button>
                 `;
             }
@@ -1399,14 +1358,33 @@
             const description = completionEl.querySelector('p');
             const buttonsContainer = document.getElementById('completionButtons');
             
-            successIcon.textContent = '❌';
-            title.textContent = 'Authentication Failed';
-            description.textContent = errorMessage;
-            buttonsContainer.innerHTML = `
-                <button class="completion-btn btn-primary" onclick="resetDemo()">
-                    Try Again
-                </button>
-            `;
+            if (isSignUp) {
+                // Sign-up Failure Completion
+                successIcon.textContent = '❌';
+                title.textContent = 'Account Creation Failed';
+                description.textContent = errorMessage;
+                buttonsContainer.innerHTML = `
+                    <button class="completion-btn btn-primary" onclick="resetDemo()">
+                        Home
+                    </button>
+                    <button class="completion-btn btn-secondary" onclick="startSignIn()">
+                        Sign In
+                    </button>
+                `;
+            } else {
+                // Sign-in Failure Completion
+                successIcon.textContent = '❌';
+                title.textContent = 'Authentication Failed';
+                description.textContent = 'Unable to verify your identity. Please try again.';
+                buttonsContainer.innerHTML = `
+                    <button class="completion-btn btn-primary" onclick="resetDemo()">
+                        Home
+                    </button>
+                    <button class="completion-btn btn-secondary" onclick="startSignIn()">
+                        Sign In
+                    </button>
+                `;
+            }
             
             completionEl.classList.add('show');
             document.getElementById('completionOverlay').classList.add('show');
@@ -1428,6 +1406,7 @@
             totalSteps = 0;
             flowSteps = [];
             drawingStartTime = null;
+            collectedData = []; // Clear collected drawings
             
             // Hide completion message and overlay
             document.getElementById('completionMessage').classList.remove('show');
