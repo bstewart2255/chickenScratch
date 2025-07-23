@@ -20,13 +20,28 @@ const corsOptions = {
         const allowedOrigins = [
             'http://localhost:8000',
             'http://localhost:3000',
+            'http://localhost:8080',
+            'http://127.0.0.1:8000',
+            'http://127.0.0.1:8080',
             'https://chickenscratch.onrender.com',
             'https://chickenscratch-1.onrender.com',
-            'https://signatureauth-frontend.onrender.com'  // Add your actual frontend URL
+            'https://signatureauth-frontend.onrender.com'
         ];
         
         // Allow requests with no origin (like mobile apps or curl)
         if (!origin) return callback(null, true);
+        
+        // Allow any localhost origin for development
+        if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+            console.log('Allowing localhost origin:', origin);
+            return callback(null, true);
+        }
+        
+        // Allow any *.onrender.com subdomain
+        if (origin.includes('.onrender.com')) {
+            console.log('Allowing onrender.com origin:', origin);
+            return callback(null, true);
+        }
         
         if (allowedOrigins.indexOf(origin) !== -1) {
             callback(null, true);
