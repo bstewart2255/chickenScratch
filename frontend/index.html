@@ -825,6 +825,12 @@
             
             // Initialize canvas and controls (for all devices)
             initializeCanvas();
+            
+            // Clear any existing drawings
+            if (signaturePad) {
+                signaturePad.clear();
+            }
+            
             updateStepCounter();
             showInstruction();
         }
@@ -1095,6 +1101,11 @@
         function showInstruction() {
             const overlay = document.getElementById('instructionOverlay');
             const step = flowSteps[currentStep - 1];
+            
+            // Clear canvas before showing new instruction
+            if (signaturePad) {
+                signaturePad.clear();
+            }
             
             overlay.textContent = step.instruction;
             overlay.classList.remove('hidden');
