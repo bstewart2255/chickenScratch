@@ -729,8 +729,10 @@
             // Get adaptive challenges from backend
             getSignInChallenges(currentUsername)
                 .then((challenges) => {
+                    console.log('Sign-in challenges received:', challenges);
                     totalSteps = challenges.length;
                     flowSteps = challenges;
+                    console.log(`Starting sign-in with ${totalSteps} steps`);
                     startSigning();
                 })
                 .catch((error) => {
@@ -1142,8 +1144,10 @@
                     
                     // Move to next step
                     currentStep++;
+                    console.log(`Step ${currentStep - 1} completed. Moving to step ${currentStep} of ${totalSteps}`);
                     
                     if (currentStep > totalSteps) {
+                        console.log(`All steps completed (${currentStep - 1}/${totalSteps}). Completing flow...`);
                         completeFlow();
                         return;
                     }
