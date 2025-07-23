@@ -883,6 +883,19 @@
             console.log('Raw data format:', rawData);
             console.log('First stroke:', rawData[0]);
             
+            // Get canvas dimensions for normalization
+            const canvas = document.getElementById('signature-canvas');
+            const canvasWidth = canvas.width;
+            const canvasHeight = canvas.height;
+            const cssWidth = parseInt(canvas.style.width);
+            const cssHeight = parseInt(canvas.style.height);
+            
+            // Calculate scaling factor (how much coordinates need to be scaled down)
+            // This handles high DPI displays where canvas.width > css width
+            const scaleX = canvasWidth / cssWidth;
+            const scaleY = canvasHeight / cssHeight;
+            console.log(`Canvas scaling - width: ${canvasWidth}/${cssWidth}=${scaleX}, height: ${canvasHeight}/${cssHeight}=${scaleY}`);
+            
             // SignaturePad v4 returns strokes as objects with points array
             // Convert to expected format if needed
             let strokes = rawData;
@@ -935,23 +948,31 @@
                         return;
                     }
                     
-                    // Update bounding box
-                    minX = Math.min(minX, point.x);
-                    minY = Math.min(minY, point.y);
-                    maxX = Math.max(maxX, point.x);
-                    maxY = Math.max(maxY, point.y);
+                    // Normalize coordinates to CSS pixels (undo DPI scaling)
+                    const normalizedX = point.x / scaleX;
+                    const normalizedY = point.y / scaleY;
                     
-                    allPoints.push(point);
+                    // Update bounding box with normalized coordinates
+                    minX = Math.min(minX, normalizedX);
+                    minY = Math.min(minY, normalizedY);
+                    maxX = Math.max(maxX, normalizedX);
+                    maxY = Math.max(maxY, normalizedY);
                     
-                    // Calculate velocity between points
+                    allPoints.push({x: normalizedX, y: normalizedY, time: point.time});
+                    
+                    // Calculate velocity between points using normalized coordinates
                     if (pointIndex > 0) {
                         const prevPoint = stroke[pointIndex - 1];
                         if (prevPoint && typeof prevPoint.x === 'number' && typeof prevPoint.y === 'number') {
-                            const dx = point.x - prevPoint.x;
-                            const dy = point.y - prevPoint.y;
+                            const prevNormalizedX = prevPoint.x / scaleX;
+                            const prevNormalizedY = prevPoint.y / scaleY;
+                            const dx = normalizedX - prevNormalizedX;
+                            const dy = normalizedY - prevNormalizedY;
                             const distance = Math.sqrt(dx * dx + dy * dy);
-                            const dt = (point.time - prevPoint.time) || 1; // Avoid division by zero
-                            const velocity = distance / dt * 1000; // pixels per second
+                            const dt = (point.time - prevPoint.time) || 1; // milliseconds
+                            // Keep velocity in pixels per millisecond (not multiply by 1000)
+                            // This matches how the backend/baseline calculates it
+                            const velocity = distance / dt; // pixels per millisecond
                             velocities.push(velocity);
                             strokeLength += distance;
                         }
