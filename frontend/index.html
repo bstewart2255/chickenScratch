@@ -241,16 +241,37 @@
         /* Completion Message */
         .completion-message {
             display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             text-align: center;
             padding: 40px;
             background: white;
             border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             max-width: 400px;
-            margin: 0 auto;
+            width: 90%;
+            z-index: 2000;
         }
         
         .completion-message.show {
+            display: block;
+        }
+        
+        /* Overlay for completion message */
+        .completion-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1999;
+        }
+        
+        .completion-overlay.show {
             display: block;
         }
         
@@ -392,10 +413,7 @@
             
             .completion-message {
                 max-width: 500px;
-                margin: 40px auto;
-                padding: 40px;
-                border-radius: 12px;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+                width: 90%;
             }
         }
     </style>
@@ -490,6 +508,9 @@
         </div>
     </div>
 
+    <!-- Completion Overlay -->
+    <div class="completion-overlay" id="completionOverlay"></div>
+    
     <!-- Completion Message -->
     <div class="completion-message" id="completionMessage">
         <div class="success-icon">✅</div>
@@ -1357,6 +1378,7 @@
             }
             
             completionEl.classList.add('show');
+            document.getElementById('completionOverlay').classList.add('show');
         }
         
         function showFailureMessage(errorMessage) {
@@ -1376,6 +1398,7 @@
             `;
             
             completionEl.classList.add('show');
+            document.getElementById('completionOverlay').classList.add('show');
         }
         
         function goToApp() {
@@ -1395,8 +1418,15 @@
             flowSteps = [];
             drawingStartTime = null;
             
-            // Hide completion message
+            // Hide completion message and overlay
             document.getElementById('completionMessage').classList.remove('show');
+            document.getElementById('completionOverlay').classList.remove('show');
+            
+            // Ensure signing modal is closed
+            const modal = document.getElementById('signingModal');
+            if (modal.classList.contains('active')) {
+                exitSigningModal();
+            }
             
             // Hide username container
             document.getElementById('usernameContainer').style.display = 'none';
@@ -1406,6 +1436,13 @@
             
             // Clear username input
             document.getElementById('usernameInput').value = '';
+            
+            // Reset any button states
+            const continueBtn = document.querySelector('#usernameContainer .btn-primary');
+            if (continueBtn) {
+                continueBtn.disabled = false;
+                continueBtn.textContent = 'Continue';
+            }
             
             // Update counter
             updateStepCounter();
