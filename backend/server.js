@@ -455,9 +455,10 @@ app.get('/auth/challenges/:username', async (req, res) => {
         }
         
         // Determine required challenges based on risk score
+        console.log(`Risk score for ${username}: ${riskScore}`);
         const challenges = {
             signature: true, // Always required
-            shapes: riskScore >= 30,
+            shapes: riskScore >= 30 || true, // TEMP: Always require shapes for testing
             drawings: riskScore >= 60,
             required: []
         };
