@@ -1029,15 +1029,63 @@
             
             // Extract strokes from various possible formats
             let strokes = null;
+            
+            // Add detailed logging to debug data structure
+            console.log('redrawSignatureOnCanvas - Input data:', {
+                canvasId: canvasId,
+                dataType: typeof signatureData,
+                isArray: Array.isArray(signatureData),
+                hasSignature: signatureData && signatureData.signature,
+                hasStrokes: signatureData && signatureData.strokes,
+                hasData: signatureData && signatureData.data,
+                fullData: signatureData
+            });
+            
             if (signatureData) {
                 if (Array.isArray(signatureData)) {
                     strokes = signatureData;
+                } else if (signatureData.signature) {
+                    // Handle enrollment signature format
+                    if (Array.isArray(signatureData.signature)) {
+                        strokes = signatureData.signature;
+                    } else if (typeof signatureData.signature === 'string') {
+                        try {
+                            strokes = JSON.parse(signatureData.signature);
+                        } catch (e) {
+                            console.error('Failed to parse signature string:', e);
+                        }
+                    } else if (signatureData.signature.data) {
+                        strokes = signatureData.signature.data;
+                    } else if (signatureData.signature.strokes) {
+                        strokes = signatureData.signature.strokes;
+                    }
                 } else if (signatureData.strokes && Array.isArray(signatureData.strokes)) {
                     strokes = signatureData.strokes;
                 } else if (signatureData.data && Array.isArray(signatureData.data)) {
                     strokes = signatureData.data;
+                } else if (typeof signatureData === 'string') {
+                    // Try to parse if it's a JSON string
+                    try {
+                        const parsed = JSON.parse(signatureData);
+                        if (Array.isArray(parsed)) {
+                            strokes = parsed;
+                        } else if (parsed.data) {
+                            strokes = parsed.data;
+                        } else if (parsed.strokes) {
+                            strokes = parsed.strokes;
+                        }
+                    } catch (e) {
+                        console.error('Failed to parse signature data string:', e);
+                    }
                 }
             }
+            
+            console.log('Extracted strokes:', {
+                hasStrokes: !!strokes,
+                isArray: Array.isArray(strokes),
+                length: strokes ? strokes.length : 0,
+                firstStroke: strokes && strokes[0] ? strokes[0] : null
+            });
             
             if (!strokes || strokes.length === 0) {
                 // Draw "No Data" message
@@ -1052,14 +1100,40 @@
             let minX = Infinity, minY = Infinity;
             let maxX = -Infinity, maxY = -Infinity;
             
-            strokes.forEach(stroke => {
-                stroke.points.forEach(point => {
-                    minX = Math.min(minX, point.x);
-                    minY = Math.min(minY, point.y);
-                    maxX = Math.max(maxX, point.x);
-                    maxY = Math.max(maxY, point.y);
+            // Validate stroke format
+            let validStrokes = true;
+            try {
+                strokes.forEach(stroke => {
+                    if (!stroke || !stroke.points || !Array.isArray(stroke.points)) {
+                        console.error('Invalid stroke format:', stroke);
+                        validStrokes = false;
+                        return;
+                    }
+                    stroke.points.forEach(point => {
+                        if (typeof point.x !== 'number' || typeof point.y !== 'number') {
+                            console.error('Invalid point format:', point);
+                            validStrokes = false;
+                            return;
+                        }
+                        minX = Math.min(minX, point.x);
+                        minY = Math.min(minY, point.y);
+                        maxX = Math.max(maxX, point.x);
+                        maxY = Math.max(maxY, point.y);
+                    });
                 });
-            });
+            } catch (e) {
+                console.error('Error processing strokes:', e);
+                validStrokes = false;
+            }
+            
+            if (!validStrokes || minX === Infinity || maxX === -Infinity) {
+                console.error('Invalid stroke data, cannot render signature');
+                ctx.font = '14px sans-serif';
+                ctx.fillStyle = '#e53e3e';
+                ctx.textAlign = 'center';
+                ctx.fillText('Invalid signature data', canvas.width / 2, canvas.height / 2);
+                return;
+            }
             
             // Add padding
             const padding = 20;
@@ -1147,11 +1221,17 @@
             `;
             
             // Draw baseline signatures
+            console.log('Enrollment signatures data:', enrollmentSigs);
             enrollmentSigs.forEach((sig, index) => {
-                console.log(`Drawing baseline signature ${index}:`, sig);
-                if (sig.strokes || sig.data || sig) {
-                    redrawSignatureOnCanvas(`baseline-canvas-${index}`, sig, '#667eea');
-                }
+                console.log(`Drawing baseline signature ${index}:`, {
+                    fullSig: sig,
+                    hasSignature: !!sig.signature,
+                    hasStrokes: !!sig.strokes,
+                    hasData: !!sig.data,
+                    signatureType: sig.signature ? typeof sig.signature : 'N/A'
+                });
+                // Pass the entire signature object - the redrawSignatureOnCanvas will handle extraction
+                redrawSignatureOnCanvas(`baseline-canvas-${index}`, sig, '#667eea');
             });
             
             // Draw authentication attempt
