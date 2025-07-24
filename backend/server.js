@@ -629,8 +629,8 @@ app.post('/login', async (req, res) => {
         // If shapes were provided, verify them
         if (shapes) {
             const storedShapesResult = await pool.query(
-                'SELECT shape_type, shape_data, metrics FROM shapes WHERE user_id = $1 AND shape_type IN ($2, $3, $4)',
-                [userId, 'circle', 'square', 'triangle']
+                'SELECT shape_type, shape_data, metrics FROM shapes WHERE user_id = $1 AND shape_type = ANY($2::text[])',
+                [userId, ['circle', 'square', 'triangle']]
             );
             
             const storedShapes = {};
@@ -721,11 +721,11 @@ app.post('/login', async (req, res) => {
             console.error('Failed to save auth signature:', err);
         }
         
-        // Record authentication attempt
+        // Record authentication attempt with signature reference
         try {
             await pool.query(
-                'INSERT INTO auth_attempts (user_id, success, confidence, device_info) VALUES ($1, $2, $3, $4)',
-                [userId, isSuccess, averageScore, req.headers['user-agent'] || 'Unknown']
+                'INSERT INTO auth_attempts (user_id, success, confidence, device_info, signature_id) VALUES ($1, $2, $3, $4, $5)',
+                [userId, isSuccess, averageScore, req.headers['user-agent'] || 'Unknown', authSignatureId]
             );
         } catch (err) {
             console.error('Failed to record auth attempt:', err);
@@ -1035,21 +1035,13 @@ app.get('/api/user/:username/details', async (req, res) => {
         );
         
         // Get recent signatures used in authentication attempts (last 10)
-        // Note: We match signatures created within 5 seconds of auth attempts
-        // This accounts for the signature being saved just before the auth attempt
+        // Now using direct signature_id relationship for accurate matching
         const recentAuthSignatures = await pool.query(`
             SELECT s.*, a.created_at as auth_time, a.success, a.confidence 
-            FROM signatures s
-            JOIN auth_attempts a ON a.user_id = s.user_id 
-                AND a.created_at >= s.created_at - INTERVAL '5 seconds'
-                AND a.created_at <= s.created_at + INTERVAL '5 seconds'
-            WHERE s.user_id = $1
-                AND s.id NOT IN (
-                    SELECT MIN(id) FROM signatures 
-                    WHERE user_id = $1 
-                    GROUP BY user_id
-                    HAVING COUNT(*) >= 3
-                )  -- Exclude enrollment signatures (first 3)
+            FROM auth_attempts a
+            JOIN signatures s ON s.id = a.signature_id
+            WHERE a.user_id = $1
+                AND a.signature_id IS NOT NULL
             ORDER BY a.created_at DESC
             LIMIT 10
         `, [user.id]);
