@@ -28,6 +28,9 @@ const corsOptions = {
             'https://signatureauth-frontend.onrender.com'
         ];
         
+        // Log the origin for debugging
+        console.log('CORS check - Origin:', origin || 'no-origin');
+        
         // Allow requests with no origin (like mobile apps or curl)
         if (!origin) return callback(null, true);
         
@@ -37,9 +40,21 @@ const corsOptions = {
             return callback(null, true);
         }
         
+        // Allow file:// protocol (for local testing)
+        if (origin.startsWith('file://')) {
+            console.log('Allowing file:// origin');
+            return callback(null, true);
+        }
+        
         // Allow any *.onrender.com subdomain
         if (origin.includes('.onrender.com')) {
             console.log('Allowing onrender.com origin:', origin);
+            return callback(null, true);
+        }
+        
+        // Allow github.io pages
+        if (origin.includes('github.io')) {
+            console.log('Allowing github.io origin:', origin);
             return callback(null, true);
         }
         
