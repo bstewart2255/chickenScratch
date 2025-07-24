@@ -74,5 +74,10 @@ async function fixVelocityBaselines() {
     }
 }
 
-// Run the fix
-fixVelocityBaselines();
+// Export the function instead of running it automatically
+module.exports = fixVelocityBaselines;
+
+// Only run if this file is executed directly (not imported)
+if (require.main === module) {
+    fixVelocityBaselines();
+}

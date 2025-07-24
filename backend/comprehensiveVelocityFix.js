@@ -141,5 +141,10 @@ async function comprehensiveVelocityFix() {
     }
 }
 
-// Run the comprehensive fix
-comprehensiveVelocityFix();
+// Export the function instead of running it automatically
+module.exports = comprehensiveVelocityFix;
+
+// Only run if this file is executed directly (not imported)
+if (require.main === module) {
+    comprehensiveVelocityFix();
+}
