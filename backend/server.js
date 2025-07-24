@@ -1135,22 +1135,14 @@ app.get('/api/user/:username/details', async (req, res) => {
             };
         });
         
-        // Get enrollment signatures (first 3) with stroke data
+        // Get enrollment signatures (first 3) with full signature data
         const enrollmentSignatures = signatures.rows.slice(-3).reverse().map(sig => {
-            let strokes = null;
-            if (sig.signature_data) {
-                try {
-                    const sigData = typeof sig.signature_data === 'string' ? 
-                        JSON.parse(sig.signature_data) : sig.signature_data;
-                    strokes = sigData.data || sigData.strokes || sigData;
-                } catch (e) {
-                    console.error('Error parsing enrollment signature:', e);
-                }
-            }
+            // Return the complete signature object that frontend expects
             return {
-                strokes: strokes,
+                signature: sig.signature_data,  // This contains {data, raw, metrics, timestamp}
                 metrics: sig.metrics || {},
-                created_at: sig.created_at
+                created_at: sig.created_at,
+                id: sig.id
             };
         });
         
