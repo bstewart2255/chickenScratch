@@ -85,6 +85,11 @@ app.use((req, res, next) => {
     next();
 });
 
+// Health check endpoint
+app.get('/', (req, res) => {
+    res.send('Signature Authentication API is running!');
+});
+
 // Temporary storage for step-by-step drawing data
 // In production, consider using Redis or a temporary table
 const temporaryDrawingStorage = new Map();
