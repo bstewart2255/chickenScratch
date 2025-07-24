@@ -1009,6 +1009,24 @@
             // Clear canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
+            // Check if signature data is a base64 image string
+            if (typeof signatureData === 'string' && signatureData.startsWith('data:image/')) {
+                // Handle base64 image data
+                const img = new Image();
+                img.onload = function() {
+                    // Calculate scaling to fit canvas while maintaining aspect ratio
+                    const scale = Math.min(canvas.width / img.width, canvas.height / img.height) * 0.9;
+                    const scaledWidth = img.width * scale;
+                    const scaledHeight = img.height * scale;
+                    const x = (canvas.width - scaledWidth) / 2;
+                    const y = (canvas.height - scaledHeight) / 2;
+                    
+                    ctx.drawImage(img, x, y, scaledWidth, scaledHeight);
+                };
+                img.src = signatureData;
+                return;
+            }
+            
             // Extract strokes from various possible formats
             let strokes = null;
             if (signatureData) {
@@ -1185,6 +1203,15 @@
             
             const scores = attemptData.attempt_scores || {};
             const baseline = attemptData.user_baseline || (userInfo && userInfo.userBaseline) || {};
+            
+            // Debug logging for scores
+            console.log('ML Features Debug:', {
+                attemptData: attemptData,
+                scores: scores,
+                scoreKeys: Object.keys(scores),
+                hasScores: Object.keys(scores).length > 0,
+                baseline: baseline
+            });
             
             // Helper function to safely get values
             const safeGetValue = (obj, key, defaultValue = 0) => {
@@ -1646,101 +1673,6 @@
                 const attemptData = window.currentUserInfo.recentAttemptsWithFeatures[index];
                 const hasBaseline = window.currentUserInfo.userBaseline && 
                                    Object.keys(window.currentUserInfo.userBaseline).length > 0;
-                
-                // Helper function to safely get values
-                const safeGetValue = (obj, key, defaultValue = 0) => {
-                    return obj && obj[key] !== undefined && obj[key] !== null ? obj[key] : defaultValue;
-                };
-                
-                // Use the enhanced renderMLFeatures function
-                const renderMLFeatures = (attemptData) => {
-                    if (!attemptData) {
-                        return `
-                            <div class="ml-features-section">
-                                <h3 style="margin-bottom: 20px;">ML Feature Analysis</h3>
-                                <p style="color: #718096; text-align: center;">No ML feature data available for this attempt</p>
-                            </div>
-                        `;
-                    }
-                    
-                    const scores = attemptData.attempt_scores || {};
-                    const baseline = attemptData.user_baseline || window.currentUserInfo.userBaseline || {};
-                    
-                    // Check if we have any scores
-                    const hasScores = Object.keys(scores).length > 0;
-                    if (!hasScores) {
-                        return `
-                            <div class="ml-features-section">
-                                <h3 style="margin-bottom: 20px;">ML Feature Analysis</h3>
-                                <div class="message" style="background: #fff3cd; color: #856404; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                                    <strong>Limited Data Available</strong><br>
-                                    This authentication attempt does not have detailed ML metrics.
-                                </div>
-                            </div>
-                        `;
-                    }
-                    
-                    // Warning if no baseline
-                    const baselineWarning = !hasBaseline ? `
-                        <div class="message" style="background: #e3f2fd; color: #1565c0; padding: 12px; border-radius: 8px; margin-bottom: 20px;">
-                            <strong>New User</strong>: No baseline established yet. Scores shown are from this attempt only.
-                        </div>
-                    ` : '';
-                    
-                    return `
-                        <div class="ml-features-section">
-                            <h3 style="margin-bottom: 20px;">ML Feature Analysis - Attempt ${index + 1}</h3>
-                            ${baselineWarning}
-                            
-                            <!-- Basic Stats -->
-                            <div class="feature-category">
-                                <h4>📊 Basic Statistics</h4>
-                                <div class="feature-grid">
-                                    ${renderFeatureScore('stroke_count', safeGetValue(scores, 'stroke_count'), safeGetValue(baseline, 'stroke_count'))}
-                                    ${renderFeatureScore('total_points', safeGetValue(scores, 'total_points'), safeGetValue(baseline, 'total_points'))}
-                                    ${renderFeatureScore('total_duration_ms', safeGetValue(scores, 'total_duration_ms'), safeGetValue(baseline, 'total_duration_ms'))}
-                                    ${renderFeatureScore('avg_points_per_stroke', safeGetValue(scores, 'avg_points_per_stroke'), safeGetValue(baseline, 'avg_points_per_stroke'))}
-                                </div>
-                            </div>
-                            
-                            <!-- Velocity Features -->
-                            <div class="feature-category">
-                                <h4>⚡ Velocity Features</h4>
-                                <div class="feature-grid">
-                                    ${renderFeatureScore('avg_velocity', safeGetValue(scores, 'avg_velocity'), safeGetValue(baseline, 'avg_velocity'))}
-                                    ${renderFeatureScore('max_velocity', safeGetValue(scores, 'max_velocity'), safeGetValue(baseline, 'max_velocity'))}
-                                    ${renderFeatureScore('min_velocity', safeGetValue(scores, 'min_velocity'), safeGetValue(baseline, 'min_velocity'))}
-                                    ${renderFeatureScore('velocity_std', safeGetValue(scores, 'velocity_std'), safeGetValue(baseline, 'velocity_std'))}
-                                </div>
-                            </div>
-                            
-                            <!-- Shape Features -->
-                            <div class="feature-category">
-                                <h4>📐 Shape Features</h4>
-                                <div class="feature-grid">
-                                    ${renderFeatureScore('width', safeGetValue(scores, 'width'), safeGetValue(baseline, 'width'))}
-                                    ${renderFeatureScore('height', safeGetValue(scores, 'height'), safeGetValue(baseline, 'height'))}
-                                    ${renderFeatureScore('area', safeGetValue(scores, 'area'), safeGetValue(baseline, 'area'))}
-                                    ${renderFeatureScore('aspect_ratio', safeGetValue(scores, 'aspect_ratio'), safeGetValue(baseline, 'aspect_ratio'))}
-                                    ${renderFeatureScore('center_x', safeGetValue(scores, 'center_x'), safeGetValue(baseline, 'center_x'))}
-                                    ${renderFeatureScore('center_y', safeGetValue(scores, 'center_y'), safeGetValue(baseline, 'center_y'))}
-                                </div>
-                            </div>
-                            
-                            <!-- Stroke Features -->
-                            <div class="feature-category">
-                                <h4>✏️ Stroke Features</h4>
-                                <div class="feature-grid">
-                                    ${renderFeatureScore('avg_stroke_length', safeGetValue(scores, 'avg_stroke_length'), safeGetValue(baseline, 'avg_stroke_length'))}
-                                    ${renderFeatureScore('total_length', safeGetValue(scores, 'total_length'), safeGetValue(baseline, 'total_length'))}
-                                    ${renderFeatureScore('length_variation', safeGetValue(scores, 'length_variation'), safeGetValue(baseline, 'length_variation'))}
-                                    ${renderFeatureScore('avg_stroke_duration', safeGetValue(scores, 'avg_stroke_duration'), safeGetValue(baseline, 'avg_stroke_duration'))}
-                                    ${renderFeatureScore('duration_variation', safeGetValue(scores, 'duration_variation'), safeGetValue(baseline, 'duration_variation'))}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                };
                 
                 container.innerHTML = window.renderMLFeatures(attemptData, window.currentUserInfo, index);
                 container.style.opacity = '1';
