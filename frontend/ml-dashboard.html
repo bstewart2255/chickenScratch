@@ -1834,12 +1834,7 @@
             // Fetch ML-specific data
             fetchMLData();
             
-            // Auto-refresh every 30 seconds
-            setInterval(() => {
-                updateMetrics();
-                fetchDashboardData();
-                fetchMLData();
-            }, 30000);
+            // No setInterval here - will be set up in DOMContentLoaded
         }
         
         // Update metrics
@@ -2204,25 +2199,40 @@
         
         // Refresh dashboard data
         async function refreshDashboard() {
-            await fetchDashboardData();
-            updateMetrics();
+            // Consolidated refresh function that updates everything
+            try {
+                // 1. Fetch dashboard data (includes activity table)
+                await fetchDashboardData();
+                
+                // 2. Update metrics display
+                updateMetrics();
+                
+                // 3. Fetch ML-specific data
+                await fetchMLData();
+                
+                // 4. Check ML status
+                await checkMLStatus();
+                
+                console.log('Dashboard refresh completed');
+            } catch (error) {
+                console.error('Error during dashboard refresh:', error);
+            }
         }
         
         // Initialize on load
-        document.addEventListener('DOMContentLoaded', () => {
-            initDashboard();
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Initialize dashboard
+            await initDashboard();
             
-            // Check ML status
-            checkMLStatus();
+            // Check ML status initially
+            await checkMLStatus();
             
-            // Check ML status periodically
-            setInterval(checkMLStatus, 30000); // Every 30 seconds
+            // Note: fetchDashboardData is already called in initDashboard
             
-            // Try to fetch real data
-            fetchDashboardData();
+            // Set up single refresh interval for all updates (30 seconds)
+            setInterval(refreshDashboard, 30000);
             
-            // Refresh data every 10 seconds
-            setInterval(refreshDashboard, 10000);
+            console.log('Dashboard initialized with 30-second refresh interval');
         });
     </script>
 </body>
