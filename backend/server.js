@@ -600,7 +600,7 @@ app.post('/login', async (req, res) => {
         
         // Get stored signature
         const storedSigResult = await pool.query(
-            'SELECT signature_data FROM signatures WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1',
+            'SELECT signature_data, metrics FROM signatures WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1',
             [userId]
         );
         
@@ -616,7 +616,7 @@ app.post('/login', async (req, res) => {
             storedSignature.data, 
             signature.data,
             storedMetrics,
-            authSignatureMetrics,
+            signature.metrics || {},
             username
         );
         let totalScore = signatureScore;
