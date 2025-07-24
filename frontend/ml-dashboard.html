@@ -1422,19 +1422,7 @@
                     };
                     
                     // Function to render ML features for a specific attempt
-                    const renderMLFeatures = (attemptData, isLoading = false) => {
-                        if (isLoading) {
-                            return `
-                                <div class="ml-features-section">
-                                    <h3 style="margin-bottom: 20px;">ML Feature Analysis</h3>
-                                    <div style="text-align: center; padding: 40px;">
-                                        <div class="spinner"></div>
-                                        <p style="margin-top: 10px; color: #718096;">Loading component scores...</p>
-                                    </div>
-                                </div>
-                            `;
-                        }
-                        
+                    const renderMLFeatures = (attemptData) => {
                         if (!attemptData) {
                             return `
                                 <div class="ml-features-section">
@@ -1588,7 +1576,7 @@
                         
                         <div id="mlFeaturesContainer">
                             ${hasMLFeatures ? 
-                                renderMLFeatures(userInfo.recentAttemptsWithFeatures[0], userInfo, 0) : 
+                                renderMLFeatures(userInfo.recentAttemptsWithFeatures[0]) : 
                                 `<div class="ml-features-section">
                                     <h3 style="margin-bottom: 20px;">ML Feature Analysis</h3>
                                     <p style="color: #718096; text-align: center;">No ML feature data available</p>
@@ -1599,6 +1587,9 @@
                     
                     // Store user info globally for attempt selection
                     window.currentUserInfo = userInfo;
+                    
+                    // Make renderMLFeatures available globally for selectAttempt
+                    window.localRenderMLFeatures = renderMLFeatures;
                     
                     // Show signature comparison if we have data
                     if (userInfo.enrollmentSignatures && userInfo.enrollmentSignatures.length > 0 && 
@@ -1754,7 +1745,9 @@
                 const hasBaseline = window.currentUserInfo.userBaseline && 
                                    Object.keys(window.currentUserInfo.userBaseline).length > 0;
                 
-                container.innerHTML = window.renderMLFeatures(attemptData, window.currentUserInfo, index);
+                // Use the local renderMLFeatures if available, otherwise fall back to global
+                const renderFunc = window.localRenderMLFeatures || window.renderMLFeatures;
+                container.innerHTML = renderFunc(attemptData);
                 container.style.opacity = '1';
                 
                 // Update signature comparison
@@ -2155,6 +2148,17 @@
         
         // Fetch ML-specific data
         async function fetchMLData() {
+            // Note: These endpoints don't exist yet in the backend
+            // Commenting out to prevent 404 errors
+            
+            // TODO: Implement these endpoints in the backend:
+            // - /api/feature-importance - should return feature importance scores
+            // - /api/ml-stats - should return ML model statistics
+            
+            // For now, we'll just use mock data to prevent errors
+            console.log('ML-specific endpoints not yet implemented, using mock data');
+            
+            /* Commented out until backend endpoints are implemented
             // Fetch feature importance
             try {
                 const response = await fetch(`${ML_API_URL}/api/feature-importance`);
@@ -2183,6 +2187,7 @@
             } catch (error) {
                 console.error('Error fetching ML model stats:', error);
             }
+            */
             
             // Also fetch ML dashboard stats from ML API
             try {
