@@ -297,6 +297,109 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.08);
         }
         
+        /* Signature comparison styles */
+        .signature-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+        }
+        
+        .comparison-section {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        
+        .comparison-section h4 {
+            margin-bottom: 15px;
+            color: #2d3748;
+            font-weight: 600;
+        }
+        
+        .signature-canvas-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .canvas-wrapper {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+        }
+        
+        .canvas-wrapper canvas {
+            border: 1px solid #cbd5e0;
+            border-radius: 4px;
+            background: white;
+            width: 100%;
+            max-width: 250px;
+            height: 150px;
+        }
+        
+        .canvas-label {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 8px;
+            font-weight: 500;
+        }
+        
+        .signature-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 8px;
+            background: #e6f0ff;
+            border-radius: 6px;
+        }
+        
+        .stat-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            font-size: 11px;
+            color: #4a5568;
+            margin-top: 2px;
+        }
+        
+        .no-signature-data {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+        }
+        
+        .signature-match-score {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .match-score-value {
+            font-size: 48px;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+        
+        .match-score-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
         /* Feature distribution */
         .feature-grid {
             display: grid;
@@ -735,7 +838,7 @@
     
     <!-- User Detail Modal -->
     <div id="userModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
-        <div style="position: relative; margin: 50px auto; max-width: 800px; background: white; border-radius: 12px; padding: 30px; max-height: 80vh; overflow-y: auto;">
+        <div style="position: relative; margin: 50px auto; max-width: 1200px; background: white; border-radius: 12px; padding: 30px; max-height: 90vh; overflow-y: auto;">
             <button onclick="closeUserModal()" style="position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 24px; cursor: pointer;">×</button>
             <h2 id="modalUserName" style="margin-bottom: 20px;">User Details</h2>
             <div id="userDetailsContent">
@@ -894,6 +997,137 @@
             if (diff <= 10) return 'score-normal';
             if (diff <= 25) return 'score-warning';
             return 'score-danger';
+        }
+        
+        // Function to redraw signature on canvas
+        function redrawSignatureOnCanvas(canvasId, signatureData, color = '#000', label = '') {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (!signatureData || !signatureData.strokes) {
+                // Draw "No Data" message
+                ctx.font = '14px sans-serif';
+                ctx.fillStyle = '#718096';
+                ctx.textAlign = 'center';
+                ctx.fillText('No signature data', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+            
+            // Calculate bounds for proper scaling
+            let minX = Infinity, minY = Infinity;
+            let maxX = -Infinity, maxY = -Infinity;
+            
+            signatureData.strokes.forEach(stroke => {
+                stroke.points.forEach(point => {
+                    minX = Math.min(minX, point.x);
+                    minY = Math.min(minY, point.y);
+                    maxX = Math.max(maxX, point.x);
+                    maxY = Math.max(maxY, point.y);
+                });
+            });
+            
+            // Add padding
+            const padding = 20;
+            const width = maxX - minX;
+            const height = maxY - minY;
+            
+            // Calculate scale to fit canvas
+            const scaleX = (canvas.width - 2 * padding) / width;
+            const scaleY = (canvas.height - 2 * padding) / height;
+            const scale = Math.min(scaleX, scaleY);
+            
+            // Calculate offset to center
+            const offsetX = (canvas.width - width * scale) / 2;
+            const offsetY = (canvas.height - height * scale) / 2;
+            
+            // Draw each stroke
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            signatureData.strokes.forEach(stroke => {
+                ctx.beginPath();
+                stroke.points.forEach((point, index) => {
+                    const x = (point.x - minX) * scale + offsetX;
+                    const y = (point.y - minY) * scale + offsetY;
+                    
+                    if (index === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                });
+                ctx.stroke();
+            });
+        }
+        
+        // Function to create signature comparison visualization
+        function createSignatureComparison(enrollmentSigs, attemptSig, containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            container.innerHTML = `
+                <div class="signature-comparison">
+                    <!-- Baseline Signatures -->
+                    <div class="comparison-section">
+                        <h4>📝 Baseline Signatures (Enrollment)</h4>
+                        <div class="signature-canvas-container" id="baselineCanvases">
+                            ${enrollmentSigs.map((sig, index) => `
+                                <div class="canvas-wrapper">
+                                    <canvas id="baseline-canvas-${index}" width="250" height="150"></canvas>
+                                    <div class="canvas-label">Enrollment ${index + 1}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="signature-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">${enrollmentSigs.length}</div>
+                                <div class="stat-label">Samples</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Authentication Attempt -->
+                    <div class="comparison-section">
+                        <h4>🔐 Authentication Attempt</h4>
+                        <div class="signature-canvas-container">
+                            <div class="canvas-wrapper">
+                                <canvas id="attempt-canvas" width="250" height="150"></canvas>
+                                <div class="canvas-label">Auth Attempt</div>
+                            </div>
+                        </div>
+                        <div class="signature-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">${attemptSig.confidence || 0}%</div>
+                                <div class="stat-label">Confidence</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">${attemptSig.status === 'success' ? '✓' : '✗'}</div>
+                                <div class="stat-label">Result</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Draw baseline signatures
+            enrollmentSigs.forEach((sig, index) => {
+                if (sig.strokes) {
+                    redrawSignatureOnCanvas(`baseline-canvas-${index}`, { strokes: sig.strokes }, '#667eea');
+                }
+            });
+            
+            // Draw authentication attempt
+            if (attemptSig.signature) {
+                const color = attemptSig.status === 'success' ? '#48bb78' : '#e53e3e';
+                redrawSignatureOnCanvas('attempt-canvas', { strokes: attemptSig.signature }, color);
+            }
         }
         
         // Helper function to format score values
@@ -1094,6 +1328,9 @@
                             </div>
                         </div>
                         
+                        <!-- Signature Visual Comparison Section -->
+                        <div id="signatureComparisonContainer"></div>
+                        
                         ${!hasBaseline ? `
                             <div class="message" style="background: #fff3cd; color: #856404; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
                                 <strong>New User Notice:</strong> This user has recently enrolled. Baseline metrics are still being established from enrollment signatures.
@@ -1137,6 +1374,19 @@
                     
                     // Store user info globally for attempt selection
                     window.currentUserInfo = userInfo;
+                    
+                    // Show signature comparison if we have data
+                    if (userInfo.enrollmentSignatures && userInfo.enrollmentSignatures.length > 0 && 
+                        userInfo.recentAttemptsWithFeatures && userInfo.recentAttemptsWithFeatures.length > 0) {
+                        const firstAttempt = userInfo.recentAttemptsWithFeatures[0];
+                        if (firstAttempt.signature || userInfo.enrollmentSignatures.some(sig => sig.strokes)) {
+                            createSignatureComparison(
+                                userInfo.enrollmentSignatures, 
+                                firstAttempt, 
+                                'signatureComparisonContainer'
+                            );
+                        }
+                    }
                     
                     // If we have attempts but no ML features, show appropriate message
                     if (!hasMLFeatures && userInfo.recentAttempts && userInfo.recentAttempts.length > 0) {
@@ -1376,6 +1626,15 @@
                 
                 container.innerHTML = renderMLFeatures(attemptData);
                 container.style.opacity = '1';
+                
+                // Update signature comparison
+                if (window.currentUserInfo && window.currentUserInfo.enrollmentSignatures && attemptData.signature) {
+                    createSignatureComparison(
+                        window.currentUserInfo.enrollmentSignatures,
+                        attemptData,
+                        'signatureComparisonContainer'
+                    );
+                }
             }, 150);
         };
         

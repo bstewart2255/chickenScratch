@@ -1101,12 +1101,44 @@ app.get('/api/user/:username/details', async (req, res) => {
                 hasNonZeroValues: Object.values(attemptScores).some(v => v !== 0)
             });
             
+            // Parse signature data to include strokes for visualization
+            let signatureStrokes = null;
+            if (sig.signature_data) {
+                try {
+                    const sigData = typeof sig.signature_data === 'string' ? 
+                        JSON.parse(sig.signature_data) : sig.signature_data;
+                    signatureStrokes = sigData.data || sigData.strokes || sigData;
+                } catch (e) {
+                    console.error('Error parsing signature data:', e);
+                }
+            }
+            
             return {
                 time: new Date(sig.auth_time).toLocaleString(),
                 confidence: sig.confidence || 0,
                 status: sig.success ? 'success' : 'blocked',
                 attempt_scores: attemptScores,
-                user_baseline: userBaseline
+                user_baseline: userBaseline,
+                signature: signatureStrokes
+            };
+        });
+        
+        // Get enrollment signatures (first 3) with stroke data
+        const enrollmentSignatures = signatures.rows.slice(-3).reverse().map(sig => {
+            let strokes = null;
+            if (sig.signature_data) {
+                try {
+                    const sigData = typeof sig.signature_data === 'string' ? 
+                        JSON.parse(sig.signature_data) : sig.signature_data;
+                    strokes = sigData.data || sigData.strokes || sigData;
+                } catch (e) {
+                    console.error('Error parsing enrollment signature:', e);
+                }
+            }
+            return {
+                strokes: strokes,
+                metrics: sig.metrics || {},
+                created_at: sig.created_at
             };
         });
         
@@ -1118,6 +1150,7 @@ app.get('/api/user/:username/details', async (req, res) => {
             successRate: parseFloat(successRate),
             avgConfidence: avgConfidence.toFixed(1),
             userBaseline: userBaseline,
+            enrollmentSignatures: enrollmentSignatures,
             signatures: signatures.rows.map(sig => ({
                 date: sig.created_at,
                 samples: 1,
