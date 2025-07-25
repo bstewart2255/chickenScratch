@@ -877,12 +877,17 @@
                 detailedAnalysis.enrollment.signatures.forEach((sig, index) => {
                     if (sigCanvases[index] && sig.signature_data) {
                         try {
-                            const sigData = typeof sig.signature_data === 'string' ? 
-                                JSON.parse(sig.signature_data) : sig.signature_data;
-                            console.log(`Drawing enrollment signature ${index}:`, sigData);
+                            // signature_data should now be pre-processed by backend
+                            const sigData = sig.signature_data;
+                            console.log(`Drawing enrollment signature ${index}:`, {
+                                dataType: typeof sigData,
+                                isArray: Array.isArray(sigData),
+                                isBase64: typeof sigData === 'string' && sigData.startsWith('data:'),
+                                dataPreview: sigData ? (typeof sigData === 'string' ? sigData.substring(0, 50) + '...' : 'object') : 'null'
+                            });
                             
-                            // Check if we have the actual stroke data
-                            if (sigData && (sigData.data || sigData.strokes || Array.isArray(sigData))) {
+                            // Draw the signature with the pre-processed data
+                            if (sigData) {
                                 drawSignature(sigCanvases[index], sigData);
                                 
                                 // Add metrics below the canvas if available
@@ -944,9 +949,13 @@
                         
                         if (canvas) {
                             try {
-                                const shapeData = typeof shape.shape_data === 'string' ? 
-                                    JSON.parse(shape.shape_data) : shape.shape_data;
-                                console.log(`Drawing shape ${type}:`, shapeData);
+                                // shape_data should now be pre-processed by backend
+                                const shapeData = shape.shape_data;
+                                console.log(`Drawing shape ${type}:`, {
+                                    dataType: typeof shapeData,
+                                    isArray: Array.isArray(shapeData),
+                                    hasData: !!shapeData
+                                });
                                 drawSignature(canvas, shapeData);
                                 
                                 // Add shape-specific metrics if available
@@ -991,8 +1000,8 @@
                     if (drawing) {
                         const canvas = document.getElementById(`drawing_${type}`);
                         if (canvas) {
-                            const drawingData = typeof drawing.drawing_data === 'string' ? 
-                                JSON.parse(drawing.drawing_data) : drawing.drawing_data;
+                            // drawing_data should now be pre-processed by backend
+                            const drawingData = drawing.drawing_data;
                             drawSignature(canvas, drawingData);
                         }
                     }
@@ -1161,9 +1170,13 @@
             const baselineCanvas = document.getElementById('baselineSignatureCanvas');
             if (bestSig && bestSig.signature_data) {
                 try {
-                    const bestSigData = typeof bestSig.signature_data === 'string' ? 
-                        JSON.parse(bestSig.signature_data) : bestSig.signature_data;
-                    console.log('Drawing baseline signature:', bestSigData);
+                    // signature_data should be pre-processed by backend
+                    const bestSigData = bestSig.signature_data;
+                    console.log('Drawing baseline signature:', {
+                        dataType: typeof bestSigData,
+                        isArray: Array.isArray(bestSigData),
+                        isBase64: typeof bestSigData === 'string' && bestSigData.startsWith('data:')
+                    });
                     drawSignature(baselineCanvas, bestSigData);
                     
                     // Add quality score below baseline
@@ -1184,9 +1197,13 @@
             const attemptCanvas = document.getElementById('attemptSignatureCanvas');
             if (breakdown.signature?.data) {
                 try {
-                    const attemptSigData = typeof breakdown.signature.data === 'string' ? 
-                        JSON.parse(breakdown.signature.data) : breakdown.signature.data;
-                    console.log('Drawing attempt signature:', attemptSigData);
+                    // signature data should be pre-processed by backend
+                    const attemptSigData = breakdown.signature.data;
+                    console.log('Drawing attempt signature:', {
+                        dataType: typeof attemptSigData,
+                        isArray: Array.isArray(attemptSigData),
+                        isBase64: typeof attemptSigData === 'string' && attemptSigData.startsWith('data:')
+                    });
                     drawSignature(attemptCanvas, attemptSigData);
                     
                     // Add score below attempt
@@ -1379,7 +1396,33 @@
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            if (!signatureData) return;
+            if (!signatureData) {
+                console.warn('No signature data provided');
+                ctx.fillStyle = '#999';
+                ctx.font = '12px Arial';
+                ctx.fillText('No data', 10, canvas.height / 2);
+                return;
+            }
+            
+            // Handle base64 image data
+            if (typeof signatureData === 'string' && signatureData.startsWith('data:image')) {
+                const img = new Image();
+                img.onload = function() {
+                    // Scale image to fit canvas
+                    const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+                    const x = (canvas.width - img.width * scale) / 2;
+                    const y = (canvas.height - img.height * scale) / 2;
+                    ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+                };
+                img.onerror = function() {
+                    console.error('Failed to load base64 image');
+                    ctx.fillStyle = '#999';
+                    ctx.font = '12px Arial';
+                    ctx.fillText('Load error', 10, canvas.height / 2);
+                };
+                img.src = signatureData;
+                return;
+            }
             
             // Handle different signature data formats
             let strokes;
@@ -1391,12 +1434,18 @@
                 strokes = signatureData;
             } else {
                 console.warn('Unknown signature data format:', signatureData);
+                ctx.fillStyle = '#999';
+                ctx.font = '12px Arial';
+                ctx.fillText('Format error', 10, canvas.height / 2);
                 return;
             }
             
             // Validate strokes
             if (!strokes || strokes.length === 0) {
                 console.warn('No strokes found in signature data');
+                ctx.fillStyle = '#999';
+                ctx.font = '12px Arial';
+                ctx.fillText('No strokes', 10, canvas.height / 2);
                 return;
             }
             

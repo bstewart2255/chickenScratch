@@ -170,6 +170,50 @@ function calculateMLFeatures(signatureData) {
     };
 }
 
+// Helper function to extract displayable signature data
+function extractDisplayableSignatureData(signatureData) {
+    if (!signatureData) return null;
+    
+    try {
+        // Parse if it's a string
+        let parsed = signatureData;
+        if (typeof signatureData === 'string') {
+            parsed = JSON.parse(signatureData);
+        }
+        
+        // Handle different data formats
+        // Format 1: {data: "base64...", raw: [strokes], metrics: {}, timestamp: 123}
+        if (parsed.data && typeof parsed.data === 'string' && parsed.data.startsWith('data:')) {
+            // Return base64 image directly
+            return parsed.data;
+        }
+        
+        // Format 2: {data: [strokes], ...} or {strokes: [strokes], ...}
+        if (parsed.data && Array.isArray(parsed.data)) {
+            return parsed.data;
+        }
+        if (parsed.strokes && Array.isArray(parsed.strokes)) {
+            return parsed.strokes;
+        }
+        
+        // Format 3: Direct array of strokes
+        if (Array.isArray(parsed)) {
+            return parsed;
+        }
+        
+        // Format 4: {raw: [strokes], ...}
+        if (parsed.raw && Array.isArray(parsed.raw)) {
+            return parsed.raw;
+        }
+        
+        console.warn('Unknown signature data format:', typeof parsed, Object.keys(parsed));
+        return null;
+    } catch (error) {
+        console.error('Error extracting displayable signature data:', error);
+        return null;
+    }
+}
+
 // Helper functions remain the same
 function extractSignatureFeatures(signatureDataUrl) {
     const base64Data = signatureDataUrl.split(',')[1] || '';
@@ -1185,11 +1229,12 @@ app.get('/api/user/:username/details', async (req, res) => {
             };
         });
         
-        // Get enrollment signatures (first 3) with full signature data
+        // Get enrollment signatures (first 3) with displayable signature data
         const enrollmentSignatures = signatures.rows.slice(-3).reverse().map(sig => {
-            // Return the complete signature object that frontend expects
+            // Extract displayable data from the signature
+            const displayableData = extractDisplayableSignatureData(sig.signature_data);
             return {
-                signature: sig.signature_data,  // This contains {data, raw, metrics, timestamp}
+                signature: displayableData,  // Now contains just the stroke data or base64
                 metrics: sig.metrics || {},
                 created_at: sig.created_at,
                 id: sig.id
@@ -1565,6 +1610,24 @@ app.get('/api/user/:username/detailed-analysis', async (req, res) => {
             devicePerformance[deviceKey].totalScore += attempt.confidence;
         });
         
+        // Process enrollment signatures to extract displayable data
+        const processedEnrollmentSignatures = enrollmentSignatures.rows.map(sig => ({
+            ...sig,
+            signature_data: extractDisplayableSignatureData(sig.signature_data)
+        }));
+        
+        // Process enrollment shapes to extract displayable data
+        const processedEnrollmentShapes = enrollmentShapes.rows.map(shape => ({
+            ...shape,
+            shape_data: extractDisplayableSignatureData(shape.shape_data)
+        }));
+        
+        // Process enrollment drawings to extract displayable data
+        const processedEnrollmentDrawings = enrollmentDrawings.rows.map(drawing => ({
+            ...drawing,
+            drawing_data: extractDisplayableSignatureData(drawing.drawing_data)
+        }));
+        
         res.json({
             user: {
                 id: user.id,
@@ -1572,9 +1635,9 @@ app.get('/api/user/:username/detailed-analysis', async (req, res) => {
                 enrolled_at: user.created_at
             },
             enrollment: {
-                signatures: enrollmentSignatures.rows,
-                shapes: enrollmentShapes.rows,
-                drawings: enrollmentDrawings.rows
+                signatures: processedEnrollmentSignatures,
+                shapes: processedEnrollmentShapes,
+                drawings: processedEnrollmentDrawings
             },
             baseline,
             authAttempts: enhancedAuthAttempts,
@@ -1706,10 +1769,13 @@ app.get('/api/auth-attempt/:attemptId/breakdown', async (req, res) => {
                 drawing_scores: attempt.drawing_scores
             },
             signature: {
-                data: attempt.signature_data,
+                data: extractDisplayableSignatureData(attempt.signature_data),
                 metrics: attempt.signature_metrics
             },
-            enrollment_signatures: enrollmentSigs.rows
+            enrollment_signatures: enrollmentSigs.rows.map(sig => ({
+                ...sig,
+                signature_data: extractDisplayableSignatureData(sig.signature_data)
+            }))
         });
         
     } catch (error) {
