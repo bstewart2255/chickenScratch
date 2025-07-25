@@ -1,8 +1,8 @@
 {
-  "model_path": "models/signature_model_20250722_182331.pkl",
-  "scaler_path": "models/scaler_20250722_182331.pkl",
-  "feature_path": "models/features_20250722_182331.json",
-  "timestamp": "20250722_182331",
+  "model_path": "models/signature_model_20250724_194335.pkl",
+  "scaler_path": "models/scaler_20250724_194335.pkl",
+  "feature_path": "models/features_20250724_194335.json",
+  "timestamp": "20250724_194335",
   "feature_names": [
     "stroke_count",
     "total_points",

@@ -1,0 +1,82 @@
+[
+  {
+    "user_id": "migrationtest",
+    "timestamp": 1753426200216,
+    "type": "forgery",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 9,
+        "total_points": 449,
+        "total_duration_ms": 20833,
+        "average_points_per_stroke": 49.888888888888886
+      },
+      "velocity_features": {
+        "average_velocity": 0.31383869160963945,
+        "max_velocity": 1.526988600394186,
+        "min_velocity": 0.008630952380952382,
+        "velocity_std": 0.23304152628273353
+      },
+      "shape_features": {
+        "width": 668.64453125,
+        "height": 224.3125,
+        "area": 149985.32641601562,
+        "aspect_ratio": 2.980861660629702,
+        "center_x": 478.970703125,
+        "center_y": 307.12109375
+      },
+      "stroke_features": {
+        "average_stroke_length": 268.78343211606455,
+        "total_length": 2419.050889044581,
+        "length_variation": 263.35702957605247,
+        "average_stroke_duration": 1545.5714285714287,
+        "duration_variation": 797.3299831567958
+      }
+    },
+    "metadata": {
+      "signature_id": 78,
+      "signature_number": "5",
+      "confidence": "39.42",
+      "auth_success": false
+    }
+  },
+  {
+    "user_id": "migrationtest",
+    "timestamp": 1753422091208,
+    "type": "forgery",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 8,
+        "total_points": 279,
+        "total_duration_ms": 15184,
+        "average_points_per_stroke": 34.875
+      },
+      "velocity_features": {
+        "average_velocity": 0.3955905154222828,
+        "max_velocity": 1.7941709655814162,
+        "min_velocity": 0.00512390897755611,
+        "velocity_std": 0.28645653783225566
+      },
+      "shape_features": {
+        "width": 571.16015625,
+        "height": 183.15234375,
+        "area": 104609.32127380371,
+        "aspect_ratio": 3.118497664597863,
+        "center_x": 549.748046875,
+        "center_y": 322.044921875
+      },
+      "stroke_features": {
+        "average_stroke_length": 236.98391184482773,
+        "total_length": 1895.8712947586218,
+        "length_variation": 181.2184538179783,
+        "average_stroke_duration": 1099.2857142857142,
+        "duration_variation": 592.8280199387423
+      }
+    },
+    "metadata": {
+      "signature_id": 77,
+      "signature_number": "4",
+      "confidence": "38.42",
+      "auth_success": false
+    }
+  }
+]

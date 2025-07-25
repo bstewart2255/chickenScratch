@@ -26,3 +26,14 @@ __pycache__/
 # Package lock files (optional - you may want to keep these)
 # package-lock.json
 # */package-lock.json
+
+# ML model individual signature data files
+ml-model/data/signature_data_*.json
+# But keep the aggregated files
+!ml-model/data/all_signatures.json
+!ml-model/data/all_synthetic_forgeries.json
+!ml-model/data/forgery_signatures.json
+!ml-model/data/forgery_signatures_improved.json
+!ml-model/data/genuine_signatures.json
+!ml-model/data/genuine_signatures_improved.json
+!ml-model/data/skipped_samples_report.json

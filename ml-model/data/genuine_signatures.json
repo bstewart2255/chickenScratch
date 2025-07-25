@@ -1,0 +1,2282 @@
+[
+  {
+    "user_id": "migrationtest",
+    "timestamp": 1753422010848,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 8,
+        "total_points": 221,
+        "total_duration_ms": 12682,
+        "average_points_per_stroke": 27.625
+      },
+      "velocity_features": {
+        "average_velocity": 0.3757471717321874,
+        "max_velocity": 1.1738054718194382,
+        "min_velocity": 0.01211345818815331,
+        "velocity_std": 0.2334391379692619
+      },
+      "shape_features": {
+        "width": 558.6953125,
+        "height": 123.0859375,
+        "area": 68767.53631591797,
+        "aspect_ratio": 4.53906696286893,
+        "center_x": 413.80078125,
+        "center_y": 283.58203125
+      },
+      "stroke_features": {
+        "average_stroke_length": 181.0742917940759,
+        "total_length": 1448.5943343526071,
+        "length_variation": 155.59241051711365,
+        "average_stroke_duration": 802.1428571428571,
+        "duration_variation": 433.9152084950069
+      }
+    },
+    "metadata": {
+      "signature_id": 76,
+      "signature_number": "3",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "migrationtest",
+    "timestamp": 1753422010848,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 8,
+        "total_points": 236,
+        "total_duration_ms": 12321,
+        "average_points_per_stroke": 29.5
+      },
+      "velocity_features": {
+        "average_velocity": 0.45766023853456145,
+        "max_velocity": 1.9486100463821985,
+        "min_velocity": 0.008905157342657342,
+        "velocity_std": 0.31623076681148926
+      },
+      "shape_features": {
+        "width": 604.625,
+        "height": 209.6953125,
+        "area": 126787.0283203125,
+        "aspect_ratio": 2.8833500987295557,
+        "center_x": 436.3046875,
+        "center_y": 267.60546875
+      },
+      "stroke_features": {
+        "average_stroke_length": 229.5437026185185,
+        "total_length": 1836.349620948148,
+        "length_variation": 181.38696917235347,
+        "average_stroke_duration": 802.7142857142857,
+        "duration_variation": 444.7245421239387
+      }
+    },
+    "metadata": {
+      "signature_id": 74,
+      "signature_number": "2",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "migrationtest",
+    "timestamp": 1753422010848,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 8,
+        "total_points": 264,
+        "total_duration_ms": 13668,
+        "average_points_per_stroke": 33
+      },
+      "velocity_features": {
+        "average_velocity": 0.3977350297853829,
+        "max_velocity": 1.42470487985452,
+        "min_velocity": 0.009073572834645669,
+        "velocity_std": 0.2581120982438964
+      },
+      "shape_features": {
+        "width": 611.80078125,
+        "height": 176.359375,
+        "area": 107896.80340576172,
+        "aspect_ratio": 3.4690573225835033,
+        "center_x": 429.525390625,
+        "center_y": 277.48046875
+      },
+      "stroke_features": {
+        "average_stroke_length": 226.07080347829006,
+        "total_length": 1808.5664278263205,
+        "length_variation": 181.3161988285869,
+        "average_stroke_duration": 949.4285714285714,
+        "duration_variation": 676.8833740319054
+      }
+    },
+    "metadata": {
+      "signature_id": 75,
+      "signature_number": "1",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test17",
+    "timestamp": 1753347465368,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 16,
+        "total_points": 217,
+        "total_duration_ms": 10739,
+        "average_points_per_stroke": 13.5625
+      },
+      "velocity_features": {
+        "average_velocity": 0.17555674279713337,
+        "max_velocity": 1.0540925533894583,
+        "min_velocity": 0.00887328562499904,
+        "velocity_std": 0.15231049911571404
+      },
+      "shape_features": {
+        "width": 174,
+        "height": 38.66666666666667,
+        "area": 6728.000000000001,
+        "aspect_ratio": 4.499999999999999,
+        "center_x": 118,
+        "center_y": 40.666666666666664
+      },
+      "stroke_features": {
+        "average_stroke_length": 34.17248686853436,
+        "total_length": 546.7597898965497,
+        "length_variation": 23.767196002961704,
+        "average_stroke_duration": 296.07142857142856,
+        "duration_variation": 141.40795304251267
+      }
+    },
+    "metadata": {
+      "signature_id": 73,
+      "signature_number": "6",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test17",
+    "timestamp": 1753347415513,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 5,
+        "total_points": 141,
+        "total_duration_ms": 4218,
+        "average_points_per_stroke": 28.2
+      },
+      "velocity_features": {
+        "average_velocity": 0.18538275133623944,
+        "max_velocity": 0.7453559924999479,
+        "min_velocity": 0.022586545227270282,
+        "velocity_std": 0.1069361353780069
+      },
+      "shape_features": {
+        "width": 152.33333333333334,
+        "height": 33.33333333333333,
+        "area": 5077.777777777777,
+        "aspect_ratio": 4.570000000000001,
+        "center_x": 117.16666666666667,
+        "center_y": 47.666666666666664
+      },
+      "stroke_features": {
+        "average_stroke_length": 85.5676062660704,
+        "total_length": 427.838031330352,
+        "length_variation": 67.8821321252938,
+        "average_stroke_duration": 636.75,
+        "duration_variation": 421.71873031678354
+      }
+    },
+    "metadata": {
+      "signature_id": 72,
+      "signature_number": "5",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test17",
+    "timestamp": 1753347373374,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 5,
+        "total_points": 137,
+        "total_duration_ms": 4501,
+        "average_points_per_stroke": 27.4
+      },
+      "velocity_features": {
+        "average_velocity": 0.20354766457278828,
+        "max_velocity": 0.9428090415820751,
+        "min_velocity": 0.01129327261363519,
+        "velocity_std": 0.14406744906402366
+      },
+      "shape_features": {
+        "width": 162.33333333333334,
+        "height": 33.66666666666666,
+        "area": 5465.222222222221,
+        "aspect_ratio": 4.821782178217823,
+        "center_x": 118.16666666666667,
+        "center_y": 48.5
+      },
+      "stroke_features": {
+        "average_stroke_length": 88.54524850503843,
+        "total_length": 442.72624252519216,
+        "length_variation": 65.4862853682472,
+        "average_stroke_duration": 659,
+        "duration_variation": 418.81977030699016
+      }
+    },
+    "metadata": {
+      "signature_id": 71,
+      "signature_number": "4",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test17",
+    "timestamp": 1753347349193,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 5,
+        "total_points": 142,
+        "total_duration_ms": 4567,
+        "average_points_per_stroke": 28.4
+      },
+      "velocity_features": {
+        "average_velocity": 0.20730557381236736,
+        "max_velocity": 0.7453559924999257,
+        "min_velocity": 0.024037008503093236,
+        "velocity_std": 0.11366719197583225
+      },
+      "shape_features": {
+        "width": 154,
+        "height": 39.666666666666664,
+        "area": 6108.666666666666,
+        "aspect_ratio": 3.882352941176471,
+        "center_x": 110,
+        "center_y": 39.83333333333333
+      },
+      "stroke_features": {
+        "average_stroke_length": 95.79595938650647,
+        "total_length": 478.97979693253234,
+        "length_variation": 77.7513476293557,
+        "average_stroke_duration": 644.25,
+        "duration_variation": 430.60212203378654
+      }
+    },
+    "metadata": {
+      "signature_id": 68,
+      "signature_number": "1",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test17",
+    "timestamp": 1753347349193,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 5,
+        "total_points": 146,
+        "total_duration_ms": 4469,
+        "average_points_per_stroke": 29.2
+      },
+      "velocity_features": {
+        "average_velocity": 0.16661760330303005,
+        "max_velocity": 0.4550068680800324,
+        "min_velocity": 0.013689513680382575,
+        "velocity_std": 0.09973768793925591
+      },
+      "shape_features": {
+        "width": 144,
+        "height": 42,
+        "area": 6048,
+        "aspect_ratio": 3.4285714285714284,
+        "center_x": 124.33333333333334,
+        "center_y": 35
+      },
+      "stroke_features": {
+        "average_stroke_length": 82.869567947786,
+        "total_length": 414.34783973892996,
+        "length_variation": 66.70390936492191,
+        "average_stroke_duration": 707.25,
+        "duration_variation": 417.3639748468955
+      }
+    },
+    "metadata": {
+      "signature_id": 70,
+      "signature_number": "3",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test17",
+    "timestamp": 1753347349193,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 5,
+        "total_points": 140,
+        "total_duration_ms": 4318,
+        "average_points_per_stroke": 28
+      },
+      "velocity_features": {
+        "average_velocity": 0.20149140598748547,
+        "max_velocity": 0.942809041582055,
+        "min_velocity": 0.015732724677454603,
+        "velocity_std": 0.12034557645817014
+      },
+      "shape_features": {
+        "width": 154.33333333333331,
+        "height": 40.333333333333336,
+        "area": 6224.777777777777,
+        "aspect_ratio": 3.826446280991735,
+        "center_x": 120.5,
+        "center_y": 41.16666666666667
+      },
+      "stroke_features": {
+        "average_stroke_length": 91.5894756907962,
+        "total_length": 457.94737845398106,
+        "length_variation": 77.43820668408223,
+        "average_stroke_duration": 661.5,
+        "duration_variation": 411.88256821574765
+      }
+    },
+    "metadata": {
+      "signature_id": 69,
+      "signature_number": "2",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test20",
+    "timestamp": 1753321684616,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 8,
+        "total_points": 232,
+        "total_duration_ms": 13144,
+        "average_points_per_stroke": 29
+      },
+      "velocity_features": {
+        "average_velocity": 0.3907893172409227,
+        "max_velocity": 1.1267347735824966,
+        "min_velocity": 0.010498687664041995,
+        "velocity_std": 0.2397303113118468
+      },
+      "shape_features": {
+        "width": 562,
+        "height": 142,
+        "area": 79804,
+        "aspect_ratio": 3.9577464788732395,
+        "center_x": 496,
+        "center_y": 323.203125
+      },
+      "stroke_features": {
+        "average_stroke_length": 191.9339729683871,
+        "total_length": 1535.4717837470969,
+        "length_variation": 140.26549293198693,
+        "average_stroke_duration": 828.8571428571429,
+        "duration_variation": 389.32007712032987
+      }
+    },
+    "metadata": {
+      "signature_id": 67,
+      "signature_number": "4",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test20",
+    "timestamp": 1753321629173,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 9,
+        "total_points": 265,
+        "total_duration_ms": 15712,
+        "average_points_per_stroke": 29.444444444444443
+      },
+      "velocity_features": {
+        "average_velocity": 0.4514964255994574,
+        "max_velocity": 1.5893242454242702,
+        "min_velocity": 0.003538082242879414,
+        "velocity_std": 0.34122717785310425
+      },
+      "shape_features": {
+        "width": 674,
+        "height": 197,
+        "area": 132778,
+        "aspect_ratio": 3.4213197969543145,
+        "center_x": 460,
+        "center_y": 319.703125
+      },
+      "stroke_features": {
+        "average_stroke_length": 227.74723584307503,
+        "total_length": 2049.7251225876753,
+        "length_variation": 157.4428068470792,
+        "average_stroke_duration": 1033.75,
+        "duration_variation": 1000.943148984996
+      }
+    },
+    "metadata": {
+      "signature_id": 66,
+      "signature_number": "1",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test20",
+    "timestamp": 1753321629173,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 8,
+        "total_points": 251,
+        "total_duration_ms": 11709,
+        "average_points_per_stroke": 31.375
+      },
+      "velocity_features": {
+        "average_velocity": 0.6689346824876324,
+        "max_velocity": 3.375,
+        "min_velocity": 0.022556390977443608,
+        "velocity_std": 0.5713458027543594
+      },
+      "shape_features": {
+        "width": 695,
+        "height": 279,
+        "area": 193905,
+        "aspect_ratio": 2.4910394265232974,
+        "center_x": 468.5,
+        "center_y": 337.703125
+      },
+      "stroke_features": {
+        "average_stroke_length": 351.459742123425,
+        "total_length": 2811.6779369874,
+        "length_variation": 315.3918094486666,
+        "average_stroke_duration": 759.2857142857143,
+        "duration_variation": 453.95207874391144
+      }
+    },
+    "metadata": {
+      "signature_id": 65,
+      "signature_number": "3",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test20",
+    "timestamp": 1753321629173,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 8,
+        "total_points": 237,
+        "total_duration_ms": 12209,
+        "average_points_per_stroke": 29.625
+      },
+      "velocity_features": {
+        "average_velocity": 0.6508430369481562,
+        "max_velocity": 2.4661774571186075,
+        "min_velocity": 0.022586545227270605,
+        "velocity_std": 0.5198126143516842
+      },
+      "shape_features": {
+        "width": 796,
+        "height": 285,
+        "area": 226860,
+        "aspect_ratio": 2.7929824561403507,
+        "center_x": 539,
+        "center_y": 375.703125
+      },
+      "stroke_features": {
+        "average_stroke_length": 323.39431390250706,
+        "total_length": 2587.1545112200565,
+        "length_variation": 240.9119936049602,
+        "average_stroke_duration": 745.5714285714286,
+        "duration_variation": 410.6468267581409
+      }
+    },
+    "metadata": {
+      "signature_id": 64,
+      "signature_number": "2",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test19",
+    "timestamp": 1753321501801,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 5,
+        "total_points": 168,
+        "total_duration_ms": 4898,
+        "average_points_per_stroke": 33.6
+      },
+      "velocity_features": {
+        "average_velocity": 0.20619552739743563,
+        "max_velocity": 0.7453559924999352,
+        "min_velocity": 0.008190725192306911,
+        "velocity_std": 0.13132386449693134
+      },
+      "shape_features": {
+        "width": 161.33333333333334,
+        "height": 52.666666666666664,
+        "area": 8496.888888888889,
+        "aspect_ratio": 3.0632911392405067,
+        "center_x": 125.66666666666667,
+        "center_y": 65
+      },
+      "stroke_features": {
+        "average_stroke_length": 112.86004811098842,
+        "total_length": 564.3002405549421,
+        "length_variation": 88.6295681263691,
+        "average_stroke_duration": 785.5,
+        "duration_variation": 592.5291132087941
+      }
+    },
+    "metadata": {
+      "signature_id": 63,
+      "signature_number": "4",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test19",
+    "timestamp": 1753321479296,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 5,
+        "total_points": 155,
+        "total_duration_ms": 5262,
+        "average_points_per_stroke": 31
+      },
+      "velocity_features": {
+        "average_velocity": 0.1758631663841529,
+        "max_velocity": 0.3841476857205369,
+        "min_velocity": 0.014907119849998514,
+        "velocity_std": 0.09050641188669085
+      },
+      "shape_features": {
+        "width": 168.66666666666666,
+        "height": 40.333333333333336,
+        "area": 6802.888888888889,
+        "aspect_ratio": 4.181818181818182,
+        "center_x": 111.33333333333333,
+        "center_y": 53.83333333333333
+      },
+      "stroke_features": {
+        "average_stroke_length": 91.40202502116415,
+        "total_length": 457.01012510582075,
+        "length_variation": 78.36926164207908,
+        "average_stroke_duration": 750.25,
+        "duration_variation": 456.56235882954695
+      }
+    },
+    "metadata": {
+      "signature_id": 60,
+      "signature_number": "2",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test19",
+    "timestamp": 1753321479296,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 5,
+        "total_points": 155,
+        "total_duration_ms": 4762,
+        "average_points_per_stroke": 31
+      },
+      "velocity_features": {
+        "average_velocity": 0.17753156929178432,
+        "max_velocity": 0.7453559924999352,
+        "min_velocity": 0.019110994086122907,
+        "velocity_std": 0.10656006688806938
+      },
+      "shape_features": {
+        "width": 156,
+        "height": 36.00000000000001,
+        "area": 5616.000000000001,
+        "aspect_ratio": 4.333333333333332,
+        "center_x": 117,
+        "center_y": 58.66666666666667
+      },
+      "stroke_features": {
+        "average_stroke_length": 90.11035497397606,
+        "total_length": 450.5517748698803,
+        "length_variation": 76.93092838031825,
+        "average_stroke_duration": 723.25,
+        "duration_variation": 467.9061738212053
+      }
+    },
+    "metadata": {
+      "signature_id": 62,
+      "signature_number": "3",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test19",
+    "timestamp": 1753321479296,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 5,
+        "total_points": 163,
+        "total_duration_ms": 5632,
+        "average_points_per_stroke": 32.6
+      },
+      "velocity_features": {
+        "average_velocity": 0.17469892147815755,
+        "max_velocity": 0.7453559924999257,
+        "min_velocity": 0.020833333333333332,
+        "velocity_std": 0.11892439088388633
+      },
+      "shape_features": {
+        "width": 174.33333333333331,
+        "height": 42.666666666666664,
+        "area": 7438.222222222221,
+        "aspect_ratio": 4.0859375,
+        "center_x": 112.5,
+        "center_y": 65.66666666666667
+      },
+      "stroke_features": {
+        "average_stroke_length": 91.18759239319571,
+        "total_length": 455.93796196597856,
+        "length_variation": 71.18535889290582,
+        "average_stroke_duration": 764.25,
+        "duration_variation": 466.0372168614863
+      }
+    },
+    "metadata": {
+      "signature_id": 61,
+      "signature_number": "1",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test18",
+    "timestamp": 1753321041911,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 8,
+        "total_points": 277,
+        "total_duration_ms": 15696,
+        "average_points_per_stroke": 34.625
+      },
+      "velocity_features": {
+        "average_velocity": 0.3993783540140036,
+        "max_velocity": 1.1764705882352942,
+        "min_velocity": 0.008130081300813009,
+        "velocity_std": 0.23957594469371943
+      },
+      "shape_features": {
+        "width": 684,
+        "height": 158,
+        "area": 108072,
+        "aspect_ratio": 4.329113924050633,
+        "center_x": 419,
+        "center_y": 263.203125
+      },
+      "stroke_features": {
+        "average_stroke_length": 232.8683413322217,
+        "total_length": 1862.9467306577735,
+        "length_variation": 200.57054664043523,
+        "average_stroke_duration": 1216,
+        "duration_variation": 768.3011562315045
+      }
+    },
+    "metadata": {
+      "signature_id": 57,
+      "signature_number": "1",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test18",
+    "timestamp": 1753321041911,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 8,
+        "total_points": 264,
+        "total_duration_ms": 13811,
+        "average_points_per_stroke": 33
+      },
+      "velocity_features": {
+        "average_velocity": 0.3936270231775559,
+        "max_velocity": 1.1405179744309162,
+        "min_velocity": 0.007518796992481203,
+        "velocity_std": 0.22879389527922525
+      },
+      "shape_features": {
+        "width": 676,
+        "height": 150,
+        "area": 101400,
+        "aspect_ratio": 4.506666666666667,
+        "center_x": 502,
+        "center_y": 272.203125
+      },
+      "stroke_features": {
+        "average_stroke_length": 219.03459730619076,
+        "total_length": 1752.276778449526,
+        "length_variation": 170.9359138344037,
+        "average_stroke_duration": 931,
+        "duration_variation": 493.7691768427835
+      }
+    },
+    "metadata": {
+      "signature_id": 58,
+      "signature_number": "3",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test18",
+    "timestamp": 1753321041911,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 8,
+        "total_points": 240,
+        "total_duration_ms": 13061,
+        "average_points_per_stroke": 30
+      },
+      "velocity_features": {
+        "average_velocity": 0.4581625734099507,
+        "max_velocity": 1.869441009655377,
+        "min_velocity": 0.010304460725805483,
+        "velocity_std": 0.3105208631231663
+      },
+      "shape_features": {
+        "width": 595,
+        "height": 211,
+        "area": 125545,
+        "aspect_ratio": 2.8199052132701423,
+        "center_x": 486.5,
+        "center_y": 289.703125
+      },
+      "stroke_features": {
+        "average_stroke_length": 229.56892684503447,
+        "total_length": 1836.5514147602757,
+        "length_variation": 146.12669281713755,
+        "average_stroke_duration": 823.7142857142857,
+        "duration_variation": 415.0227925877649
+      }
+    },
+    "metadata": {
+      "signature_id": 59,
+      "signature_number": "2",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test16",
+    "timestamp": 1753318136402,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 5,
+        "total_points": 142,
+        "total_duration_ms": 4282,
+        "average_points_per_stroke": 28.4
+      },
+      "velocity_features": {
+        "average_velocity": 0.2044697584860604,
+        "max_velocity": 0.94280904158207,
+        "min_velocity": 0.017280205793269807,
+        "velocity_std": 0.12917875395549624
+      },
+      "shape_features": {
+        "width": 159.33333333333334,
+        "height": 48.00000000000001,
+        "area": 7648.000000000002,
+        "aspect_ratio": 3.319444444444444,
+        "center_x": 118.33333333333333,
+        "center_y": 57.66666666666667
+      },
+      "stroke_features": {
+        "average_stroke_length": 94.55638135799943,
+        "total_length": 472.78190678999715,
+        "length_variation": 74.76901676551974,
+        "average_stroke_duration": 660.5,
+        "duration_variation": 480.10649860213306
+      }
+    },
+    "metadata": {
+      "signature_id": 56,
+      "signature_number": "11",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test15",
+    "timestamp": 1753318090095,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 8,
+        "total_points": 255,
+        "total_duration_ms": 12593,
+        "average_points_per_stroke": 31.875
+      },
+      "velocity_features": {
+        "average_velocity": 0.6401797894549337,
+        "max_velocity": 2.4182123283640546,
+        "min_velocity": 0.019444069369563388,
+        "velocity_std": 0.49998075297832256
+      },
+      "shape_features": {
+        "width": 817,
+        "height": 243,
+        "area": 198531,
+        "aspect_ratio": 3.3621399176954734,
+        "center_x": 503.5,
+        "center_y": 328.703125
+      },
+      "stroke_features": {
+        "average_stroke_length": 339.73771641916807,
+        "total_length": 2717.9017313533445,
+        "length_variation": 297.71673382654336,
+        "average_stroke_duration": 764.1428571428571,
+        "duration_variation": 451.02278326089936
+      }
+    },
+    "metadata": {
+      "signature_id": 55,
+      "signature_number": "18",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test16",
+    "timestamp": 1753316728417,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 7,
+        "total_points": 281,
+        "total_duration_ms": 11834,
+        "average_points_per_stroke": 40.142857142857146
+      },
+      "velocity_features": {
+        "average_velocity": 0.5965413109530171,
+        "max_velocity": 2.2941176470588234,
+        "min_velocity": 0.02027027027027027,
+        "velocity_std": 0.4705585682245314
+      },
+      "shape_features": {
+        "width": 804,
+        "height": 254,
+        "area": 204216,
+        "aspect_ratio": 3.1653543307086616,
+        "center_x": 510,
+        "center_y": 309.203125
+      },
+      "stroke_features": {
+        "average_stroke_length": 402.80521993829495,
+        "total_length": 2819.6365395680646,
+        "length_variation": 329.4459365102682,
+        "average_stroke_duration": 971.1666666666666,
+        "duration_variation": 539.8251002768294
+      }
+    },
+    "metadata": {
+      "signature_id": 54,
+      "signature_number": "10",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test16",
+    "timestamp": 1753316145681,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 8,
+        "total_points": 312,
+        "total_duration_ms": 15032,
+        "average_points_per_stroke": 39
+      },
+      "velocity_features": {
+        "average_velocity": 0.47443498885755303,
+        "max_velocity": 1.9721240722635542,
+        "min_velocity": 0.00894427190999916,
+        "velocity_std": 0.35804720202805557
+      },
+      "shape_features": {
+        "width": 787,
+        "height": 209,
+        "area": 164483,
+        "aspect_ratio": 3.7655502392344498,
+        "center_x": 501.5,
+        "center_y": 328.703125
+      },
+      "stroke_features": {
+        "average_stroke_length": 311.75534530812587,
+        "total_length": 2494.042762465007,
+        "length_variation": 250.2094974826808,
+        "average_stroke_duration": 1045,
+        "duration_variation": 563.2956594897568
+      }
+    },
+    "metadata": {
+      "signature_id": 53,
+      "signature_number": "9",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test16",
+    "timestamp": 1753316027397,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 5,
+        "total_points": 152,
+        "total_duration_ms": 5062,
+        "average_points_per_stroke": 30.4
+      },
+      "velocity_features": {
+        "average_velocity": 0.19504623706012725,
+        "max_velocity": 0.4394796481193539,
+        "min_velocity": 0.02,
+        "velocity_std": 0.11057592256056124
+      },
+      "shape_features": {
+        "width": 171.66666666666669,
+        "height": 45.333333333333336,
+        "area": 7782.2222222222235,
+        "aspect_ratio": 3.7867647058823533,
+        "center_x": 107.5,
+        "center_y": 55
+      },
+      "stroke_features": {
+        "average_stroke_length": 99.63157251020993,
+        "total_length": 498.1578625510497,
+        "length_variation": 77.28368536995035,
+        "average_stroke_duration": 705.25,
+        "duration_variation": 485.5138386287254
+      }
+    },
+    "metadata": {
+      "signature_id": 52,
+      "signature_number": "8",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test16",
+    "timestamp": 1753315148126,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 8,
+        "total_points": 294,
+        "total_duration_ms": 13659,
+        "average_points_per_stroke": 36.75
+      },
+      "velocity_features": {
+        "average_velocity": 0.4911344694816017,
+        "max_velocity": 1.588235294117647,
+        "min_velocity": 0.01315547499881949,
+        "velocity_std": 0.3590264468695841
+      },
+      "shape_features": {
+        "width": 761,
+        "height": 210,
+        "area": 159810,
+        "aspect_ratio": 3.623809523809524,
+        "center_x": 478.5,
+        "center_y": 321.203125
+      },
+      "stroke_features": {
+        "average_stroke_length": 304.4790532185101,
+        "total_length": 2435.832425748081,
+        "length_variation": 247.74675153542557,
+        "average_stroke_duration": 983.7142857142857,
+        "duration_variation": 518.2023086141755
+      }
+    },
+    "metadata": {
+      "signature_id": 51,
+      "signature_number": "7",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test16",
+    "timestamp": 1753315071091,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 5,
+        "total_points": 147,
+        "total_duration_ms": 4379,
+        "average_points_per_stroke": 29.4
+      },
+      "velocity_features": {
+        "average_velocity": 0.18351177141117184,
+        "max_velocity": 0.942809041582055,
+        "min_velocity": 0.02856997095703212,
+        "velocity_std": 0.11896503176288588
+      },
+      "shape_features": {
+        "width": 152,
+        "height": 35,
+        "area": 5320,
+        "aspect_ratio": 4.3428571428571425,
+        "center_x": 113,
+        "center_y": 46.83333333333333
+      },
+      "stroke_features": {
+        "average_stroke_length": 87.52944984920566,
+        "total_length": 437.6472492460283,
+        "length_variation": 70.46545643018973,
+        "average_stroke_duration": 667.25,
+        "duration_variation": 482.34913444516513
+      }
+    },
+    "metadata": {
+      "signature_id": 50,
+      "signature_number": "6",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test16",
+    "timestamp": 1753314165197,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 8,
+        "total_points": 318,
+        "total_duration_ms": 14385,
+        "average_points_per_stroke": 39.75
+      },
+      "velocity_features": {
+        "average_velocity": 0.4639949114401723,
+        "max_velocity": 2.209708691207961,
+        "min_velocity": 0.020134228187919462,
+        "velocity_std": 0.3404754004414125
+      },
+      "shape_features": {
+        "width": 701,
+        "height": 300,
+        "area": 210300,
+        "aspect_ratio": 2.3366666666666664,
+        "center_x": 476.5,
+        "center_y": 347.203125
+      },
+      "stroke_features": {
+        "average_stroke_length": 312.3127050593574,
+        "total_length": 2498.5016404748594,
+        "length_variation": 265.4081405838839,
+        "average_stroke_duration": 961.7142857142857,
+        "duration_variation": 533.7443781666368
+      }
+    },
+    "metadata": {
+      "signature_id": 49,
+      "signature_number": "5",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test16",
+    "timestamp": 1753313522758,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 6,
+        "total_points": 156,
+        "total_duration_ms": 5453,
+        "average_points_per_stroke": 26
+      },
+      "velocity_features": {
+        "average_velocity": 0.18708927476416698,
+        "max_velocity": 0.45833333333333304,
+        "min_velocity": 0.014731391274719766,
+        "velocity_std": 0.11264511619544788
+      },
+      "shape_features": {
+        "width": 184.33333333333334,
+        "height": 41.66666666666667,
+        "area": 7680.555555555557,
+        "aspect_ratio": 4.4239999999999995,
+        "center_x": 113.16666666666667,
+        "center_y": 43.166666666666664
+      },
+      "stroke_features": {
+        "average_stroke_length": 83.30977528925592,
+        "total_length": 499.85865173553555,
+        "length_variation": 45.64326934634334,
+        "average_stroke_duration": 667.6,
+        "duration_variation": 476.6519065313806
+      }
+    },
+    "metadata": {
+      "signature_id": 48,
+      "signature_number": "4",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test16",
+    "timestamp": 1753313477768,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 6,
+        "total_points": 150,
+        "total_duration_ms": 4819,
+        "average_points_per_stroke": 25
+      },
+      "velocity_features": {
+        "average_velocity": 0.18807508401603495,
+        "max_velocity": 0.942809041582055,
+        "min_velocity": 0.017329807778627408,
+        "velocity_std": 0.12684117171779272
+      },
+      "shape_features": {
+        "width": 180,
+        "height": 45.33333333333333,
+        "area": 8159.999999999999,
+        "aspect_ratio": 3.970588235294118,
+        "center_x": 112,
+        "center_y": 45.666666666666664
+      },
+      "stroke_features": {
+        "average_stroke_length": 76.91463631297654,
+        "total_length": 461.48781787785924,
+        "length_variation": 41.871836571041904,
+        "average_stroke_duration": 584.8,
+        "duration_variation": 359.74068438251464
+      }
+    },
+    "metadata": {
+      "signature_id": 47,
+      "signature_number": "3",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test16",
+    "timestamp": 1753313477768,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 5,
+        "total_points": 161,
+        "total_duration_ms": 4870,
+        "average_points_per_stroke": 32.2
+      },
+      "velocity_features": {
+        "average_velocity": 0.18624048647746722,
+        "max_velocity": 0.48635906374703114,
+        "min_velocity": 0.007453559924999225,
+        "velocity_std": 0.10230160715827254
+      },
+      "shape_features": {
+        "width": 181,
+        "height": 43,
+        "area": 7783,
+        "aspect_ratio": 4.209302325581396,
+        "center_x": 117.5,
+        "center_y": 42.5
+      },
+      "stroke_features": {
+        "average_stroke_length": 100.94382254631662,
+        "total_length": 504.7191127315831,
+        "length_variation": 85.59149576153372,
+        "average_stroke_duration": 765.75,
+        "duration_variation": 572.7701873351999
+      }
+    },
+    "metadata": {
+      "signature_id": 46,
+      "signature_number": "2",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test16",
+    "timestamp": 1753313477768,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 8,
+        "total_points": 176,
+        "total_duration_ms": 6402,
+        "average_points_per_stroke": 22
+      },
+      "velocity_features": {
+        "average_velocity": 0.1861912585765004,
+        "max_velocity": 0.942809041582055,
+        "min_velocity": 0.025252525252525217,
+        "velocity_std": 0.11716125583544588
+      },
+      "shape_features": {
+        "width": 177,
+        "height": 43,
+        "area": 7611,
+        "aspect_ratio": 4.116279069767442,
+        "center_x": 123.16666666666666,
+        "center_y": 46.83333333333333
+      },
+      "stroke_features": {
+        "average_stroke_length": 66.37592037453645,
+        "total_length": 531.0073629962916,
+        "length_variation": 48.844412152972474,
+        "average_stroke_duration": 473,
+        "duration_variation": 378.79809925605485
+      }
+    },
+    "metadata": {
+      "signature_id": 45,
+      "signature_number": "1",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test15",
+    "timestamp": 1753313062993,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 6,
+        "total_points": 139,
+        "total_duration_ms": 4798,
+        "average_points_per_stroke": 23.166666666666668
+      },
+      "velocity_features": {
+        "average_velocity": 0.19898985356111454,
+        "max_velocity": 0.94280904158207,
+        "min_velocity": 0.014614823382351672,
+        "velocity_std": 0.12020217044051254
+      },
+      "shape_features": {
+        "width": 159.33333333333334,
+        "height": 41,
+        "area": 6532.666666666667,
+        "aspect_ratio": 3.886178861788618,
+        "center_x": 109.33333333333333,
+        "center_y": 47.16666666666667
+      },
+      "stroke_features": {
+        "average_stroke_length": 75.63408120658738,
+        "total_length": 453.8044872395243,
+        "length_variation": 35.48501143416445,
+        "average_stroke_duration": 557.4,
+        "duration_variation": 231.60103626711174
+      }
+    },
+    "metadata": {
+      "signature_id": 44,
+      "signature_number": "17",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test15",
+    "timestamp": 1753266783199,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 8,
+        "total_points": 183,
+        "total_duration_ms": 8145,
+        "average_points_per_stroke": 22.875
+      },
+      "velocity_features": {
+        "average_velocity": 0.17909536418415242,
+        "max_velocity": 0.9428090415820776,
+        "min_velocity": 0.0076840823969064175,
+        "velocity_std": 0.11655009139820387
+      },
+      "shape_features": {
+        "width": 154.33333333333334,
+        "height": 49.666666666666664,
+        "area": 7665.222222222223,
+        "aspect_ratio": 3.1073825503355708,
+        "center_x": 111.16666666666667,
+        "center_y": 39.5
+      },
+      "stroke_features": {
+        "average_stroke_length": 66.18323644920942,
+        "total_length": 529.4658915936753,
+        "length_variation": 53.350267603630556,
+        "average_stroke_duration": 499.85714285714283,
+        "duration_variation": 377.3022390495937
+      }
+    },
+    "metadata": {
+      "signature_id": 43,
+      "signature_number": "16",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test15",
+    "timestamp": 1753266138338,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 8,
+        "total_points": 163,
+        "total_duration_ms": 6233,
+        "average_points_per_stroke": 20.375
+      },
+      "velocity_features": {
+        "average_velocity": 0.1776156059574679,
+        "max_velocity": 0.9428090415820575,
+        "min_velocity": 0.01490711984999864,
+        "velocity_std": 0.1317442267320612
+      },
+      "shape_features": {
+        "width": 145,
+        "height": 46.33333333333333,
+        "area": 6718.333333333333,
+        "aspect_ratio": 3.1294964028776984,
+        "center_x": 121.5,
+        "center_y": 34.5
+      },
+      "stroke_features": {
+        "average_stroke_length": 56.352456099793066,
+        "total_length": 450.81964879834453,
+        "length_variation": 36.51372679928033,
+        "average_stroke_duration": 459,
+        "duration_variation": 335.1741551577542
+      }
+    },
+    "metadata": {
+      "signature_id": 42,
+      "signature_number": "15",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test15",
+    "timestamp": 1753257993251,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 8,
+        "total_points": 319,
+        "total_duration_ms": 16899,
+        "average_points_per_stroke": 39.875
+      },
+      "velocity_features": {
+        "average_velocity": 0.38033435975162916,
+        "max_velocity": 1.6547752868592158,
+        "min_velocity": 0.016441676305145512,
+        "velocity_std": 0.2931949860706203
+      },
+      "shape_features": {
+        "width": 650,
+        "height": 197,
+        "area": 128050,
+        "aspect_ratio": 3.299492385786802,
+        "center_x": 407,
+        "center_y": 186.09375
+      },
+      "stroke_features": {
+        "average_stroke_length": 262.7986532090432,
+        "total_length": 2102.3892256723457,
+        "length_variation": 234.90168986732408,
+        "average_stroke_duration": 1074.7142857142858,
+        "duration_variation": 772.2524965109191
+      }
+    },
+    "metadata": {
+      "signature_id": 41,
+      "signature_number": "14",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test15",
+    "timestamp": 1753257750607,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 8,
+        "total_points": 414,
+        "total_duration_ms": 18084,
+        "average_points_per_stroke": 51.75
+      },
+      "velocity_features": {
+        "average_velocity": 0.3326736977309567,
+        "max_velocity": 1.375,
+        "min_velocity": 0.01818181818181818,
+        "velocity_std": 0.23082661681224956
+      },
+      "shape_features": {
+        "width": 732,
+        "height": 218,
+        "area": 159576,
+        "aspect_ratio": 3.3577981651376145,
+        "center_x": 467,
+        "center_y": 240.203125
+      },
+      "stroke_features": {
+        "average_stroke_length": 301.82606137174804,
+        "total_length": 2414.6084909739843,
+        "length_variation": 245.6483566731691,
+        "average_stroke_duration": 1431.7142857142858,
+        "duration_variation": 1068.3855262278037
+      }
+    },
+    "metadata": {
+      "signature_id": 40,
+      "signature_number": "13",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test15",
+    "timestamp": 1753256693639,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 8,
+        "total_points": 349,
+        "total_duration_ms": 16983,
+        "average_points_per_stroke": 43.625
+      },
+      "velocity_features": {
+        "average_velocity": 0.36601553196413794,
+        "max_velocity": 1.3243512562760682,
+        "min_velocity": 0.005813953488372093,
+        "velocity_std": 0.24875664866228228
+      },
+      "shape_features": {
+        "width": 656,
+        "height": 237,
+        "area": 155472,
+        "aspect_ratio": 2.7679324894514767,
+        "center_x": 416,
+        "center_y": 315.703125
+      },
+      "stroke_features": {
+        "average_stroke_length": 275.50717295085883,
+        "total_length": 2204.0573836068706,
+        "length_variation": 212.9164206511947,
+        "average_stroke_duration": 1308.2857142857142,
+        "duration_variation": 848.5742183696325
+      }
+    },
+    "metadata": {
+      "signature_id": 39,
+      "signature_number": "12",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test15",
+    "timestamp": 1753256659818,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 8,
+        "total_points": 375,
+        "total_duration_ms": 16650,
+        "average_points_per_stroke": 46.875
+      },
+      "velocity_features": {
+        "average_velocity": 0.3485634295959254,
+        "max_velocity": 1.9575574704207281,
+        "min_velocity": 0.015007167634226777,
+        "velocity_std": 0.2615868096640831
+      },
+      "shape_features": {
+        "width": 677,
+        "height": 231,
+        "area": 156387,
+        "aspect_ratio": 2.930735930735931,
+        "center_x": 482.5,
+        "center_y": 264.703125
+      },
+      "stroke_features": {
+        "average_stroke_length": 281.6390636924291,
+        "total_length": 2253.1125095394327,
+        "length_variation": 242.27014545033455,
+        "average_stroke_duration": 1198.857142857143,
+        "duration_variation": 828.11169511838
+      }
+    },
+    "metadata": {
+      "signature_id": 38,
+      "signature_number": "11",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test15",
+    "timestamp": 1753255939734,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 8,
+        "total_points": 379,
+        "total_duration_ms": 17051,
+        "average_points_per_stroke": 47.375
+      },
+      "velocity_features": {
+        "average_velocity": 0.44603394424440496,
+        "max_velocity": 2.02834584112549,
+        "min_velocity": 0.009395243602940292,
+        "velocity_std": 0.31092710693726555
+      },
+      "shape_features": {
+        "width": 806,
+        "height": 297,
+        "area": 239382,
+        "aspect_ratio": 2.7138047138047137,
+        "center_x": 528,
+        "center_y": 341.703125
+      },
+      "stroke_features": {
+        "average_stroke_length": 357.4207307960844,
+        "total_length": 2859.365846368675,
+        "length_variation": 273.72690906408735,
+        "average_stroke_duration": 1259.4285714285713,
+        "duration_variation": 738.7607107549115
+      }
+    },
+    "metadata": {
+      "signature_id": 37,
+      "signature_number": "10",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test15",
+    "timestamp": 1753249084809,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 8,
+        "total_points": 160,
+        "total_duration_ms": 19418,
+        "average_points_per_stroke": 20
+      },
+      "velocity_features": {
+        "average_velocity": 0.053,
+        "max_velocity": 0.106,
+        "min_velocity": 0.0053,
+        "velocity_std": 0
+      },
+      "shape_features": {
+        "width": 409,
+        "height": 77,
+        "area": 31493,
+        "aspect_ratio": 5.311688311688312,
+        "center_x": 228.5,
+        "center_y": 57.78125
+      },
+      "stroke_features": {
+        "average_stroke_length": 128.625,
+        "total_length": 1029,
+        "length_variation": 0,
+        "average_stroke_duration": 2427.25,
+        "duration_variation": 0
+      }
+    },
+    "metadata": {
+      "signature_id": 32,
+      "signature_number": "5",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test12",
+    "timestamp": 1753220826281,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 8,
+        "total_points": 172,
+        "total_duration_ms": 20290,
+        "average_points_per_stroke": 21.5
+      },
+      "velocity_features": {
+        "average_velocity": 0.053,
+        "max_velocity": 0.106,
+        "min_velocity": 0.0053,
+        "velocity_std": 0
+      },
+      "shape_features": {
+        "width": 388,
+        "height": 76,
+        "area": 29488,
+        "aspect_ratio": 5.105263157894737,
+        "center_x": 238,
+        "center_y": 49.28125
+      },
+      "stroke_features": {
+        "average_stroke_length": 134.25,
+        "total_length": 1074,
+        "length_variation": 0,
+        "average_stroke_duration": 2536.25,
+        "duration_variation": 0
+      }
+    },
+    "metadata": {
+      "signature_id": 17,
+      "signature_number": "4",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test12",
+    "timestamp": 1753164637665,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 8,
+        "total_points": 154,
+        "total_duration_ms": 19822,
+        "average_points_per_stroke": 19.25
+      },
+      "velocity_features": {
+        "average_velocity": 0.047,
+        "max_velocity": 0.094,
+        "min_velocity": 0.0047,
+        "velocity_std": 0
+      },
+      "shape_features": {
+        "width": 356,
+        "height": 67,
+        "area": 23852,
+        "aspect_ratio": 5.313432835820896,
+        "center_x": 199,
+        "center_y": 52.78125
+      },
+      "stroke_features": {
+        "average_stroke_length": 116.125,
+        "total_length": 929,
+        "length_variation": 0,
+        "average_stroke_duration": 2477.75,
+        "duration_variation": 0
+      }
+    },
+    "metadata": {
+      "signature_id": 15,
+      "signature_number": "2",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test12",
+    "timestamp": 1753164637665,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 8,
+        "total_points": 153,
+        "total_duration_ms": 19940,
+        "average_points_per_stroke": 19.125
+      },
+      "velocity_features": {
+        "average_velocity": 0.052,
+        "max_velocity": 0.104,
+        "min_velocity": 0.0052,
+        "velocity_std": 0
+      },
+      "shape_features": {
+        "width": 412,
+        "height": 76,
+        "area": 31312,
+        "aspect_ratio": 5.421052631578948,
+        "center_x": 224,
+        "center_y": 52.78125
+      },
+      "stroke_features": {
+        "average_stroke_length": 130.5,
+        "total_length": 1044,
+        "length_variation": 0,
+        "average_stroke_duration": 2492.5,
+        "duration_variation": 0
+      }
+    },
+    "metadata": {
+      "signature_id": 14,
+      "signature_number": "3",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test12",
+    "timestamp": 1753164637665,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 8,
+        "total_points": 161,
+        "total_duration_ms": 17618,
+        "average_points_per_stroke": 20.125
+      },
+      "velocity_features": {
+        "average_velocity": 0.06,
+        "max_velocity": 0.12,
+        "min_velocity": 0.006,
+        "velocity_std": 0
+      },
+      "shape_features": {
+        "width": 379,
+        "height": 81,
+        "area": 30699,
+        "aspect_ratio": 4.679012345679013,
+        "center_x": 225.5,
+        "center_y": 52.78125
+      },
+      "stroke_features": {
+        "average_stroke_length": 131.125,
+        "total_length": 1049,
+        "length_variation": 0,
+        "average_stroke_duration": 2202.25,
+        "duration_variation": 0
+      }
+    },
+    "metadata": {
+      "signature_id": 16,
+      "signature_number": "1",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test11",
+    "timestamp": 1753160771276,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 8,
+        "total_points": 164,
+        "total_duration_ms": 15605,
+        "average_points_per_stroke": 20.5
+      },
+      "velocity_features": {
+        "average_velocity": 0.071,
+        "max_velocity": 0.142,
+        "min_velocity": 0.0070999999999999995,
+        "velocity_std": 0
+      },
+      "shape_features": {
+        "width": 378,
+        "height": 91,
+        "area": 34398,
+        "aspect_ratio": 4.153846153846154,
+        "center_x": 208,
+        "center_y": 51.78125
+      },
+      "stroke_features": {
+        "average_stroke_length": 138,
+        "total_length": 1104,
+        "length_variation": 0,
+        "average_stroke_duration": 1950.625,
+        "duration_variation": 0
+      }
+    },
+    "metadata": {
+      "signature_id": 13,
+      "signature_number": "2",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test11",
+    "timestamp": 1753160771276,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 10,
+        "total_points": 169,
+        "total_duration_ms": 17896,
+        "average_points_per_stroke": 16.9
+      },
+      "velocity_features": {
+        "average_velocity": 0.06,
+        "max_velocity": 0.12,
+        "min_velocity": 0.006,
+        "velocity_std": 0
+      },
+      "shape_features": {
+        "width": 366,
+        "height": 76,
+        "area": 27816,
+        "aspect_ratio": 4.815789473684211,
+        "center_x": 198,
+        "center_y": 51.28125
+      },
+      "stroke_features": {
+        "average_stroke_length": 108.2,
+        "total_length": 1082,
+        "length_variation": 0,
+        "average_stroke_duration": 1789.6,
+        "duration_variation": 0
+      }
+    },
+    "metadata": {
+      "signature_id": 12,
+      "signature_number": "3",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test11",
+    "timestamp": 1753160771276,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 8,
+        "total_points": 153,
+        "total_duration_ms": 15173,
+        "average_points_per_stroke": 19.125
+      },
+      "velocity_features": {
+        "average_velocity": 0.07,
+        "max_velocity": 0.14,
+        "min_velocity": 0.007000000000000001,
+        "velocity_std": 0
+      },
+      "shape_features": {
+        "width": 395,
+        "height": 86,
+        "area": 33970,
+        "aspect_ratio": 4.593023255813954,
+        "center_x": 208.5,
+        "center_y": 50.78125
+      },
+      "stroke_features": {
+        "average_stroke_length": 133.625,
+        "total_length": 1069,
+        "length_variation": 0,
+        "average_stroke_duration": 1896.625,
+        "duration_variation": 0
+      }
+    },
+    "metadata": {
+      "signature_id": 11,
+      "signature_number": "1",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test10",
+    "timestamp": 1753158497544,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 8,
+        "total_points": 141,
+        "total_duration_ms": 15622,
+        "average_points_per_stroke": 17.625
+      },
+      "velocity_features": {
+        "average_velocity": 0.059,
+        "max_velocity": 0.118,
+        "min_velocity": 0.0059,
+        "velocity_std": 0
+      },
+      "shape_features": {
+        "width": 366,
+        "height": 72,
+        "area": 26352,
+        "aspect_ratio": 5.083333333333333,
+        "center_x": 222,
+        "center_y": 57.28125
+      },
+      "stroke_features": {
+        "average_stroke_length": 115.625,
+        "total_length": 925,
+        "length_variation": 0,
+        "average_stroke_duration": 1952.75,
+        "duration_variation": 0
+      }
+    },
+    "metadata": {
+      "signature_id": 10,
+      "signature_number": "2",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test10",
+    "timestamp": 1753158497544,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 8,
+        "total_points": 164,
+        "total_duration_ms": 16625,
+        "average_points_per_stroke": 20.5
+      },
+      "velocity_features": {
+        "average_velocity": 0.063,
+        "max_velocity": 0.126,
+        "min_velocity": 0.0063,
+        "velocity_std": 0
+      },
+      "shape_features": {
+        "width": 377,
+        "height": 74,
+        "area": 27898,
+        "aspect_ratio": 5.094594594594595,
+        "center_x": 211.5,
+        "center_y": 57.78125
+      },
+      "stroke_features": {
+        "average_stroke_length": 131.625,
+        "total_length": 1053,
+        "length_variation": 0,
+        "average_stroke_duration": 2078.125,
+        "duration_variation": 0
+      }
+    },
+    "metadata": {
+      "signature_id": 8,
+      "signature_number": "3",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test10",
+    "timestamp": 1753158497544,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 8,
+        "total_points": 158,
+        "total_duration_ms": 20772,
+        "average_points_per_stroke": 19.75
+      },
+      "velocity_features": {
+        "average_velocity": 0.052,
+        "max_velocity": 0.104,
+        "min_velocity": 0.0052,
+        "velocity_std": 0
+      },
+      "shape_features": {
+        "width": 407,
+        "height": 82,
+        "area": 33374,
+        "aspect_ratio": 4.963414634146342,
+        "center_x": 226.5,
+        "center_y": 52.28125
+      },
+      "stroke_features": {
+        "average_stroke_length": 134.375,
+        "total_length": 1075,
+        "length_variation": 0,
+        "average_stroke_duration": 2596.5,
+        "duration_variation": 0
+      }
+    },
+    "metadata": {
+      "signature_id": 9,
+      "signature_number": "1",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test9",
+    "timestamp": 1753157947887,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 8,
+        "total_points": 173,
+        "total_duration_ms": 18370,
+        "average_points_per_stroke": 21.625
+      },
+      "velocity_features": {
+        "average_velocity": 0.062,
+        "max_velocity": 0.124,
+        "min_velocity": 0.006200000000000001,
+        "velocity_std": 0
+      },
+      "shape_features": {
+        "width": 416,
+        "height": 73,
+        "area": 30368,
+        "aspect_ratio": 5.698630136986301,
+        "center_x": 246,
+        "center_y": 51.78125
+      },
+      "stroke_features": {
+        "average_stroke_length": 141.875,
+        "total_length": 1135,
+        "length_variation": 0,
+        "average_stroke_duration": 2296.25,
+        "duration_variation": 0
+      }
+    },
+    "metadata": {
+      "signature_id": 7,
+      "signature_number": "2",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test9",
+    "timestamp": 1753157947887,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 10,
+        "total_points": 168,
+        "total_duration_ms": 26323,
+        "average_points_per_stroke": 16.8
+      },
+      "velocity_features": {
+        "average_velocity": 0.039,
+        "max_velocity": 0.078,
+        "min_velocity": 0.0039000000000000003,
+        "velocity_std": 0
+      },
+      "shape_features": {
+        "width": 440,
+        "height": 76,
+        "area": 33440,
+        "aspect_ratio": 5.7894736842105265,
+        "center_x": 238,
+        "center_y": 51.78125
+      },
+      "stroke_features": {
+        "average_stroke_length": 101.9,
+        "total_length": 1019,
+        "length_variation": 0,
+        "average_stroke_duration": 2632.3,
+        "duration_variation": 0
+      }
+    },
+    "metadata": {
+      "signature_id": 5,
+      "signature_number": "3",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test9",
+    "timestamp": 1753157947887,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 8,
+        "total_points": 183,
+        "total_duration_ms": 17522,
+        "average_points_per_stroke": 22.875
+      },
+      "velocity_features": {
+        "average_velocity": 0.068,
+        "max_velocity": 0.136,
+        "min_velocity": 0.0068000000000000005,
+        "velocity_std": 0
+      },
+      "shape_features": {
+        "width": 408,
+        "height": 106,
+        "area": 43248,
+        "aspect_ratio": 3.849056603773585,
+        "center_x": 233,
+        "center_y": 69.28125
+      },
+      "stroke_features": {
+        "average_stroke_length": 149.125,
+        "total_length": 1193,
+        "length_variation": 0,
+        "average_stroke_duration": 2190.25,
+        "duration_variation": 0
+      }
+    },
+    "metadata": {
+      "signature_id": 6,
+      "signature_number": "1",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test8",
+    "timestamp": 1753156398692,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 1,
+        "total_points": 33,
+        "total_duration_ms": 1789,
+        "average_points_per_stroke": 33
+      },
+      "velocity_features": {
+        "average_velocity": 0.197,
+        "max_velocity": 0.394,
+        "min_velocity": 0.019700000000000002,
+        "velocity_std": 0
+      },
+      "shape_features": {
+        "width": 350,
+        "height": 15,
+        "area": 5250,
+        "aspect_ratio": 23.333333333333332,
+        "center_x": 229,
+        "center_y": 59.78125
+      },
+      "stroke_features": {
+        "average_stroke_length": 353,
+        "total_length": 353,
+        "length_variation": 0,
+        "average_stroke_duration": 1789,
+        "duration_variation": 0
+      }
+    },
+    "metadata": {
+      "signature_id": 3,
+      "signature_number": "2",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test8",
+    "timestamp": 1753156398692,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 1,
+        "total_points": 29,
+        "total_duration_ms": 1692,
+        "average_points_per_stroke": 29
+      },
+      "velocity_features": {
+        "average_velocity": 0.192,
+        "max_velocity": 0.384,
+        "min_velocity": 0.019200000000000002,
+        "velocity_std": 0
+      },
+      "shape_features": {
+        "width": 321,
+        "height": 21,
+        "area": 6741,
+        "aspect_ratio": 15.285714285714286,
+        "center_x": 205.5,
+        "center_y": 49.28125
+      },
+      "stroke_features": {
+        "average_stroke_length": 324,
+        "total_length": 324,
+        "length_variation": 0,
+        "average_stroke_duration": 1692,
+        "duration_variation": 0
+      }
+    },
+    "metadata": {
+      "signature_id": 2,
+      "signature_number": "3",
+      "confidence": null,
+      "auth_success": null
+    }
+  },
+  {
+    "user_id": "test8",
+    "timestamp": 1753156398692,
+    "type": "genuine",
+    "features": {
+      "basic_stats": {
+        "stroke_count": 1,
+        "total_points": 31,
+        "total_duration_ms": 1688,
+        "average_points_per_stroke": 31
+      },
+      "velocity_features": {
+        "average_velocity": 0.222,
+        "max_velocity": 0.444,
+        "min_velocity": 0.0222,
+        "velocity_std": 0
+      },
+      "shape_features": {
+        "width": 365,
+        "height": 27,
+        "area": 9855,
+        "aspect_ratio": 13.518518518518519,
+        "center_x": 229.5,
+        "center_y": 39.28125
+      },
+      "stroke_features": {
+        "average_stroke_length": 376,
+        "total_length": 376,
+        "length_variation": 0,
+        "average_stroke_duration": 1688,
+        "duration_variation": 0
+      }
+    },
+    "metadata": {
+      "signature_id": 4,
+      "signature_number": "1",
+      "confidence": null,
+      "auth_success": null
+    }
+  }
+]
