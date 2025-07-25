@@ -870,9 +870,14 @@
             const sigCanvases = document.querySelectorAll('#enrollmentSignatures .signature-canvas');
             detailedAnalysis.enrollment.signatures.forEach((sig, index) => {
                 if (sigCanvases[index] && sig.signature_data) {
-                    const sigData = typeof sig.signature_data === 'string' ? 
-                        JSON.parse(sig.signature_data) : sig.signature_data;
-                    drawSignature(sigCanvases[index], sigData);
+                    try {
+                        const sigData = typeof sig.signature_data === 'string' ? 
+                            JSON.parse(sig.signature_data) : sig.signature_data;
+                        console.log(`Drawing signature ${index}:`, sigData);
+                        drawSignature(sigCanvases[index], sigData);
+                    } catch (error) {
+                        console.error(`Error drawing signature ${index}:`, error);
+                    }
                 }
             });
             
@@ -1270,24 +1275,59 @@
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            if (!signatureData || !signatureData.data) return;
+            if (!signatureData) return;
             
-            const strokes = signatureData.data;
+            // Handle different signature data formats
+            let strokes;
+            if (signatureData.data && Array.isArray(signatureData.data)) {
+                strokes = signatureData.data;
+            } else if (signatureData.strokes && Array.isArray(signatureData.strokes)) {
+                strokes = signatureData.strokes;
+            } else if (Array.isArray(signatureData)) {
+                strokes = signatureData;
+            } else {
+                console.warn('Unknown signature data format:', signatureData);
+                return;
+            }
+            
+            // Validate strokes
+            if (!strokes || strokes.length === 0) {
+                console.warn('No strokes found in signature data');
+                return;
+            }
+            
             const padding = 10;
             
             // Find bounds
             let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
             strokes.forEach(stroke => {
-                stroke.forEach(point => {
-                    minX = Math.min(minX, point.x);
-                    maxX = Math.max(maxX, point.x);
-                    minY = Math.min(minY, point.y);
-                    maxY = Math.max(maxY, point.y);
-                });
+                if (Array.isArray(stroke)) {
+                    stroke.forEach(point => {
+                        if (point && typeof point.x === 'number' && typeof point.y === 'number') {
+                            minX = Math.min(minX, point.x);
+                            maxX = Math.max(maxX, point.x);
+                            minY = Math.min(minY, point.y);
+                            maxY = Math.max(maxY, point.y);
+                        }
+                    });
+                }
             });
+            
+            // Check if we found valid bounds
+            if (minX === Infinity || maxX === -Infinity || minY === Infinity || maxY === -Infinity) {
+                console.warn('Invalid bounds for signature');
+                return;
+            }
             
             const width = maxX - minX;
             const height = maxY - minY;
+            
+            // Prevent division by zero
+            if (width === 0 || height === 0) {
+                console.warn('Signature has zero width or height');
+                return;
+            }
+            
             const scale = Math.min(
                 (canvas.width - 2 * padding) / width,
                 (canvas.height - 2 * padding) / height
@@ -1300,18 +1340,22 @@
             ctx.lineJoin = 'round';
             
             strokes.forEach(stroke => {
-                ctx.beginPath();
-                stroke.forEach((point, index) => {
-                    const x = (point.x - minX) * scale + padding;
-                    const y = (point.y - minY) * scale + padding;
-                    
-                    if (index === 0) {
-                        ctx.moveTo(x, y);
-                    } else {
-                        ctx.lineTo(x, y);
-                    }
-                });
-                ctx.stroke();
+                if (Array.isArray(stroke) && stroke.length > 0) {
+                    ctx.beginPath();
+                    stroke.forEach((point, index) => {
+                        if (point && typeof point.x === 'number' && typeof point.y === 'number') {
+                            const x = (point.x - minX) * scale + padding;
+                            const y = (point.y - minY) * scale + padding;
+                            
+                            if (index === 0) {
+                                ctx.moveTo(x, y);
+                            } else {
+                                ctx.lineTo(x, y);
+                            }
+                        }
+                    });
+                    ctx.stroke();
+                }
             });
         }
         
