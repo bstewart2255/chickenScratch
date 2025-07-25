@@ -674,6 +674,7 @@
             if (!username && userSelector.options.length > 1) {
                 // No username in URL, use first user from list
                 username = userSelector.options[1].value;
+                userSelector.value = username;
                 window.history.pushState({}, '', `?username=${username}`);
             }
             
@@ -701,16 +702,28 @@
         async function loadUserList() {
             try {
                 const response = await fetch('/users');
-                const data = await response.json();
+                const users = await response.json();
                 
                 const userSelector = document.getElementById('userSelector');
                 userSelector.innerHTML = '<option value="">Select a user...</option>';
                 
-                if (data.users && data.users.length > 0) {
-                    data.users.forEach(user => {
+                if (users && users.length > 0) {
+                    // Also get attempt counts
+                    const attemptsResponse = await fetch('/recent-activity');
+                    const activityData = await attemptsResponse.json();
+                    const attemptCounts = {};
+                    
+                    if (activityData.activities) {
+                        activityData.activities.forEach(activity => {
+                            attemptCounts[activity.username] = (attemptCounts[activity.username] || 0) + 1;
+                        });
+                    }
+                    
+                    users.forEach(user => {
                         const option = document.createElement('option');
                         option.value = user.username;
-                        option.textContent = `${user.username} (${user.authAttempts || 0} attempts)`;
+                        const attempts = attemptCounts[user.username] || 0;
+                        option.textContent = `${user.username} (${attempts} attempts)`;
                         userSelector.appendChild(option);
                     });
                 }
