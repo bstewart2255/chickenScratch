@@ -1208,10 +1208,30 @@
                     console.log('Completing sign-up for:', currentUsername);
                     console.log('Collected data items:', collectedData.length);
                     
+                    // Extract drawing type from instruction
+                    const getDrawingKey = (instruction) => {
+                        const mappings = {
+                            'circle': 'circle',
+                            'square': 'square',
+                            'triangle': 'triangle',
+                            'face': 'face',
+                            'star': 'star',
+                            'house': 'house',
+                            'dots': 'dots'
+                        };
+                        
+                        for (const [key, value] of Object.entries(mappings)) {
+                            if (instruction.toLowerCase().includes(key)) {
+                                return value;
+                            }
+                        }
+                        return 'unknown';
+                    };
+                    
                     // Organize data by type as per spec
                     const signatures = [];
-                    const shapes = [];
-                    const drawings = [];
+                    const shapesObject = {};
+                    const drawingsObject = {};
                     
                     collectedData.forEach(item => {
                         const dataItem = {
@@ -1224,9 +1244,11 @@
                         if (item.type === 'signature') {
                             signatures.push(dataItem);
                         } else if (item.type === 'shape') {
-                            shapes.push(dataItem);
+                            const key = getDrawingKey(item.instruction);
+                            shapesObject[key] = dataItem;
                         } else if (item.type === 'drawing') {
-                            drawings.push(dataItem);
+                            const key = getDrawingKey(item.instruction);
+                            drawingsObject[key] = dataItem;
                         }
                     });
                     
@@ -1236,8 +1258,8 @@
                         body: JSON.stringify({
                             username: currentUsername,
                             signatures: signatures,
-                            shapes: shapes,
-                            drawings: drawings,
+                            shapes: shapesObject,
+                            drawings: drawingsObject,
                             device_info: navigator.userAgent,
                             timestamp: new Date().toISOString()
                         })
@@ -1264,6 +1286,50 @@
                     const shapes = collectedData.filter(item => item.type === 'shape');
                     const drawings = collectedData.filter(item => item.type === 'drawing');
                     
+                    // Extract drawing type from instruction
+                    const getDrawingKey = (instruction) => {
+                        const mappings = {
+                            'circle': 'circle',
+                            'square': 'square',
+                            'triangle': 'triangle',
+                            'face': 'face',
+                            'star': 'star',
+                            'house': 'house',
+                            'dots': 'dots'
+                        };
+                        
+                        for (const [key, value] of Object.entries(mappings)) {
+                            if (instruction.toLowerCase().includes(key)) {
+                                return value;
+                            }
+                        }
+                        return 'unknown';
+                    };
+                    
+                    // Convert shapes array to keyed object
+                    const shapesObject = {};
+                    shapes.forEach(item => {
+                        const key = getDrawingKey(item.instruction);
+                        shapesObject[key] = {
+                            data: item.signature,
+                            raw: item.raw,
+                            metrics: item.metrics,
+                            timestamp: item.timestamp
+                        };
+                    });
+                    
+                    // Convert drawings array to keyed object
+                    const drawingsObject = {};
+                    drawings.forEach(item => {
+                        const key = getDrawingKey(item.instruction);
+                        drawingsObject[key] = {
+                            data: item.signature,
+                            raw: item.raw,
+                            metrics: item.metrics,
+                            timestamp: item.timestamp
+                        };
+                    });
+                    
                     const response = await fetch(`${API_URL}/login`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -1275,18 +1341,8 @@
                                 metrics: signature.metrics,
                                 timestamp: signature.timestamp
                             },
-                            shapes: shapes.map(item => ({
-                                data: item.signature,
-                                raw: item.raw,
-                                metrics: item.metrics,
-                                timestamp: item.timestamp
-                            })),
-                            drawings: drawings.map(item => ({
-                                data: item.signature,
-                                raw: item.raw,
-                                metrics: item.metrics,
-                                timestamp: item.timestamp
-                            })),
+                            shapes: shapesObject,
+                            drawings: drawingsObject,
                             device_info: navigator.userAgent,
                             timestamp: new Date().toISOString()
                         })
