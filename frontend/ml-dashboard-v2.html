@@ -867,19 +867,45 @@
             if (!detailedAnalysis) return;
             
             // Update signatures
+            console.log('Enrollment signatures:', detailedAnalysis.enrollment.signatures);
             const sigCanvases = document.querySelectorAll('#enrollmentSignatures .signature-canvas');
-            detailedAnalysis.enrollment.signatures.forEach((sig, index) => {
-                if (sigCanvases[index] && sig.signature_data) {
-                    try {
-                        const sigData = typeof sig.signature_data === 'string' ? 
-                            JSON.parse(sig.signature_data) : sig.signature_data;
-                        console.log(`Drawing signature ${index}:`, sigData);
-                        drawSignature(sigCanvases[index], sigData);
-                    } catch (error) {
-                        console.error(`Error drawing signature ${index}:`, error);
+            
+            if (detailedAnalysis.enrollment.signatures.length === 0) {
+                document.getElementById('enrollmentSignatures').innerHTML = 
+                    '<p style="font-size: 12px; color: #666;">No enrollment signatures found</p>';
+            } else {
+                detailedAnalysis.enrollment.signatures.forEach((sig, index) => {
+                    if (sigCanvases[index] && sig.signature_data) {
+                        try {
+                            const sigData = typeof sig.signature_data === 'string' ? 
+                                JSON.parse(sig.signature_data) : sig.signature_data;
+                            console.log(`Drawing enrollment signature ${index}:`, sigData);
+                            
+                            // Check if we have the actual stroke data
+                            if (sigData && (sigData.data || sigData.strokes || Array.isArray(sigData))) {
+                                drawSignature(sigCanvases[index], sigData);
+                                
+                                // Add metrics below the canvas if available
+                                if (sig.metrics) {
+                                    const metricsHtml = `
+                                        <div style="font-size: 11px; color: #666; text-align: center; margin-top: 5px;">
+                                            Strokes: ${sig.metrics.stroke_count || 'N/A'} | 
+                                            Duration: ${sig.metrics.total_duration_ms || 'N/A'}ms
+                                        </div>
+                                    `;
+                                    sigCanvases[index].insertAdjacentHTML('afterend', metricsHtml);
+                                }
+                            } else {
+                                console.warn(`Signature ${index} has no stroke data:`, sigData);
+                                sigCanvases[index].getContext('2d').fillText('No data', 10, 30);
+                            }
+                        } catch (error) {
+                            console.error(`Error drawing signature ${index}:`, error);
+                            sigCanvases[index].getContext('2d').fillText('Error', 10, 30);
+                        }
                     }
-                }
-            });
+                });
+            }
             
             // Calculate and show signature quality
             const qualityDiv = document.getElementById('signatureQuality');
@@ -893,28 +919,56 @@
             // Update shapes
             const shapesDiv = document.getElementById('enrollmentShapes');
             const shapeTypes = ['circle', 'square', 'triangle'];
-            shapesDiv.innerHTML = shapeTypes.map(type => {
-                const shape = detailedAnalysis.enrollment.shapes.find(s => s.shape_type === type);
-                return shape ? `
-                    <div style="display: inline-block; margin-right: 10px;">
-                        <canvas class="signature-canvas" width="60" height="60" id="shape_${type}"></canvas>
-                        <p style="font-size: 11px; text-align: center; margin-top: 5px;">${type}</p>
-                    </div>
-                ` : '';
-            }).join('');
+            console.log('Enrollment shapes:', detailedAnalysis.enrollment.shapes);
             
-            // Draw shapes
-            shapeTypes.forEach(type => {
-                const shape = detailedAnalysis.enrollment.shapes.find(s => s.shape_type === type);
-                if (shape) {
-                    const canvas = document.getElementById(`shape_${type}`);
-                    if (canvas) {
-                        const shapeData = typeof shape.shape_data === 'string' ? 
-                            JSON.parse(shape.shape_data) : shape.shape_data;
-                        drawSignature(canvas, shapeData);
+            if (detailedAnalysis.enrollment.shapes.length === 0) {
+                shapesDiv.innerHTML = '<p style="font-size: 12px; color: #666;">No shapes enrolled</p>';
+            } else {
+                shapesDiv.innerHTML = shapeTypes.map(type => {
+                    const shape = detailedAnalysis.enrollment.shapes.find(s => s.shape_type === type);
+                    return shape ? `
+                        <div style="display: inline-block; margin-right: 15px; vertical-align: top;">
+                            <canvas class="signature-canvas" width="60" height="60" id="shape_${type}"></canvas>
+                            <p style="font-size: 11px; text-align: center; margin: 5px 0 0 0; font-weight: 600;">${type}</p>
+                            <div id="shape_${type}_metrics" style="font-size: 10px; color: #666; text-align: center;"></div>
+                        </div>
+                    ` : '';
+                }).join('');
+                
+                // Draw shapes with error handling
+                shapeTypes.forEach(type => {
+                    const shape = detailedAnalysis.enrollment.shapes.find(s => s.shape_type === type);
+                    if (shape) {
+                        const canvas = document.getElementById(`shape_${type}`);
+                        const metricsDiv = document.getElementById(`shape_${type}_metrics`);
+                        
+                        if (canvas) {
+                            try {
+                                const shapeData = typeof shape.shape_data === 'string' ? 
+                                    JSON.parse(shape.shape_data) : shape.shape_data;
+                                console.log(`Drawing shape ${type}:`, shapeData);
+                                drawSignature(canvas, shapeData);
+                                
+                                // Add shape-specific metrics if available
+                                if (shape.metrics && metricsDiv) {
+                                    let metricsHtml = '';
+                                    if (type === 'circle' && shape.metrics.roundness) {
+                                        metricsHtml = `Roundness: ${shape.metrics.roundness}%`;
+                                    } else if (type === 'square' && shape.metrics.corner_accuracy) {
+                                        metricsHtml = `Corners: ${shape.metrics.corner_accuracy}%`;
+                                    } else if (type === 'triangle' && shape.metrics.closure) {
+                                        metricsHtml = `Closure: ${shape.metrics.closure}%`;
+                                    }
+                                    metricsDiv.innerHTML = metricsHtml;
+                                }
+                            } catch (error) {
+                                console.error(`Error drawing shape ${type}:`, error);
+                                canvas.getContext('2d').fillText('Error', 10, 30);
+                            }
+                        }
                     }
-                }
-            });
+                });
+            }
             
             // Update drawings
             const drawingsDiv = document.getElementById('enrollmentDrawings');
@@ -1020,20 +1074,36 @@
                                 <span class="score-label">Signature</span>
                                 <span class="score-value">${attempt.confidence}%</span>
                             </div>
+                            ${attempt.shape_scores ? `
+                                <div class="score-item ${getScoreClass(attempt.shape_scores.circle || 0)}">
+                                    <span class="score-label">Circle</span>
+                                    <span class="score-value">${attempt.shape_scores.circle !== undefined ? attempt.shape_scores.circle + '%' : 'N/A'}</span>
+                                </div>
+                                <div class="score-item ${getScoreClass(attempt.shape_scores.square || 0)}">
+                                    <span class="score-label">Square</span>
+                                    <span class="score-value">${attempt.shape_scores.square !== undefined ? attempt.shape_scores.square + '%' : 'N/A'}</span>
+                                </div>
+                                <div class="score-item ${getScoreClass(attempt.shape_scores.triangle || 0)}">
+                                    <span class="score-label">Triangle</span>
+                                    <span class="score-value">${attempt.shape_scores.triangle !== undefined ? attempt.shape_scores.triangle + '%' : 'N/A'}</span>
+                                </div>
+                            ` : ''}
                             ${attempt.drawing_scores ? `
                                 <div class="score-item ${getScoreClass(attempt.drawing_scores.face || 0)}">
                                     <span class="score-label">Face</span>
-                                    <span class="score-value">${attempt.drawing_scores.face || 'N/A'}</span>
+                                    <span class="score-value">${attempt.drawing_scores.face !== undefined ? attempt.drawing_scores.face + '%' : 'N/A'}</span>
                                 </div>
                                 <div class="score-item ${getScoreClass(attempt.drawing_scores.star || 0)}">
                                     <span class="score-label">Star</span>
-                                    <span class="score-value">${attempt.drawing_scores.star || 'N/A'}</span>
+                                    <span class="score-value">${attempt.drawing_scores.star !== undefined ? attempt.drawing_scores.star + '%' : 'N/A'}</span>
                                 </div>
                                 <div class="score-item ${getScoreClass(attempt.drawing_scores.house || 0)}">
                                     <span class="score-label">House</span>
-                                    <span class="score-value">${attempt.drawing_scores.house || 'N/A'}</span>
+                                    <span class="score-value">${attempt.drawing_scores.house !== undefined ? attempt.drawing_scores.house + '%' : 'N/A'}</span>
                                 </div>
-                            ` : '<div class="score-item" style="grid-column: 2 / -1;"><span class="score-label">No drawing scores</span></div>'}
+                            ` : ''}
+                            ${!attempt.shape_scores && !attempt.drawing_scores ? 
+                                '<div class="score-item" style="grid-column: 2 / -1;"><span class="score-label">No component scores available</span></div>' : ''}
                         </div>
                     </div>
                 `;
@@ -1078,24 +1148,58 @@
         // Update signature analysis
         function updateSignatureAnalysis(breakdown) {
             // Find best enrollment signature
-            const bestSig = detailedAnalysis.enrollment.signatures.reduce((best, sig) => {
-                const quality = calculateIndividualSignatureQuality(sig);
-                const bestQuality = calculateIndividualSignatureQuality(best);
-                return quality > bestQuality ? sig : best;
-            });
+            let bestSig = null;
+            if (detailedAnalysis.enrollment.signatures && detailedAnalysis.enrollment.signatures.length > 0) {
+                bestSig = detailedAnalysis.enrollment.signatures.reduce((best, sig) => {
+                    const quality = calculateIndividualSignatureQuality(sig);
+                    const bestQuality = calculateIndividualSignatureQuality(best);
+                    return quality > bestQuality ? sig : best;
+                });
+            }
             
             // Draw baseline signature
             const baselineCanvas = document.getElementById('baselineSignatureCanvas');
-            const bestSigData = typeof bestSig.signature_data === 'string' ? 
-                JSON.parse(bestSig.signature_data) : bestSig.signature_data;
-            drawSignature(baselineCanvas, bestSigData);
+            if (bestSig && bestSig.signature_data) {
+                try {
+                    const bestSigData = typeof bestSig.signature_data === 'string' ? 
+                        JSON.parse(bestSig.signature_data) : bestSig.signature_data;
+                    console.log('Drawing baseline signature:', bestSigData);
+                    drawSignature(baselineCanvas, bestSigData);
+                    
+                    // Add quality score below baseline
+                    const quality = calculateIndividualSignatureQuality(bestSig);
+                    const baselineLabel = baselineCanvas.parentElement.querySelector('h4');
+                    if (baselineLabel) {
+                        baselineLabel.innerHTML = `Baseline (Best - ${quality}% quality)`;
+                    }
+                } catch (error) {
+                    console.error('Error drawing baseline signature:', error);
+                    baselineCanvas.getContext('2d').fillText('Error loading baseline', 10, 75);
+                }
+            } else {
+                baselineCanvas.getContext('2d').fillText('No baseline signature', 10, 75);
+            }
             
             // Draw attempt signature
             const attemptCanvas = document.getElementById('attemptSignatureCanvas');
             if (breakdown.signature?.data) {
-                const attemptSigData = typeof breakdown.signature.data === 'string' ? 
-                    JSON.parse(breakdown.signature.data) : breakdown.signature.data;
-                drawSignature(attemptCanvas, attemptSigData);
+                try {
+                    const attemptSigData = typeof breakdown.signature.data === 'string' ? 
+                        JSON.parse(breakdown.signature.data) : breakdown.signature.data;
+                    console.log('Drawing attempt signature:', attemptSigData);
+                    drawSignature(attemptCanvas, attemptSigData);
+                    
+                    // Add score below attempt
+                    const attemptLabel = attemptCanvas.parentElement.querySelector('h4');
+                    if (attemptLabel && selectedAttempt) {
+                        attemptLabel.innerHTML = `Authentication Attempt (${selectedAttempt.confidence}% score)`;
+                    }
+                } catch (error) {
+                    console.error('Error drawing attempt signature:', error);
+                    attemptCanvas.getContext('2d').fillText('Error loading attempt', 10, 75);
+                }
+            } else {
+                attemptCanvas.getContext('2d').fillText('No signature data', 10, 75);
             }
             
             // Update feature breakdown

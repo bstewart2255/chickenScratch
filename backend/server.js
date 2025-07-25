@@ -771,8 +771,14 @@ app.post('/login', async (req, res) => {
             console.error('Failed to save auth signature:', err);
         }
         
-        // Record authentication attempt with signature reference and drawing scores
+        // Record authentication attempt with signature reference, shape scores, and drawing scores
         try {
+            const shapeScores = shapes ? {
+                circle: scores.circle || null,
+                square: scores.square || null,
+                triangle: scores.triangle || null
+            } : null;
+            
             const drawingScores = drawings ? {
                 face: scores.face || null,
                 star: scores.star || null,
@@ -780,9 +786,16 @@ app.post('/login', async (req, res) => {
                 connect_dots: scores.connect_dots || null
             } : null;
             
+            // For now, store shape scores in the drawing_scores column as a combined object
+            const componentScores = {
+                ...(shapeScores || {}),
+                ...(drawingScores || {})
+            };
+            
             await pool.query(
                 'INSERT INTO auth_attempts (user_id, success, confidence, device_info, signature_id, drawing_scores) VALUES ($1, $2, $3, $4, $5, $6)',
-                [userId, isSuccess, averageScore, req.headers['user-agent'] || 'Unknown', authSignatureId, drawingScores ? JSON.stringify(drawingScores) : null]
+                [userId, isSuccess, averageScore, req.headers['user-agent'] || 'Unknown', authSignatureId, 
+                 Object.keys(componentScores).length > 0 ? JSON.stringify(componentScores) : null]
             );
         } catch (err) {
             console.error('Failed to record auth attempt:', err);
@@ -1492,6 +1505,35 @@ app.get('/api/user/:username/detailed-analysis', async (req, res) => {
         // Parse and enhance auth attempts
         const enhancedAuthAttempts = authAttempts.rows.map(attempt => {
             const deviceInfo = parseUserAgent(attempt.device_info);
+            
+            // Parse component scores (shapes and drawings are combined in drawing_scores column)
+            let shapeScores = null;
+            let drawingScores = null;
+            
+            if (attempt.drawing_scores) {
+                const allScores = attempt.drawing_scores;
+                
+                // Separate shape scores from drawing scores
+                shapeScores = {};
+                drawingScores = {};
+                
+                ['circle', 'square', 'triangle'].forEach(shape => {
+                    if (allScores[shape] !== undefined) {
+                        shapeScores[shape] = allScores[shape];
+                    }
+                });
+                
+                ['face', 'star', 'house', 'connect_dots'].forEach(drawing => {
+                    if (allScores[drawing] !== undefined) {
+                        drawingScores[drawing] = allScores[drawing];
+                    }
+                });
+                
+                // Clean up empty objects
+                if (Object.keys(shapeScores).length === 0) shapeScores = null;
+                if (Object.keys(drawingScores).length === 0) drawingScores = null;
+            }
+            
             return {
                 id: attempt.id,
                 success: attempt.success,
@@ -1499,7 +1541,8 @@ app.get('/api/user/:username/detailed-analysis', async (req, res) => {
                 device: deviceInfo,
                 created_at: attempt.created_at,
                 signature_id: attempt.signature_id,
-                drawing_scores: attempt.drawing_scores,
+                shape_scores: shapeScores,
+                drawing_scores: drawingScores,
                 signature_metrics: attempt.signature_metrics
             };
         });
