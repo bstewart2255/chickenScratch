@@ -704,22 +704,39 @@
         // Load user list
         async function loadUserList() {
             try {
+                console.log('Loading users from:', `${API_URL}/users`);
                 const response = await fetch(`${API_URL}/users`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
                 const users = await response.json();
+                console.log('Users loaded:', users);
                 
                 const userSelector = document.getElementById('userSelector');
                 userSelector.innerHTML = '<option value="">Select a user...</option>';
                 
                 if (users && users.length > 0) {
                     // Also get attempt counts
-                    const attemptsResponse = await fetch(`${API_URL}/recent-activity`);
-                    const activityData = await attemptsResponse.json();
-                    const attemptCounts = {};
-                    
-                    if (activityData.activities) {
-                        activityData.activities.forEach(activity => {
-                            attemptCounts[activity.username] = (attemptCounts[activity.username] || 0) + 1;
-                        });
+                    let attemptCounts = {};
+                    try {
+                        console.log('Loading recent activity from:', `${API_URL}/api/recent-activity`);
+                        const attemptsResponse = await fetch(`${API_URL}/api/recent-activity`);
+                        
+                        if (attemptsResponse.ok) {
+                            const activityData = await attemptsResponse.json();
+                            console.log('Activity data:', activityData);
+                            
+                            if (activityData.activities) {
+                                activityData.activities.forEach(activity => {
+                                    attemptCounts[activity.user] = (attemptCounts[activity.user] || 0) + 1;
+                                });
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error loading recent activity:', error);
+                        // Continue without attempt counts
                     }
                     
                     users.forEach(user => {
