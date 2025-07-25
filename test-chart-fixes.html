@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Chart Fixes</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #5a67d8;
+        }
+        .log {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Chart.js Canvas Reuse Test</h1>
+        
+        <div class="test-section">
+            <h2>Test Canvas Reuse</h2>
+            <p>Click buttons to test chart creation and destruction</p>
+            
+            <button onclick="createChart()">Create Chart</button>
+            <button onclick="destroyChart()">Destroy Chart</button>
+            <button onclick="recreateChart()">Recreate Chart (Should Work)</button>
+            <button onclick="createWithoutDestroy()">Create Without Destroy (Should Error)</button>
+            <button onclick="clearLog()">Clear Log</button>
+            
+            <div class="chart-container">
+                <canvas id="testChart"></canvas>
+            </div>
+            
+            <h3>Console Log:</h3>
+            <div id="log" class="log"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Test Empty Data Handling</h2>
+            <button onclick="createChartWithData()">Chart With Data</button>
+            <button onclick="createChartNoData()">Chart With No Data</button>
+            <button onclick="createChartInsufficientData()">Chart With Insufficient Data</button>
+            
+            <div class="chart-container">
+                <canvas id="dataTestChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let testChart = null;
+        let dataTestChart = null;
+        
+        function log(message, isError = false) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = isError ? 'red' : 'black';
+            logDiv.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            
+            if (isError) {
+                console.error(message);
+            } else {
+                console.log(message);
+            }
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+        
+        function createChart() {
+            try {
+                const ctx = document.getElementById('testChart').getContext('2d');
+                testChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                        datasets: [{
+                            label: 'Test Data',
+                            data: [12, 19, 3, 5, 2],
+                            borderColor: '#667eea'
+                        }]
+                    }
+                });
+                log('Chart created successfully');
+            } catch (error) {
+                log('Error creating chart: ' + error.message, true);
+            }
+        }
+        
+        function destroyChart() {
+            if (testChart) {
+                testChart.destroy();
+                testChart = null;
+                log('Chart destroyed');
+            } else {
+                log('No chart to destroy');
+            }
+        }
+        
+        function recreateChart() {
+            destroyChart();
+            createChart();
+        }
+        
+        function createWithoutDestroy() {
+            createChart(); // This should error if chart exists
+        }
+        
+        function createChartWithData() {
+            if (dataTestChart) {
+                dataTestChart.destroy();
+                dataTestChart = null;
+            }
+            
+            const ctx = document.getElementById('dataTestChart').getContext('2d');
+            dataTestChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Signature', 'Circle', 'Square', 'Triangle'],
+                    datasets: [{
+                        label: 'Average Score',
+                        data: [85, 92, 78, 81],
+                        backgroundColor: '#667eea'
+                    }]
+                }
+            });
+            log('Created chart with data');
+        }
+        
+        function createChartNoData() {
+            if (dataTestChart) {
+                dataTestChart.destroy();
+                dataTestChart = null;
+            }
+            
+            const ctx = document.getElementById('dataTestChart').getContext('2d');
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            ctx.font = '16px Arial';
+            ctx.fillStyle = '#666';
+            ctx.textAlign = 'center';
+            ctx.fillText('No authentication attempts to display', 
+                ctx.canvas.width / 2, 
+                ctx.canvas.height / 2);
+            log('Displayed no data message');
+        }
+        
+        function createChartInsufficientData() {
+            if (dataTestChart) {
+                dataTestChart.destroy();
+                dataTestChart = null;
+            }
+            
+            const ctx = document.getElementById('dataTestChart').getContext('2d');
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            ctx.font = '16px Arial';
+            ctx.fillStyle = '#666';
+            ctx.textAlign = 'center';
+            ctx.fillText('Insufficient data (minimum 3 attempts required)', 
+                ctx.canvas.width / 2, 
+                ctx.canvas.height / 2);
+            log('Displayed insufficient data message');
+        }
+        
+        // Initial log
+        log('Chart.js version: ' + Chart.version);
+        log('Test page loaded');
+    </script>
+</body>
+</html>

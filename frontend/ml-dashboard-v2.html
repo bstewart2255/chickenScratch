@@ -662,6 +662,8 @@
         let selectedAttempt = null;
         let detailedAnalysis = null;
         let modelStatus = null;
+        let scoreTrendsChart = null;
+        let componentPerfChart = null;
         
         // Initialize dashboard
         async function initDashboard() {
@@ -697,8 +699,10 @@
                 loadDevicePerformance()
             ]);
             
-            // Initialize charts
-            initializeCharts();
+            // Initialize charts after data is loaded
+            setTimeout(() => {
+                initializeCharts();
+            }, 100); // Small delay to ensure DOM is ready
         }
         
         // Load user list
@@ -777,8 +781,10 @@
                             loadDevicePerformance()
                         ]);
                         
-                        // Reinitialize charts
-                        initializeCharts();
+                        // Reinitialize charts after data is loaded
+                        setTimeout(() => {
+                            initializeCharts();
+                        }, 100); // Small delay to ensure DOM is ready
                     }
                 });
                 
@@ -1325,35 +1331,102 @@
         
         // Initialize charts
         function initializeCharts() {
+            try {
+                // Destroy existing charts before creating new ones
+                if (scoreTrendsChart) {
+                    scoreTrendsChart.destroy();
+                    scoreTrendsChart = null;
+                }
+                if (componentPerfChart) {
+                    componentPerfChart.destroy();
+                    componentPerfChart = null;
+                }
+                
+                // Check if we have data to display
+                if (!detailedAnalysis || !detailedAnalysis.authAttempts) {
+                    console.warn('No detailed analysis data available for charts');
+                    displayChartError('scoreTrendsChart', 'No data available');
+                    displayChartError('componentPerfChart', 'No data available');
+                    return;
+                }
+                
+                // Check if Chart.js is loaded
+                if (typeof Chart === 'undefined') {
+                    console.error('Chart.js library not loaded');
+                    displayChartError('scoreTrendsChart', 'Chart library not loaded');
+                    displayChartError('componentPerfChart', 'Chart library not loaded');
+                    return;
+                }
+            
             // Score trends chart
             const scoreTrendsCtx = document.getElementById('scoreTrendsChart').getContext('2d');
             const attempts = detailedAnalysis.authAttempts.slice().reverse();
             
-            new Chart(scoreTrendsCtx, {
+            // Handle no data case
+            if (attempts.length === 0) {
+                scoreTrendsCtx.font = '16px Arial';
+                scoreTrendsCtx.fillStyle = '#666';
+                scoreTrendsCtx.textAlign = 'center';
+                scoreTrendsCtx.fillText('No authentication attempts to display', 
+                    scoreTrendsCtx.canvas.width / 2, 
+                    scoreTrendsCtx.canvas.height / 2);
+                return;
+            }
+            
+            // Use actual timestamps for labels
+            const attemptLabels = attempts.map(a => {
+                const date = new Date(a.created_at);
+                return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            });
+            
+            scoreTrendsChart = new Chart(scoreTrendsCtx, {
                 type: 'line',
                 data: {
-                    labels: attempts.map((_, i) => `Attempt ${i + 1}`),
+                    labels: attemptLabels,
                     datasets: [{
                         label: 'Authentication Score',
-                        data: attempts.map(a => a.confidence),
-                        borderColor: '#1976D2',
-                        backgroundColor: 'rgba(25, 118, 210, 0.1)',
-                        tension: 0.3
+                        data: attempts.map(a => a.confidence || 0),
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.3,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
                     }, {
                         label: 'Pass Threshold',
-                        data: attempts.map(() => 50),
-                        borderColor: '#F44336',
+                        data: attempts.map(() => 70),
+                        borderColor: '#ff6b6b',
                         borderDash: [5, 5],
-                        fill: false
+                        fill: false,
+                        pointRadius: 0
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
                     scales: {
+                        x: {
+                            display: true,
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        },
                         y: {
                             beginAtZero: true,
-                            max: 100
+                            max: 100,
+                            ticks: {
+                                stepSize: 20
+                            }
                         }
                     }
                 }
@@ -1363,32 +1436,87 @@
             const componentPerfCtx = document.getElementById('componentPerfChart').getContext('2d');
             const componentData = calculateComponentPerformance();
             
-            new Chart(componentPerfCtx, {
+            // Handle insufficient data case
+            if (Object.keys(componentData).length === 0 || attempts.length < 3) {
+                componentPerfCtx.font = '16px Arial';
+                componentPerfCtx.fillStyle = '#666';
+                componentPerfCtx.textAlign = 'center';
+                componentPerfCtx.fillText('Insufficient data (minimum 3 attempts required)', 
+                    componentPerfCtx.canvas.width / 2, 
+                    componentPerfCtx.canvas.height / 2);
+                return;
+            }
+            
+            componentPerfChart = new Chart(componentPerfCtx, {
                 type: 'bar',
                 data: {
                     labels: Object.keys(componentData),
                     datasets: [{
                         label: 'Average Score',
                         data: Object.values(componentData),
-                        backgroundColor: [
-                            '#1976D2',
-                            '#7B1FA2',
-                            '#388E3C',
-                            '#F57C00'
-                        ]
+                        backgroundColor: '#667eea',
+                        borderColor: '#5a67d8',
+                        borderWidth: 1
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y + '%';
+                                }
+                            }
+                        }
+                    },
                     scales: {
+                        x: {
+                            display: true,
+                            grid: {
+                                display: false
+                            }
+                        },
                         y: {
                             beginAtZero: true,
-                            max: 100
+                            max: 100,
+                            ticks: {
+                                stepSize: 20,
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
                         }
                     }
                 }
             });
+            } catch (error) {
+                console.error('Error initializing charts:', error);
+                displayChartError('scoreTrendsChart', 'Error loading chart');
+                displayChartError('componentPerfChart', 'Error loading chart');
+            }
+        }
+        
+        // Display error message on canvas
+        function displayChartError(canvasId, message) {
+            try {
+                const canvas = document.getElementById(canvasId);
+                if (canvas) {
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.font = '16px Arial';
+                    ctx.fillStyle = '#666';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(message, canvas.width / 2, canvas.height / 2);
+                }
+            } catch (e) {
+                console.error('Error displaying chart error message:', e);
+            }
         }
         
         // Helper functions
@@ -1571,27 +1699,84 @@
         }
         
         function calculateComponentPerformance() {
+            // Initialize all possible components
             const components = {
                 Signature: [],
+                Circle: [],
+                Square: [],
+                Triangle: [],
                 Face: [],
                 Star: [],
-                House: []
+                House: [],
+                Dots: []
             };
             
+            // Check what components are enrolled
+            const enrolledComponents = new Set(['Signature']); // Signature is always enrolled
+            
+            if (detailedAnalysis.enrollment.shapes) {
+                detailedAnalysis.enrollment.shapes.forEach(shape => {
+                    if (shape.shape_type === 'circle') enrolledComponents.add('Circle');
+                    if (shape.shape_type === 'square') enrolledComponents.add('Square');
+                    if (shape.shape_type === 'triangle') enrolledComponents.add('Triangle');
+                });
+            }
+            
+            if (detailedAnalysis.enrollment.drawings) {
+                detailedAnalysis.enrollment.drawings.forEach(drawing => {
+                    if (drawing.drawing_type === 'face') enrolledComponents.add('Face');
+                    if (drawing.drawing_type === 'star') enrolledComponents.add('Star');
+                    if (drawing.drawing_type === 'house') enrolledComponents.add('House');
+                    if (drawing.drawing_type === 'connect_dots') enrolledComponents.add('Dots');
+                });
+            }
+            
+            // Collect scores from attempts
             detailedAnalysis.authAttempts.forEach(attempt => {
-                components.Signature.push(attempt.confidence);
+                // Signature score
+                if (attempt.confidence !== null && attempt.confidence !== undefined) {
+                    components.Signature.push(attempt.confidence);
+                }
                 
+                // Shape scores
+                if (attempt.shape_scores) {
+                    if (attempt.shape_scores.circle !== null && attempt.shape_scores.circle !== undefined) {
+                        components.Circle.push(attempt.shape_scores.circle);
+                    }
+                    if (attempt.shape_scores.square !== null && attempt.shape_scores.square !== undefined) {
+                        components.Square.push(attempt.shape_scores.square);
+                    }
+                    if (attempt.shape_scores.triangle !== null && attempt.shape_scores.triangle !== undefined) {
+                        components.Triangle.push(attempt.shape_scores.triangle);
+                    }
+                }
+                
+                // Drawing scores
                 if (attempt.drawing_scores) {
-                    if (attempt.drawing_scores.face !== null) components.Face.push(attempt.drawing_scores.face);
-                    if (attempt.drawing_scores.star !== null) components.Star.push(attempt.drawing_scores.star);
-                    if (attempt.drawing_scores.house !== null) components.House.push(attempt.drawing_scores.house);
+                    if (attempt.drawing_scores.face !== null && attempt.drawing_scores.face !== undefined) {
+                        components.Face.push(attempt.drawing_scores.face);
+                    }
+                    if (attempt.drawing_scores.star !== null && attempt.drawing_scores.star !== undefined) {
+                        components.Star.push(attempt.drawing_scores.star);
+                    }
+                    if (attempt.drawing_scores.house !== null && attempt.drawing_scores.house !== undefined) {
+                        components.House.push(attempt.drawing_scores.house);
+                    }
+                    if (attempt.drawing_scores.connect_dots !== null && attempt.drawing_scores.connect_dots !== undefined) {
+                        components.Dots.push(attempt.drawing_scores.connect_dots);
+                    }
                 }
             });
             
+            // Calculate averages only for enrolled components
             const avgScores = {};
-            Object.entries(components).forEach(([name, scores]) => {
+            enrolledComponents.forEach(componentName => {
+                const scores = components[componentName];
                 if (scores.length > 0) {
-                    avgScores[name] = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+                    avgScores[componentName] = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+                } else {
+                    // Show 0 for enrolled components with no data
+                    avgScores[componentName] = 0;
                 }
             });
             
