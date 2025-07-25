@@ -654,6 +654,9 @@
     </div>
     
     <script>
+        // API Configuration
+        const API_URL = 'https://chickenscratch.onrender.com';
+        
         // Global state
         let currentUser = null;
         let selectedAttempt = null;
@@ -701,7 +704,7 @@
         // Load user list
         async function loadUserList() {
             try {
-                const response = await fetch('/users');
+                const response = await fetch(`${API_URL}/users`);
                 const users = await response.json();
                 
                 const userSelector = document.getElementById('userSelector');
@@ -709,7 +712,7 @@
                 
                 if (users && users.length > 0) {
                     // Also get attempt counts
-                    const attemptsResponse = await fetch('/recent-activity');
+                    const attemptsResponse = await fetch(`${API_URL}/recent-activity`);
                     const activityData = await attemptsResponse.json();
                     const attemptCounts = {};
                     
@@ -771,7 +774,7 @@
         // Load detailed user analysis
         async function loadDetailedAnalysis() {
             try {
-                const response = await fetch(`/api/user/${currentUser}/detailed-analysis`);
+                const response = await fetch(`${API_URL}/api/user/${currentUser}/detailed-analysis`);
                 if (!response.ok) {
                     throw new Error('Failed to load user analysis');
                 }
@@ -798,7 +801,7 @@
         // Load model status
         async function loadModelStatus() {
             try {
-                const response = await fetch('/api/model/training-status');
+                const response = await fetch(`${API_URL}/api/model/training-status`);
                 modelStatus = await response.json();
                 
                 const statusIndicator = document.getElementById('modelStatusIndicator');
@@ -832,7 +835,7 @@
         // Load device performance
         async function loadDevicePerformance() {
             try {
-                const response = await fetch('/api/analytics/device-performance');
+                const response = await fetch(`${API_URL}/api/analytics/device-performance`);
                 const data = await response.json();
                 
                 updateDeviceTable(data.devicePerformance);
@@ -1028,7 +1031,7 @@
             
             // Load detailed breakdown
             try {
-                const response = await fetch(`/api/auth-attempt/${attemptId}/breakdown`);
+                const response = await fetch(`${API_URL}/api/auth-attempt/${attemptId}/breakdown`);
                 const breakdown = await response.json();
                 
                 updateComponentAnalysis(breakdown);
