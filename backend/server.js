@@ -369,30 +369,19 @@ app.post('/register', async (req, res) => {
         for (const [drawingType, drawingData] of Object.entries(drawings)) {
             try {
                 console.log(`Processing drawing: ${drawingType}`);
-                // Limit the size of drawing data to prevent database errors
-                const drawingDataStr = JSON.stringify(drawingData);
-                console.log(`Drawing ${drawingType} size: ${drawingDataStr.length} bytes`);
+                // Calculate drawing metrics
+                const drawingMetrics = {
+                    strokeCount: drawingData.strokes ? drawingData.strokes.length : 0,
+                    pointCount: drawingData.strokes ? drawingData.strokes.reduce((sum, stroke) => sum + stroke.length, 0) : 0,
+                    duration: drawingData.metrics?.duration || 0,
+                    boundingBox: drawingData.metrics?.boundingBox || null
+                };
                 
-                if (drawingDataStr.length > 50000) {
-                    console.warn(`Drawing ${drawingType} data too large (${drawingDataStr.length} chars), storing compressed version`);
-                    // Store only essential data for large drawings
-                    const compressedData = {
-                        type: drawingData.type,
-                        prompt: drawingData.prompt,
-                        metrics: drawingData.metrics,
-                        dataLength: drawingDataStr.length,
-                        truncated: true
-                    };
-                    await pool.query(
-                        'INSERT INTO shapes (user_id, shape_type, shape_data, metrics) VALUES ($1, $2, $3, $4)',
-                        [userId, `drawing_${drawingType}`, JSON.stringify(compressedData), JSON.stringify(drawingData.metrics || {})]
-                    );
-                } else {
-                    await pool.query(
-                        'INSERT INTO shapes (user_id, shape_type, shape_data, metrics) VALUES ($1, $2, $3, $4)',
-                        [userId, `drawing_${drawingType}`, drawingDataStr, JSON.stringify(drawingData.metrics || {})]
-                    );
-                }
+                await pool.query(
+                    'INSERT INTO drawings (user_id, drawing_type, drawing_data, metrics) VALUES ($1, $2, $3, $4)',
+                    [userId, drawingType, JSON.stringify(drawingData), JSON.stringify(drawingMetrics)]
+                );
+                console.log(`✅ Saved drawing: ${drawingType}`);
             } catch (drawingError) {
                 console.error(`Error saving drawing ${drawingType}:`, drawingError);
                 // Continue with other drawings
@@ -702,10 +691,51 @@ app.post('/login', async (req, res) => {
             }
         }
         
-        // If drawings were provided, verify them (future enhancement)
+        // If drawings were provided, verify them
         if (drawings) {
-            // TODO: Implement drawing verification
-            console.log('Drawing verification not yet implemented');
+            const { compareDrawings } = require('./drawingVerification');
+            
+            const storedDrawingsResult = await pool.query(
+                'SELECT drawing_type, drawing_data, metrics FROM drawings WHERE user_id = $1',
+                [userId]
+            );
+            
+            const storedDrawings = {};
+            storedDrawingsResult.rows.forEach(row => {
+                storedDrawings[row.drawing_type] = {
+                    data: row.drawing_data,
+                    metrics: row.metrics || {}
+                };
+            });
+            
+            // Compare each drawing type
+            if (drawings.face && storedDrawings.face) {
+                const result = await compareDrawings(storedDrawings.face.data, drawings.face, 'face');
+                scores.face = result.score;
+                totalScore += result.score;
+                scoreCount++;
+            }
+            
+            if (drawings.star && storedDrawings.star) {
+                const result = await compareDrawings(storedDrawings.star.data, drawings.star, 'star');
+                scores.star = result.score;
+                totalScore += result.score;
+                scoreCount++;
+            }
+            
+            if (drawings.house && storedDrawings.house) {
+                const result = await compareDrawings(storedDrawings.house.data, drawings.house, 'house');
+                scores.house = result.score;
+                totalScore += result.score;
+                scoreCount++;
+            }
+            
+            if (drawings.connect_dots && storedDrawings.connect_dots) {
+                const result = await compareDrawings(storedDrawings.connect_dots.data, drawings.connect_dots, 'connect_dots');
+                scores.connect_dots = result.score;
+                totalScore += result.score;
+                scoreCount++;
+            }
         }
         
         const averageScore = totalScore / scoreCount;
@@ -741,11 +771,18 @@ app.post('/login', async (req, res) => {
             console.error('Failed to save auth signature:', err);
         }
         
-        // Record authentication attempt with signature reference
+        // Record authentication attempt with signature reference and drawing scores
         try {
+            const drawingScores = drawings ? {
+                face: scores.face || null,
+                star: scores.star || null,
+                house: scores.house || null,
+                connect_dots: scores.connect_dots || null
+            } : null;
+            
             await pool.query(
-                'INSERT INTO auth_attempts (user_id, success, confidence, device_info, signature_id) VALUES ($1, $2, $3, $4, $5)',
-                [userId, isSuccess, averageScore, req.headers['user-agent'] || 'Unknown', authSignatureId]
+                'INSERT INTO auth_attempts (user_id, success, confidence, device_info, signature_id, drawing_scores) VALUES ($1, $2, $3, $4, $5, $6)',
+                [userId, isSuccess, averageScore, req.headers['user-agent'] || 'Unknown', authSignatureId, drawingScores ? JSON.stringify(drawingScores) : null]
             );
         } catch (err) {
             console.error('Failed to record auth attempt:', err);
@@ -1399,6 +1436,384 @@ app.delete('/api/temp-drawings/:username', async (req, res) => {
         res.status(404).json({ error: 'No temporary data found for this user' });
     }
 });
+
+// User-specific detailed analysis endpoint
+app.get('/api/user/:username/detailed-analysis', async (req, res) => {
+    const { username } = req.params;
+    
+    try {
+        // Get user info
+        const userResult = await pool.query(
+            'SELECT id, username, created_at FROM users WHERE username = $1',
+            [username]
+        );
+        
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        const user = userResult.rows[0];
+        const userId = user.id;
+        
+        // Get enrollment signatures
+        const enrollmentSignatures = await pool.query(
+            'SELECT id, signature_data, features, metrics, created_at FROM signatures WHERE user_id = $1 ORDER BY created_at ASC LIMIT 3',
+            [userId]
+        );
+        
+        // Get enrollment shapes
+        const enrollmentShapes = await pool.query(
+            'SELECT shape_type, shape_data, metrics, created_at FROM shapes WHERE user_id = $1',
+            [userId]
+        );
+        
+        // Get enrollment drawings
+        const enrollmentDrawings = await pool.query(
+            'SELECT drawing_type, drawing_data, metrics, created_at FROM drawings WHERE user_id = $1',
+            [userId]
+        );
+        
+        // Get authentication attempts with detailed scores
+        const authAttempts = await pool.query(
+            `SELECT 
+                a.id, a.success, a.confidence, a.device_info, a.created_at, a.signature_id, a.drawing_scores,
+                s.signature_data, s.metrics as signature_metrics
+             FROM auth_attempts a
+             LEFT JOIN signatures s ON a.signature_id = s.id
+             WHERE a.user_id = $1
+             ORDER BY a.created_at DESC
+             LIMIT 50`,
+            [userId]
+        );
+        
+        // Calculate baseline metrics
+        const baseline = calculateUserBaseline(enrollmentSignatures.rows);
+        
+        // Parse and enhance auth attempts
+        const enhancedAuthAttempts = authAttempts.rows.map(attempt => {
+            const deviceInfo = parseUserAgent(attempt.device_info);
+            return {
+                id: attempt.id,
+                success: attempt.success,
+                confidence: attempt.confidence,
+                device: deviceInfo,
+                created_at: attempt.created_at,
+                signature_id: attempt.signature_id,
+                drawing_scores: attempt.drawing_scores,
+                signature_metrics: attempt.signature_metrics
+            };
+        });
+        
+        // Calculate device performance
+        const devicePerformance = {};
+        enhancedAuthAttempts.forEach(attempt => {
+            const deviceKey = `${attempt.device.device}_${attempt.device.inputMethod}`;
+            if (!devicePerformance[deviceKey]) {
+                devicePerformance[deviceKey] = {
+                    device: attempt.device.device,
+                    inputMethod: attempt.device.inputMethod,
+                    attempts: 0,
+                    successes: 0,
+                    totalScore: 0
+                };
+            }
+            devicePerformance[deviceKey].attempts++;
+            if (attempt.success) devicePerformance[deviceKey].successes++;
+            devicePerformance[deviceKey].totalScore += attempt.confidence;
+        });
+        
+        res.json({
+            user: {
+                id: user.id,
+                username: user.username,
+                enrolled_at: user.created_at
+            },
+            enrollment: {
+                signatures: enrollmentSignatures.rows,
+                shapes: enrollmentShapes.rows,
+                drawings: enrollmentDrawings.rows
+            },
+            baseline,
+            authAttempts: enhancedAuthAttempts,
+            devicePerformance: Object.values(devicePerformance).map(d => ({
+                ...d,
+                successRate: d.attempts > 0 ? (d.successes / d.attempts * 100).toFixed(1) : 0,
+                avgScore: d.attempts > 0 ? (d.totalScore / d.attempts).toFixed(1) : 0
+            }))
+        });
+        
+    } catch (error) {
+        console.error('Detailed analysis error:', error);
+        res.status(500).json({ error: 'Failed to fetch detailed analysis' });
+    }
+});
+
+// Component-specific performance endpoint
+app.get('/api/user/:username/component-performance/:type', async (req, res) => {
+    const { username, type } = req.params;
+    
+    try {
+        const userResult = await pool.query(
+            'SELECT id FROM users WHERE username = $1',
+            [username]
+        );
+        
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        const userId = userResult.rows[0].id;
+        
+        switch (type) {
+            case 'signature':
+                // Get signature performance over time
+                const signaturePerf = await pool.query(
+                    `SELECT 
+                        a.created_at, a.confidence, a.success, a.signature_id,
+                        s.metrics as signature_metrics
+                     FROM auth_attempts a
+                     LEFT JOIN signatures s ON a.signature_id = s.id
+                     WHERE a.user_id = $1 AND a.signature_id IS NOT NULL
+                     ORDER BY a.created_at DESC
+                     LIMIT 100`,
+                    [userId]
+                );
+                
+                res.json({
+                    type: 'signature',
+                    performance: signaturePerf.rows
+                });
+                break;
+                
+            case 'shapes':
+                // Shape performance would need to be extracted from auth attempts
+                // For now, return a placeholder
+                res.json({
+                    type: 'shapes',
+                    performance: [],
+                    message: 'Shape-specific performance tracking coming soon'
+                });
+                break;
+                
+            case 'drawings':
+                // Get drawing performance from auth attempts
+                const drawingPerf = await pool.query(
+                    `SELECT 
+                        created_at, confidence, success, drawing_scores
+                     FROM auth_attempts
+                     WHERE user_id = $1 AND drawing_scores IS NOT NULL
+                     ORDER BY created_at DESC
+                     LIMIT 100`,
+                    [userId]
+                );
+                
+                res.json({
+                    type: 'drawings',
+                    performance: drawingPerf.rows
+                });
+                break;
+                
+            default:
+                res.status(400).json({ error: 'Invalid component type' });
+        }
+        
+    } catch (error) {
+        console.error('Component performance error:', error);
+        res.status(500).json({ error: 'Failed to fetch component performance' });
+    }
+});
+
+// Authentication attempt breakdown endpoint
+app.get('/api/auth-attempt/:attemptId/breakdown', async (req, res) => {
+    const { attemptId } = req.params;
+    
+    try {
+        const attemptResult = await pool.query(
+            `SELECT 
+                a.*, 
+                s.signature_data, s.metrics as signature_metrics,
+                u.username
+             FROM auth_attempts a
+             JOIN users u ON a.user_id = u.id
+             LEFT JOIN signatures s ON a.signature_id = s.id
+             WHERE a.id = $1`,
+            [attemptId]
+        );
+        
+        if (attemptResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Authentication attempt not found' });
+        }
+        
+        const attempt = attemptResult.rows[0];
+        
+        // Get enrollment signatures for comparison
+        const enrollmentSigs = await pool.query(
+            'SELECT signature_data, metrics FROM signatures WHERE user_id = $1 ORDER BY created_at ASC LIMIT 3',
+            [attempt.user_id]
+        );
+        
+        res.json({
+            attempt: {
+                id: attempt.id,
+                username: attempt.username,
+                success: attempt.success,
+                confidence: attempt.confidence,
+                device_info: parseUserAgent(attempt.device_info),
+                created_at: attempt.created_at,
+                drawing_scores: attempt.drawing_scores
+            },
+            signature: {
+                data: attempt.signature_data,
+                metrics: attempt.signature_metrics
+            },
+            enrollment_signatures: enrollmentSigs.rows
+        });
+        
+    } catch (error) {
+        console.error('Auth attempt breakdown error:', error);
+        res.status(500).json({ error: 'Failed to fetch attempt breakdown' });
+    }
+});
+
+// Model training status endpoint
+app.get('/api/model/training-status', async (req, res) => {
+    try {
+        // Read the latest model info file
+        const fs = require('fs').promises;
+        const path = require('path');
+        const modelInfoPath = path.join(__dirname, '../ml-model/models/latest_model_info.json');
+        
+        try {
+            const modelInfo = await fs.readFile(modelInfoPath, 'utf8');
+            const parsedInfo = JSON.parse(modelInfo);
+            
+            // Get training data stats
+            const genuinePath = path.join(__dirname, '../ml-model/data/genuine_signatures.json');
+            const forgeryPath = path.join(__dirname, '../ml-model/data/forgery_signatures.json');
+            
+            let genuineCount = 0;
+            let forgeryCount = 0;
+            
+            try {
+                const genuineData = await fs.readFile(genuinePath, 'utf8');
+                genuineCount = JSON.parse(genuineData).length;
+            } catch (e) {
+                console.log('Could not read genuine signatures');
+            }
+            
+            try {
+                const forgeryData = await fs.readFile(forgeryPath, 'utf8');
+                forgeryCount = JSON.parse(forgeryData).length;
+            } catch (e) {
+                console.log('Could not read forgery signatures');
+            }
+            
+            res.json({
+                lastTrained: parsedInfo.timestamp,
+                modelPath: parsedInfo.model_path,
+                features: parsedInfo.feature_names,
+                trainingData: {
+                    genuine: genuineCount,
+                    forgery: forgeryCount,
+                    total: genuineCount + forgeryCount,
+                    balance: forgeryCount > 0 ? (genuineCount / (genuineCount + forgeryCount) * 100).toFixed(1) : 0
+                },
+                status: 'healthy'
+            });
+        } catch (error) {
+            res.json({
+                status: 'no_model',
+                message: 'No trained model found'
+            });
+        }
+        
+    } catch (error) {
+        console.error('Model status error:', error);
+        res.status(500).json({ error: 'Failed to fetch model status' });
+    }
+});
+
+// Device performance analytics endpoint
+app.get('/api/analytics/device-performance', async (req, res) => {
+    try {
+        const deviceStats = await pool.query(
+            `SELECT 
+                device_info,
+                COUNT(*) as attempts,
+                SUM(CASE WHEN success THEN 1 ELSE 0 END) as successes,
+                AVG(confidence) as avg_score,
+                MAX(created_at) as last_attempt
+             FROM auth_attempts
+             WHERE created_at > NOW() - INTERVAL '30 days'
+             GROUP BY device_info
+             ORDER BY attempts DESC`
+        );
+        
+        const parsedStats = deviceStats.rows.map(row => {
+            const deviceInfo = parseUserAgent(row.device_info);
+            return {
+                device: deviceInfo.device,
+                browser: deviceInfo.browser,
+                inputMethod: deviceInfo.inputMethod,
+                attempts: parseInt(row.attempts),
+                successes: parseInt(row.successes),
+                successRate: (row.successes / row.attempts * 100).toFixed(1),
+                avgScore: parseFloat(row.avg_score).toFixed(1),
+                lastAttempt: row.last_attempt
+            };
+        });
+        
+        res.json({
+            devicePerformance: parsedStats,
+            summary: {
+                totalDevices: parsedStats.length,
+                bestDevice: parsedStats.reduce((best, curr) => 
+                    parseFloat(curr.successRate) > parseFloat(best.successRate) ? curr : best
+                ),
+                worstDevice: parsedStats.reduce((worst, curr) => 
+                    parseFloat(curr.successRate) < parseFloat(worst.successRate) ? curr : worst
+                )
+            }
+        });
+        
+    } catch (error) {
+        console.error('Device analytics error:', error);
+        res.status(500).json({ error: 'Failed to fetch device analytics' });
+    }
+});
+
+// Helper function to parse user agent string
+function parseUserAgent(userAgent) {
+    if (!userAgent) return { device: 'Unknown', browser: 'Unknown', inputMethod: 'Unknown' };
+    
+    const ua = userAgent.toLowerCase();
+    let device = 'Desktop';
+    let inputMethod = 'mouse';
+    let browser = 'Unknown';
+    
+    // Detect device type
+    if (ua.includes('iphone')) {
+        device = 'iPhone';
+        inputMethod = 'touch';
+    } else if (ua.includes('ipad')) {
+        device = 'iPad';
+        inputMethod = 'touch';
+    } else if (ua.includes('android')) {
+        device = 'Android';
+        inputMethod = 'touch';
+    } else if (ua.includes('windows phone')) {
+        device = 'Windows Phone';
+        inputMethod = 'touch';
+    }
+    
+    // Detect browser
+    if (ua.includes('chrome')) browser = 'Chrome';
+    else if (ua.includes('safari')) browser = 'Safari';
+    else if (ua.includes('firefox')) browser = 'Firefox';
+    else if (ua.includes('edge')) browser = 'Edge';
+    
+    return { device, browser, inputMethod };
+}
 
 // Global error handler - must be last middleware
 app.use((err, req, res, next) => {

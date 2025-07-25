@@ -1,0 +1,1379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ML Dashboard - Component Analysis</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header */
+        .header {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .user-info h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .user-info p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .model-status {
+            text-align: right;
+        }
+        
+        .model-status .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .model-status .status-indicator.healthy {
+            background-color: #4CAF50;
+        }
+        
+        .model-status .status-indicator.warning {
+            background-color: #FFC107;
+        }
+        
+        .model-status .status-indicator.error {
+            background-color: #F44336;
+        }
+        
+        /* Main Layout */
+        .main-content {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+        }
+        
+        /* Enrollment Baseline */
+        .enrollment-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .enrollment-section h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .enrollment-component {
+            margin-bottom: 20px;
+        }
+        
+        .enrollment-component h3 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #666;
+        }
+        
+        .signature-preview {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .signature-canvas {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #fafafa;
+        }
+        
+        .quality-score {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .quality-score.high {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+        
+        .quality-score.medium {
+            background: #FFF3E0;
+            color: #F57C00;
+        }
+        
+        .quality-score.low {
+            background: #FFEBEE;
+            color: #C62828;
+        }
+        
+        /* Authentication Attempts */
+        .attempts-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .attempts-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .attempts-header h2 {
+            font-size: 18px;
+        }
+        
+        .filter-controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .filter-controls select {
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        /* Attempt Cards */
+        .attempt-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .attempt-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .attempt-card:hover {
+            border-color: #1976D2;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .attempt-card.selected {
+            border-color: #1976D2;
+            background-color: #F5F9FF;
+        }
+        
+        .attempt-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .attempt-info {
+            font-size: 14px;
+        }
+        
+        .attempt-result {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .result-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .result-badge.success {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+        
+        .result-badge.failed {
+            background: #FFEBEE;
+            color: #C62828;
+        }
+        
+        .score-breakdown {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .score-item {
+            text-align: center;
+            padding: 8px;
+            border-radius: 4px;
+            background: #f5f5f5;
+        }
+        
+        .score-item.high {
+            background: #E8F5E9;
+        }
+        
+        .score-item.medium {
+            background: #FFF3E0;
+        }
+        
+        .score-item.low {
+            background: #FFEBEE;
+        }
+        
+        .score-label {
+            font-size: 11px;
+            color: #666;
+            display: block;
+        }
+        
+        .score-value {
+            font-size: 18px;
+            font-weight: bold;
+            display: block;
+        }
+        
+        /* Component Deep Dive */
+        .component-analysis {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .component-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .component-card h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .component-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        
+        .component-icon.signature {
+            background: #E3F2FD;
+            color: #1976D2;
+        }
+        
+        .component-icon.shapes {
+            background: #F3E5F5;
+            color: #7B1FA2;
+        }
+        
+        .component-icon.drawings {
+            background: #E8F5E9;
+            color: #388E3C;
+        }
+        
+        /* Visual Comparison */
+        .visual-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .comparison-side {
+            text-align: center;
+        }
+        
+        .comparison-side h4 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #666;
+        }
+        
+        .comparison-canvas {
+            width: 100%;
+            height: 150px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #fafafa;
+        }
+        
+        /* Feature Breakdown */
+        .feature-breakdown {
+            margin-top: 15px;
+        }
+        
+        .feature-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .feature-name {
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .feature-comparison {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+        }
+        
+        .feature-bar {
+            width: 100px;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .feature-bar-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+        
+        .feature-bar-fill.good {
+            background: #4CAF50;
+        }
+        
+        .feature-bar-fill.warning {
+            background: #FFC107;
+        }
+        
+        .feature-bar-fill.bad {
+            background: #F44336;
+        }
+        
+        /* Analytics Section */
+        .analytics-section {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .analytics-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .analytics-card h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        
+        /* Device Performance Table */
+        .device-table {
+            width: 100%;
+            font-size: 14px;
+        }
+        
+        .device-table th {
+            text-align: left;
+            padding: 8px;
+            border-bottom: 2px solid #e0e0e0;
+            color: #666;
+            font-weight: 600;
+        }
+        
+        .device-table td {
+            padding: 8px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .device-table tr:hover {
+            background: #f5f5f5;
+        }
+        
+        /* Loading States */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+        
+        @keyframes dots {
+            0%, 20% {
+                content: '.';
+            }
+            40% {
+                content: '..';
+            }
+            60% {
+                content: '...';
+            }
+            80%, 100% {
+                content: '';
+            }
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .component-analysis {
+                grid-template-columns: 1fr;
+            }
+            
+            .analytics-section {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="user-info">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <h1 id="username">Loading...</h1>
+                    <select id="userSelector" style="padding: 5px 10px; font-size: 16px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="">Loading users...</option>
+                    </select>
+                </div>
+                <p id="enrollmentDate">Enrolled: --</p>
+            </div>
+            <div class="model-status">
+                <div>
+                    <span class="status-indicator" id="modelStatusIndicator"></span>
+                    <span id="modelStatus">Model Status: Loading...</span>
+                </div>
+                <p id="modelInfo" style="font-size: 12px; color: #666; margin-top: 5px;"></p>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Enrollment Baseline -->
+            <div class="enrollment-section">
+                <h2>Enrollment Baseline</h2>
+                
+                <!-- Signatures -->
+                <div class="enrollment-component">
+                    <h3>Signatures (3 samples)</h3>
+                    <div class="signature-preview" id="enrollmentSignatures">
+                        <canvas class="signature-canvas" width="100" height="60"></canvas>
+                        <canvas class="signature-canvas" width="100" height="60"></canvas>
+                        <canvas class="signature-canvas" width="100" height="60"></canvas>
+                    </div>
+                    <div id="signatureQuality"></div>
+                </div>
+                
+                <!-- Shapes -->
+                <div class="enrollment-component">
+                    <h3>Shapes</h3>
+                    <div id="enrollmentShapes">
+                        <p style="font-size: 12px; color: #666;">Loading shapes...</p>
+                    </div>
+                </div>
+                
+                <!-- Drawings -->
+                <div class="enrollment-component">
+                    <h3>Creative Drawings</h3>
+                    <div id="enrollmentDrawings">
+                        <p style="font-size: 12px; color: #666;">Loading drawings...</p>
+                    </div>
+                </div>
+                
+                <!-- Device Info -->
+                <div class="enrollment-component">
+                    <h3>Enrollment Device</h3>
+                    <div id="enrollmentDevice" style="font-size: 12px; color: #666;">
+                        Loading device info...
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Authentication Attempts -->
+            <div class="attempts-section">
+                <div class="attempts-header">
+                    <h2>Authentication Attempts</h2>
+                    <div class="filter-controls">
+                        <select id="filterResult">
+                            <option value="all">All Results</option>
+                            <option value="success">Successful</option>
+                            <option value="failed">Failed</option>
+                        </select>
+                        <select id="filterDevice">
+                            <option value="all">All Devices</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="attempt-list" id="attemptList">
+                    <div class="loading">Loading attempts</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Component Deep Dive -->
+        <div class="component-analysis" id="componentAnalysis" style="display: none;">
+            <!-- Signature Analysis -->
+            <div class="component-card">
+                <h3>
+                    <span class="component-icon signature">✍️</span>
+                    Signature Analysis
+                </h3>
+                <div class="visual-comparison">
+                    <div class="comparison-side">
+                        <h4>Baseline (Best)</h4>
+                        <canvas class="comparison-canvas" id="baselineSignatureCanvas"></canvas>
+                    </div>
+                    <div class="comparison-side">
+                        <h4>Authentication Attempt</h4>
+                        <canvas class="comparison-canvas" id="attemptSignatureCanvas"></canvas>
+                    </div>
+                </div>
+                <div class="feature-breakdown" id="signatureFeatures">
+                    <!-- Features will be populated dynamically -->
+                </div>
+            </div>
+            
+            <!-- Shapes Analysis -->
+            <div class="component-card">
+                <h3>
+                    <span class="component-icon shapes">⬛</span>
+                    Shapes Analysis
+                </h3>
+                <div id="shapesAnalysis">
+                    <!-- Shape comparisons will be populated dynamically -->
+                </div>
+            </div>
+            
+            <!-- Drawings Analysis -->
+            <div class="component-card">
+                <h3>
+                    <span class="component-icon drawings">🎨</span>
+                    Drawings Analysis
+                </h3>
+                <div id="drawingsAnalysis">
+                    <!-- Drawing comparisons will be populated dynamically -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Analytics Section -->
+        <div class="analytics-section">
+            <!-- Device Performance -->
+            <div class="analytics-card">
+                <h3>Device Performance</h3>
+                <table class="device-table" id="deviceTable">
+                    <thead>
+                        <tr>
+                            <th>Device</th>
+                            <th>Attempts</th>
+                            <th>Success Rate</th>
+                            <th>Avg Score</th>
+                        </tr>
+                    </thead>
+                    <tbody id="deviceTableBody">
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: #666;">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Score Trends -->
+            <div class="analytics-card">
+                <h3>Score Trends</h3>
+                <canvas id="scoreTrendsChart" width="400" height="200"></canvas>
+            </div>
+            
+            <!-- Component Performance -->
+            <div class="analytics-card">
+                <h3>Component Performance</h3>
+                <canvas id="componentPerfChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Global state
+        let currentUser = null;
+        let selectedAttempt = null;
+        let detailedAnalysis = null;
+        let modelStatus = null;
+        
+        // Initialize dashboard
+        async function initDashboard() {
+            // Load user list first
+            await loadUserList();
+            
+            // Get username from URL or use first user
+            const urlParams = new URLSearchParams(window.location.search);
+            let username = urlParams.get('username');
+            
+            const userSelector = document.getElementById('userSelector');
+            
+            if (!username && userSelector.options.length > 1) {
+                // No username in URL, use first user from list
+                username = userSelector.options[1].value;
+                window.history.pushState({}, '', `?username=${username}`);
+            }
+            
+            if (!username) {
+                alert('No users found in the system');
+                return;
+            }
+            
+            currentUser = username;
+            userSelector.value = username;
+            document.getElementById('username').textContent = username;
+            
+            // Load all data
+            await Promise.all([
+                loadDetailedAnalysis(),
+                loadModelStatus(),
+                loadDevicePerformance()
+            ]);
+            
+            // Initialize charts
+            initializeCharts();
+        }
+        
+        // Load user list
+        async function loadUserList() {
+            try {
+                const response = await fetch('/users');
+                const data = await response.json();
+                
+                const userSelector = document.getElementById('userSelector');
+                userSelector.innerHTML = '<option value="">Select a user...</option>';
+                
+                if (data.users && data.users.length > 0) {
+                    data.users.forEach(user => {
+                        const option = document.createElement('option');
+                        option.value = user.username;
+                        option.textContent = `${user.username} (${user.authAttempts || 0} attempts)`;
+                        userSelector.appendChild(option);
+                    });
+                }
+                
+                // Add change event listener
+                userSelector.addEventListener('change', async (e) => {
+                    const newUsername = e.target.value;
+                    if (newUsername && newUsername !== currentUser) {
+                        // Update URL
+                        window.history.pushState({}, '', `?username=${newUsername}`);
+                        
+                        // Reset current state
+                        currentUser = newUsername;
+                        selectedAttempt = null;
+                        document.getElementById('username').textContent = newUsername;
+                        
+                        // Hide component analysis
+                        document.getElementById('componentAnalysis').style.display = 'none';
+                        
+                        // Show loading states
+                        document.getElementById('attemptList').innerHTML = '<div class="loading">Loading attempts</div>';
+                        document.getElementById('enrollmentSignatures').innerHTML = `
+                            <canvas class="signature-canvas" width="100" height="60"></canvas>
+                            <canvas class="signature-canvas" width="100" height="60"></canvas>
+                            <canvas class="signature-canvas" width="100" height="60"></canvas>
+                        `;
+                        
+                        // Reload data
+                        await Promise.all([
+                            loadDetailedAnalysis(),
+                            loadDevicePerformance()
+                        ]);
+                        
+                        // Reinitialize charts
+                        initializeCharts();
+                    }
+                });
+                
+            } catch (error) {
+                console.error('Error loading user list:', error);
+                document.getElementById('userSelector').innerHTML = '<option value="">Error loading users</option>';
+            }
+        }
+        
+        // Load detailed user analysis
+        async function loadDetailedAnalysis() {
+            try {
+                const response = await fetch(`/api/user/${currentUser}/detailed-analysis`);
+                if (!response.ok) {
+                    throw new Error('Failed to load user analysis');
+                }
+                
+                detailedAnalysis = await response.json();
+                console.log('Detailed analysis:', detailedAnalysis);
+                
+                // Update UI
+                updateEnrollmentSection();
+                updateAttemptsList();
+                updateDeviceFilters();
+                
+                // Set enrollment date
+                const enrollDate = new Date(detailedAnalysis.user.enrolled_at);
+                document.getElementById('enrollmentDate').textContent = 
+                    `Enrolled: ${enrollDate.toLocaleDateString()}`;
+                
+            } catch (error) {
+                console.error('Error loading analysis:', error);
+                alert('Failed to load user data: ' + error.message);
+            }
+        }
+        
+        // Load model status
+        async function loadModelStatus() {
+            try {
+                const response = await fetch('/api/model/training-status');
+                modelStatus = await response.json();
+                
+                const statusIndicator = document.getElementById('modelStatusIndicator');
+                const statusText = document.getElementById('modelStatus');
+                const modelInfo = document.getElementById('modelInfo');
+                
+                if (modelStatus.status === 'healthy') {
+                    statusIndicator.className = 'status-indicator healthy';
+                    statusText.textContent = 'Model Status: Healthy';
+                    
+                    const lastTrained = modelStatus.lastTrained ? 
+                        new Date(modelStatus.lastTrained.replace(/(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})/, 
+                            '$1-$2-$3T$4:$5:$6')).toLocaleDateString() : 'Unknown';
+                    
+                    modelInfo.textContent = `Last trained: ${lastTrained} | ` +
+                        `${modelStatus.trainingData.total} samples ` +
+                        `(${modelStatus.trainingData.balance}% genuine)`;
+                } else {
+                    statusIndicator.className = 'status-indicator error';
+                    statusText.textContent = 'Model Status: No Model';
+                    modelInfo.textContent = 'No trained model found';
+                }
+                
+            } catch (error) {
+                console.error('Error loading model status:', error);
+                document.getElementById('modelStatusIndicator').className = 'status-indicator error';
+                document.getElementById('modelStatus').textContent = 'Model Status: Error';
+            }
+        }
+        
+        // Load device performance
+        async function loadDevicePerformance() {
+            try {
+                const response = await fetch('/api/analytics/device-performance');
+                const data = await response.json();
+                
+                updateDeviceTable(data.devicePerformance);
+                
+            } catch (error) {
+                console.error('Error loading device performance:', error);
+            }
+        }
+        
+        // Update enrollment section
+        function updateEnrollmentSection() {
+            if (!detailedAnalysis) return;
+            
+            // Update signatures
+            const sigCanvases = document.querySelectorAll('#enrollmentSignatures .signature-canvas');
+            detailedAnalysis.enrollment.signatures.forEach((sig, index) => {
+                if (sigCanvases[index] && sig.signature_data) {
+                    const sigData = typeof sig.signature_data === 'string' ? 
+                        JSON.parse(sig.signature_data) : sig.signature_data;
+                    drawSignature(sigCanvases[index], sigData);
+                }
+            });
+            
+            // Calculate and show signature quality
+            const qualityDiv = document.getElementById('signatureQuality');
+            const avgQuality = calculateSignatureQuality(detailedAnalysis.enrollment.signatures);
+            qualityDiv.innerHTML = `
+                <span class="quality-score ${getQualityClass(avgQuality)}">
+                    Overall Quality: ${avgQuality}%
+                </span>
+            `;
+            
+            // Update shapes
+            const shapesDiv = document.getElementById('enrollmentShapes');
+            const shapeTypes = ['circle', 'square', 'triangle'];
+            shapesDiv.innerHTML = shapeTypes.map(type => {
+                const shape = detailedAnalysis.enrollment.shapes.find(s => s.shape_type === type);
+                return shape ? `
+                    <div style="display: inline-block; margin-right: 10px;">
+                        <canvas class="signature-canvas" width="60" height="60" id="shape_${type}"></canvas>
+                        <p style="font-size: 11px; text-align: center; margin-top: 5px;">${type}</p>
+                    </div>
+                ` : '';
+            }).join('');
+            
+            // Draw shapes
+            shapeTypes.forEach(type => {
+                const shape = detailedAnalysis.enrollment.shapes.find(s => s.shape_type === type);
+                if (shape) {
+                    const canvas = document.getElementById(`shape_${type}`);
+                    if (canvas) {
+                        const shapeData = typeof shape.shape_data === 'string' ? 
+                            JSON.parse(shape.shape_data) : shape.shape_data;
+                        drawSignature(canvas, shapeData);
+                    }
+                }
+            });
+            
+            // Update drawings
+            const drawingsDiv = document.getElementById('enrollmentDrawings');
+            const drawingTypes = ['face', 'star', 'house', 'connect_dots'];
+            
+            if (detailedAnalysis.enrollment.drawings.length > 0) {
+                drawingsDiv.innerHTML = drawingTypes.map(type => {
+                    const drawing = detailedAnalysis.enrollment.drawings.find(d => d.drawing_type === type);
+                    return drawing ? `
+                        <div style="display: inline-block; margin-right: 10px;">
+                            <canvas class="signature-canvas" width="60" height="60" id="drawing_${type}"></canvas>
+                            <p style="font-size: 11px; text-align: center; margin-top: 5px;">${type.replace('_', ' ')}</p>
+                        </div>
+                    ` : '';
+                }).join('');
+                
+                // Draw drawings
+                drawingTypes.forEach(type => {
+                    const drawing = detailedAnalysis.enrollment.drawings.find(d => d.drawing_type === type);
+                    if (drawing) {
+                        const canvas = document.getElementById(`drawing_${type}`);
+                        if (canvas) {
+                            const drawingData = typeof drawing.drawing_data === 'string' ? 
+                                JSON.parse(drawing.drawing_data) : drawing.drawing_data;
+                            drawSignature(canvas, drawingData);
+                        }
+                    }
+                });
+            } else {
+                drawingsDiv.innerHTML = '<p style="font-size: 12px; color: #999;">No drawings enrolled</p>';
+            }
+            
+            // Update device info
+            const deviceDiv = document.getElementById('enrollmentDevice');
+            if (detailedAnalysis.authAttempts.length > 0) {
+                const firstAttempt = detailedAnalysis.authAttempts[detailedAnalysis.authAttempts.length - 1];
+                deviceDiv.innerHTML = `
+                    <p>Device: ${firstAttempt.device.device}</p>
+                    <p>Browser: ${firstAttempt.device.browser}</p>
+                    <p>Input: ${firstAttempt.device.inputMethod}</p>
+                `;
+            }
+        }
+        
+        // Update attempts list
+        function updateAttemptsList() {
+            if (!detailedAnalysis) return;
+            
+            const attemptList = document.getElementById('attemptList');
+            const filterResult = document.getElementById('filterResult').value;
+            const filterDevice = document.getElementById('filterDevice').value;
+            
+            let filteredAttempts = detailedAnalysis.authAttempts;
+            
+            // Apply filters
+            if (filterResult !== 'all') {
+                filteredAttempts = filteredAttempts.filter(a => 
+                    filterResult === 'success' ? a.success : !a.success
+                );
+            }
+            
+            if (filterDevice !== 'all') {
+                filteredAttempts = filteredAttempts.filter(a => 
+                    `${a.device.device}_${a.device.inputMethod}` === filterDevice
+                );
+            }
+            
+            if (filteredAttempts.length === 0) {
+                attemptList.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No attempts found</p>';
+                return;
+            }
+            
+            attemptList.innerHTML = filteredAttempts.map(attempt => {
+                const date = new Date(attempt.created_at);
+                const scoreClass = getScoreClass(attempt.confidence);
+                
+                return `
+                    <div class="attempt-card ${selectedAttempt?.id === attempt.id ? 'selected' : ''}" 
+                         onclick="selectAttempt(${attempt.id})">
+                        <div class="attempt-header">
+                            <div class="attempt-info">
+                                <strong>Attempt #${attempt.id}</strong>
+                                <br>
+                                <span style="font-size: 12px; color: #666;">
+                                    ${date.toLocaleDateString()} ${date.toLocaleTimeString()}
+                                </span>
+                                <br>
+                                <span style="font-size: 12px; color: #666;">
+                                    ${attempt.device.device} • ${attempt.device.browser}
+                                </span>
+                            </div>
+                            <div class="attempt-result">
+                                <span class="result-badge ${attempt.success ? 'success' : 'failed'}">
+                                    ${attempt.success ? 'PASSED' : 'FAILED'}
+                                </span>
+                                <span style="font-size: 20px; font-weight: bold;">
+                                    ${attempt.confidence}%
+                                </span>
+                            </div>
+                        </div>
+                        <div class="score-breakdown">
+                            <div class="score-item ${scoreClass}">
+                                <span class="score-label">Signature</span>
+                                <span class="score-value">${attempt.confidence}%</span>
+                            </div>
+                            ${attempt.drawing_scores ? `
+                                <div class="score-item ${getScoreClass(attempt.drawing_scores.face || 0)}">
+                                    <span class="score-label">Face</span>
+                                    <span class="score-value">${attempt.drawing_scores.face || 'N/A'}</span>
+                                </div>
+                                <div class="score-item ${getScoreClass(attempt.drawing_scores.star || 0)}">
+                                    <span class="score-label">Star</span>
+                                    <span class="score-value">${attempt.drawing_scores.star || 'N/A'}</span>
+                                </div>
+                                <div class="score-item ${getScoreClass(attempt.drawing_scores.house || 0)}">
+                                    <span class="score-label">House</span>
+                                    <span class="score-value">${attempt.drawing_scores.house || 'N/A'}</span>
+                                </div>
+                            ` : '<div class="score-item" style="grid-column: 2 / -1;"><span class="score-label">No drawing scores</span></div>'}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // Select an attempt for detailed analysis
+        async function selectAttempt(attemptId) {
+            selectedAttempt = detailedAnalysis.authAttempts.find(a => a.id === attemptId);
+            if (!selectedAttempt) return;
+            
+            // Update UI
+            updateAttemptsList();
+            
+            // Show component analysis section
+            document.getElementById('componentAnalysis').style.display = 'grid';
+            
+            // Load detailed breakdown
+            try {
+                const response = await fetch(`/api/auth-attempt/${attemptId}/breakdown`);
+                const breakdown = await response.json();
+                
+                updateComponentAnalysis(breakdown);
+                
+            } catch (error) {
+                console.error('Error loading attempt breakdown:', error);
+            }
+        }
+        
+        // Update component analysis
+        function updateComponentAnalysis(breakdown) {
+            // Update signature analysis
+            updateSignatureAnalysis(breakdown);
+            
+            // Update shapes analysis
+            updateShapesAnalysis(breakdown);
+            
+            // Update drawings analysis
+            updateDrawingsAnalysis(breakdown);
+        }
+        
+        // Update signature analysis
+        function updateSignatureAnalysis(breakdown) {
+            // Find best enrollment signature
+            const bestSig = detailedAnalysis.enrollment.signatures.reduce((best, sig) => {
+                const quality = calculateIndividualSignatureQuality(sig);
+                const bestQuality = calculateIndividualSignatureQuality(best);
+                return quality > bestQuality ? sig : best;
+            });
+            
+            // Draw baseline signature
+            const baselineCanvas = document.getElementById('baselineSignatureCanvas');
+            const bestSigData = typeof bestSig.signature_data === 'string' ? 
+                JSON.parse(bestSig.signature_data) : bestSig.signature_data;
+            drawSignature(baselineCanvas, bestSigData);
+            
+            // Draw attempt signature
+            const attemptCanvas = document.getElementById('attemptSignatureCanvas');
+            if (breakdown.signature?.data) {
+                const attemptSigData = typeof breakdown.signature.data === 'string' ? 
+                    JSON.parse(breakdown.signature.data) : breakdown.signature.data;
+                drawSignature(attemptCanvas, attemptSigData);
+            }
+            
+            // Update feature breakdown
+            const featuresDiv = document.getElementById('signatureFeatures');
+            const features = getMLFeatures();
+            
+            featuresDiv.innerHTML = features.map(feature => {
+                const baselineValue = detailedAnalysis.baseline[feature.key] || 0;
+                const attemptValue = breakdown.signature?.metrics?.[feature.key] || 0;
+                const diff = Math.abs(baselineValue - attemptValue);
+                const maxDiff = baselineValue * 0.5; // 50% difference threshold
+                const similarity = Math.max(0, 100 - (diff / maxDiff * 100));
+                
+                return `
+                    <div class="feature-item">
+                        <span class="feature-name">${feature.name}</span>
+                        <div class="feature-comparison">
+                            <span>${attemptValue.toFixed(1)}</span>
+                            <div class="feature-bar">
+                                <div class="feature-bar-fill ${getFeatureClass(similarity)}" 
+                                     style="width: ${similarity}%"></div>
+                            </div>
+                            <span>${baselineValue.toFixed(1)}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // Update shapes analysis
+        function updateShapesAnalysis(breakdown) {
+            const shapesDiv = document.getElementById('shapesAnalysis');
+            // For now, show placeholder
+            shapesDiv.innerHTML = `
+                <p style="text-align: center; color: #666; padding: 20px;">
+                    Shape analysis coming soon
+                </p>
+            `;
+        }
+        
+        // Update drawings analysis
+        function updateDrawingsAnalysis(breakdown) {
+            const drawingsDiv = document.getElementById('drawingsAnalysis');
+            
+            if (breakdown.attempt.drawing_scores) {
+                const scores = breakdown.attempt.drawing_scores;
+                drawingsDiv.innerHTML = `
+                    <div class="score-breakdown" style="margin-top: 10px;">
+                        ${Object.entries(scores).map(([type, score]) => `
+                            <div class="score-item ${getScoreClass(score || 0)}">
+                                <span class="score-label">${type.replace('_', ' ')}</span>
+                                <span class="score-value">${score || 'N/A'}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                drawingsDiv.innerHTML = `
+                    <p style="text-align: center; color: #666; padding: 20px;">
+                        No drawing scores available
+                    </p>
+                `;
+            }
+        }
+        
+        // Update device filters
+        function updateDeviceFilters() {
+            if (!detailedAnalysis) return;
+            
+            const deviceFilter = document.getElementById('filterDevice');
+            const devices = new Set();
+            
+            detailedAnalysis.authAttempts.forEach(attempt => {
+                devices.add(`${attempt.device.device}_${attempt.device.inputMethod}`);
+            });
+            
+            deviceFilter.innerHTML = '<option value="all">All Devices</option>' +
+                Array.from(devices).map(device => {
+                    const [deviceName, inputMethod] = device.split('_');
+                    return `<option value="${device}">${deviceName} (${inputMethod})</option>`;
+                }).join('');
+        }
+        
+        // Update device table
+        function updateDeviceTable(devicePerformance) {
+            const tbody = document.getElementById('deviceTableBody');
+            
+            if (!devicePerformance || devicePerformance.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #666;">No device data</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = devicePerformance.map(device => `
+                <tr>
+                    <td>${device.device} (${device.inputMethod})</td>
+                    <td>${device.attempts}</td>
+                    <td>
+                        <span style="color: ${parseFloat(device.successRate) >= 70 ? '#2E7D32' : '#C62828'}">
+                            ${device.successRate}%
+                        </span>
+                    </td>
+                    <td>${device.avgScore}</td>
+                </tr>
+            `).join('');
+        }
+        
+        // Initialize charts
+        function initializeCharts() {
+            // Score trends chart
+            const scoreTrendsCtx = document.getElementById('scoreTrendsChart').getContext('2d');
+            const attempts = detailedAnalysis.authAttempts.slice().reverse();
+            
+            new Chart(scoreTrendsCtx, {
+                type: 'line',
+                data: {
+                    labels: attempts.map((_, i) => `Attempt ${i + 1}`),
+                    datasets: [{
+                        label: 'Authentication Score',
+                        data: attempts.map(a => a.confidence),
+                        borderColor: '#1976D2',
+                        backgroundColor: 'rgba(25, 118, 210, 0.1)',
+                        tension: 0.3
+                    }, {
+                        label: 'Pass Threshold',
+                        data: attempts.map(() => 50),
+                        borderColor: '#F44336',
+                        borderDash: [5, 5],
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+            
+            // Component performance chart
+            const componentPerfCtx = document.getElementById('componentPerfChart').getContext('2d');
+            const componentData = calculateComponentPerformance();
+            
+            new Chart(componentPerfCtx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(componentData),
+                    datasets: [{
+                        label: 'Average Score',
+                        data: Object.values(componentData),
+                        backgroundColor: [
+                            '#1976D2',
+                            '#7B1FA2',
+                            '#388E3C',
+                            '#F57C00'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Helper functions
+        function drawSignature(canvas, signatureData) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (!signatureData || !signatureData.data) return;
+            
+            const strokes = signatureData.data;
+            const padding = 10;
+            
+            // Find bounds
+            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+            strokes.forEach(stroke => {
+                stroke.forEach(point => {
+                    minX = Math.min(minX, point.x);
+                    maxX = Math.max(maxX, point.x);
+                    minY = Math.min(minY, point.y);
+                    maxY = Math.max(maxY, point.y);
+                });
+            });
+            
+            const width = maxX - minX;
+            const height = maxY - minY;
+            const scale = Math.min(
+                (canvas.width - 2 * padding) / width,
+                (canvas.height - 2 * padding) / height
+            );
+            
+            // Draw strokes
+            ctx.strokeStyle = '#1976D2';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            strokes.forEach(stroke => {
+                ctx.beginPath();
+                stroke.forEach((point, index) => {
+                    const x = (point.x - minX) * scale + padding;
+                    const y = (point.y - minY) * scale + padding;
+                    
+                    if (index === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                });
+                ctx.stroke();
+            });
+        }
+        
+        function calculateSignatureQuality(signatures) {
+            const qualities = signatures.map(sig => calculateIndividualSignatureQuality(sig));
+            return Math.round(qualities.reduce((a, b) => a + b, 0) / qualities.length);
+        }
+        
+        function calculateIndividualSignatureQuality(signature) {
+            if (!signature.metrics) return 50;
+            
+            // Simple quality calculation based on key metrics
+            const metrics = signature.metrics;
+            let quality = 100;
+            
+            // Penalize very short signatures
+            if (metrics.total_points < 50) quality -= 20;
+            if (metrics.total_duration_ms < 500) quality -= 20;
+            
+            // Penalize lack of complexity
+            if (metrics.stroke_count < 3) quality -= 15;
+            
+            // Reward consistency (low variation)
+            if (metrics.velocity_std > 100) quality -= 10;
+            if (metrics.duration_variation > 0.5) quality -= 10;
+            
+            return Math.max(0, Math.min(100, quality));
+        }
+        
+        function getQualityClass(quality) {
+            if (quality >= 80) return 'high';
+            if (quality >= 60) return 'medium';
+            return 'low';
+        }
+        
+        function getScoreClass(score) {
+            if (score >= 70) return 'high';
+            if (score >= 50) return 'medium';
+            return 'low';
+        }
+        
+        function getFeatureClass(similarity) {
+            if (similarity >= 80) return 'good';
+            if (similarity >= 50) return 'warning';
+            return 'bad';
+        }
+        
+        function getMLFeatures() {
+            return [
+                { key: 'stroke_count', name: 'Stroke Count' },
+                { key: 'total_points', name: 'Total Points' },
+                { key: 'total_duration_ms', name: 'Duration (ms)' },
+                { key: 'avg_velocity', name: 'Avg Velocity' },
+                { key: 'max_velocity', name: 'Max Velocity' },
+                { key: 'velocity_std', name: 'Velocity Std Dev' },
+                { key: 'width', name: 'Width' },
+                { key: 'height', name: 'Height' },
+                { key: 'aspect_ratio', name: 'Aspect Ratio' }
+            ];
+        }
+        
+        function calculateComponentPerformance() {
+            const components = {
+                Signature: [],
+                Face: [],
+                Star: [],
+                House: []
+            };
+            
+            detailedAnalysis.authAttempts.forEach(attempt => {
+                components.Signature.push(attempt.confidence);
+                
+                if (attempt.drawing_scores) {
+                    if (attempt.drawing_scores.face !== null) components.Face.push(attempt.drawing_scores.face);
+                    if (attempt.drawing_scores.star !== null) components.Star.push(attempt.drawing_scores.star);
+                    if (attempt.drawing_scores.house !== null) components.House.push(attempt.drawing_scores.house);
+                }
+            });
+            
+            const avgScores = {};
+            Object.entries(components).forEach(([name, scores]) => {
+                if (scores.length > 0) {
+                    avgScores[name] = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+                }
+            });
+            
+            return avgScores;
+        }
+        
+        // Event listeners
+        document.getElementById('filterResult').addEventListener('change', updateAttemptsList);
+        document.getElementById('filterDevice').addEventListener('change', updateAttemptsList);
+        
+        // Initialize on load
+        initDashboard();
+    </script>
+</body>
+</html>
