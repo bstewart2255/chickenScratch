@@ -396,11 +396,13 @@ app.post('/register', async (req, res) => {
         }
         
         // Create user
+        console.log('Creating user in database:', username);
         const userResult = await pool.query(
             'INSERT INTO users (username) VALUES ($1) RETURNING id',
             [username]
         );
         const userId = userResult.rows[0].id;
+        console.log('User created successfully with ID:', userId);
         
         // Save signatures with stroke data
         console.log('Saving signatures with stroke data...');
@@ -410,10 +412,22 @@ app.post('/register', async (req, res) => {
                 // Calculate full ML features
                 const mlFeatures = calculateMLFeatures(signature);
                 
-                // Store using new stroke data storage
-                const result = await storeSignatureWithStrokeData(userId, signature, mlFeatures);
+                // Extract stroke data
+                const strokeData = extractStrokeData(signature);
                 
-                console.log(`✅ Saved signature ${i + 1}/${signatures.length} with stroke data (${result.size} bytes, format: ${result.dataFormat})`);
+                if (!strokeData) {
+                    throw new Error('No valid stroke data found');
+                }
+                
+                // Store signature directly in the transaction
+                // Include both stroke_data and signature_data for backward compatibility
+                const sigResult = await pool.query(`
+                    INSERT INTO signatures (user_id, stroke_data, signature_data, metrics, data_format, created_at)
+                    VALUES ($1, $2, $3, $4, 'stroke_data', NOW())
+                    RETURNING id
+                `, [userId, JSON.stringify(strokeData), JSON.stringify(signature), JSON.stringify(mlFeatures)]);
+                
+                console.log(`✅ Saved signature ${i + 1}/${signatures.length} with stroke data (ID: ${sigResult.rows[0].id}, size: ${JSON.stringify(strokeData).length} bytes)`);
             } catch (sigError) {
                 console.error(`Error saving signature ${i + 1}:`, sigError);
                 throw sigError;
@@ -1007,10 +1021,22 @@ app.post('/login', async (req, res) => {
             // Calculate ML features for the authentication signature
             const mlFeatures = calculateMLFeatures(signature);
             
-            // Save the authentication signature using stroke data storage
-            const result = await storeSignatureWithStrokeData(userId, signature, mlFeatures);
-            authSignatureId = result.signatureId;
-            console.log('Saved auth signature with stroke data - ID:', authSignatureId, 'size:', result.size, 'format:', result.dataFormat);
+            // Extract stroke data
+            const strokeData = extractStrokeData(signature);
+            
+            if (strokeData) {
+                // Save the authentication signature
+                const sigResult = await pool.query(`
+                    INSERT INTO signatures (user_id, stroke_data, signature_data, metrics, data_format, created_at)
+                    VALUES ($1, $2, $3, $4, 'stroke_data', NOW())
+                    RETURNING id
+                `, [userId, JSON.stringify(strokeData), JSON.stringify(signature), JSON.stringify(mlFeatures)]);
+                
+                authSignatureId = sigResult.rows[0].id;
+                console.log('Saved auth signature with stroke data - ID:', authSignatureId, 'size:', JSON.stringify(strokeData).length, 'format: stroke_data');
+            } else {
+                console.warn('No stroke data found for auth signature');
+            }
         } catch (err) {
             console.error('Failed to save auth signature:', err);
         }

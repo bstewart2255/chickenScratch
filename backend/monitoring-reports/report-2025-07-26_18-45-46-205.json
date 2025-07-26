@@ -1,0 +1,195 @@
+{
+  "timestamp": "2025-07-26T18:45:45.413Z",
+  "checks": [
+    {
+      "name": "Data Format Distribution",
+      "status": "passed",
+      "details": {
+        "stroke_data": {
+          "count": 87,
+          "percentage": 98.86
+        },
+        "base64": {
+          "count": 1,
+          "percentage": 1.14
+        }
+      }
+    },
+    {
+      "name": "API Endpoint Health",
+      "status": "failed",
+      "details": [
+        {
+          "endpoint": "Health Check",
+          "error": "",
+          "healthy": false
+        },
+        {
+          "endpoint": "Dashboard Stats",
+          "error": "",
+          "healthy": false
+        },
+        {
+          "endpoint": "Recent Activity",
+          "error": "",
+          "healthy": false
+        }
+      ]
+    },
+    {
+      "name": "Recent Signatures Format",
+      "status": "passed",
+      "details": {
+        "total": 9,
+        "strokeData": 9,
+        "strokeDataPercent": 100
+      }
+    },
+    {
+      "name": "Data Integrity Check",
+      "status": "passed",
+      "details": {
+        "issues": {
+          "missing_stroke_data": 0,
+          "invalid_stroke_format": 0,
+          "missing_base64_data": 0,
+          "valid": 88
+        },
+        "largeSignatures": 0
+      }
+    },
+    {
+      "name": "Storage Usage Trends",
+      "status": "passed",
+      "details": {
+        "totalSignatures": 88,
+        "strokeDataMB": "0.24",
+        "base64DataMB": "3.33",
+        "totalMB": "3.56",
+        "tableSizes": [
+          {
+            "schemaname": "public",
+            "tablename": "signatures",
+            "size": "7656 kB"
+          },
+          {
+            "schemaname": "public",
+            "tablename": "auth_attempts",
+            "size": "96 kB"
+          },
+          {
+            "schemaname": "public",
+            "tablename": "users",
+            "size": "56 kB"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Error Rate Monitoring",
+      "status": "passed",
+      "details": {
+        "hourly": {
+          "failures": 0,
+          "total": 0,
+          "errorRate": 0
+        }
+      }
+    }
+  ],
+  "alerts": [
+    {
+      "severity": "critical",
+      "title": "API Endpoint Down",
+      "message": "Health Check is not accessible",
+      "details": {
+        "endpoint": "Health Check",
+        "error": "",
+        "healthy": false
+      },
+      "timestamp": "2025-07-26T18:45:45.843Z"
+    },
+    {
+      "severity": "critical",
+      "title": "API Endpoint Down",
+      "message": "Dashboard Stats is not accessible",
+      "details": {
+        "endpoint": "Dashboard Stats",
+        "error": "",
+        "healthy": false
+      },
+      "timestamp": "2025-07-26T18:45:45.846Z"
+    }
+  ],
+  "metrics": {
+    "dataFormats": {
+      "stroke_data": {
+        "count": 87,
+        "percentage": 98.86
+      },
+      "base64": {
+        "count": 1,
+        "percentage": 1.14
+      }
+    },
+    "apiEndpoints": [
+      {
+        "endpoint": "Health Check",
+        "error": "",
+        "healthy": false
+      },
+      {
+        "endpoint": "Dashboard Stats",
+        "error": "",
+        "healthy": false
+      },
+      {
+        "endpoint": "Recent Activity",
+        "error": "",
+        "healthy": false
+      }
+    ],
+    "recentSignatures": {
+      "total": 9,
+      "strokeData": 9,
+      "strokeDataPercent": 100
+    },
+    "dataIntegrity": {
+      "missing_stroke_data": 0,
+      "invalid_stroke_format": 0,
+      "missing_base64_data": 0,
+      "valid": 88
+    },
+    "storage": {
+      "totalSignatures": 88,
+      "strokeDataMB": "0.24",
+      "base64DataMB": "3.33",
+      "totalMB": "3.56",
+      "tableSizes": [
+        {
+          "schemaname": "public",
+          "tablename": "signatures",
+          "size": "7656 kB"
+        },
+        {
+          "schemaname": "public",
+          "tablename": "auth_attempts",
+          "size": "96 kB"
+        },
+        {
+          "schemaname": "public",
+          "tablename": "users",
+          "size": "56 kB"
+        }
+      ]
+    },
+    "errorRates": {
+      "hourly": {
+        "failures": 0,
+        "total": 0,
+        "errorRate": 0
+      }
+    }
+  },
+  "healthy": false
+}
