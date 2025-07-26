@@ -412,11 +412,49 @@
             border-radius: 8px;
             padding: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-height: 500px;
+            display: flex;
+            flex-direction: column;
         }
         
         .analytics-card h3 {
             font-size: 16px;
             margin-bottom: 15px;
+            flex-shrink: 0;
+        }
+        
+        /* Content wrapper for scrolling */
+        .analytics-card-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 8px;
+        }
+        
+        /* Custom scrollbar styling */
+        .analytics-card-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .analytics-card-content::-webkit-scrollbar-track {
+            background: #f0f0f0;
+            border-radius: 4px;
+        }
+        
+        .analytics-card-content::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        
+        .analytics-card-content::-webkit-scrollbar-thumb:hover {
+            background: #999;
+        }
+        
+        /* Firefox scrollbar */
+        .analytics-card-content {
+            scrollbar-width: thin;
+            scrollbar-color: #ccc #f0f0f0;
         }
         
         /* Device Performance Table */
@@ -431,6 +469,10 @@
             border-bottom: 2px solid #e0e0e0;
             color: #666;
             font-weight: 600;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
         }
         
         .device-table td {
@@ -440,6 +482,13 @@
         
         .device-table tr:hover {
             background: #f5f5f5;
+        }
+        
+        /* Chart containers for proper scrolling */
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
         }
         
         /* Loading States */
@@ -481,6 +530,27 @@
             
             .analytics-section {
                 grid-template-columns: 1fr;
+            }
+            
+            /* Adjust card height for mobile */
+            .analytics-card {
+                max-height: 400px;
+            }
+            
+            /* Adjust chart height for mobile */
+            .chart-container {
+                height: 300px;
+            }
+        }
+        
+        /* Tablet adjustments */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .analytics-card {
+                max-height: 450px;
+            }
+            
+            .chart-container {
+                height: 350px;
             }
         }
     </style>
@@ -622,33 +692,43 @@
             <!-- Device Performance -->
             <div class="analytics-card">
                 <h3>Device Performance</h3>
-                <table class="device-table" id="deviceTable">
-                    <thead>
-                        <tr>
-                            <th>Device</th>
-                            <th>Attempts</th>
-                            <th>Success Rate</th>
-                            <th>Avg Score</th>
-                        </tr>
-                    </thead>
-                    <tbody id="deviceTableBody">
-                        <tr>
-                            <td colspan="4" style="text-align: center; color: #666;">Loading...</td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="analytics-card-content">
+                    <table class="device-table" id="deviceTable">
+                        <thead>
+                            <tr>
+                                <th>Device</th>
+                                <th>Attempts</th>
+                                <th>Success Rate</th>
+                                <th>Avg Score</th>
+                            </tr>
+                        </thead>
+                        <tbody id="deviceTableBody">
+                            <tr>
+                                <td colspan="4" style="text-align: center; color: #666;">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
             
             <!-- Score Trends -->
             <div class="analytics-card">
                 <h3>Score Trends</h3>
-                <canvas id="scoreTrendsChart" width="400" height="200"></canvas>
+                <div class="analytics-card-content">
+                    <div class="chart-container">
+                        <canvas id="scoreTrendsChart"></canvas>
+                    </div>
+                </div>
             </div>
             
             <!-- Component Performance -->
             <div class="analytics-card">
                 <h3>Component Performance</h3>
-                <canvas id="componentPerfChart" width="400" height="200"></canvas>
+                <div class="analytics-card-content">
+                    <div class="chart-container">
+                        <canvas id="componentPerfChart"></canvas>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
