@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const { Pool } = require('pg');
+const { storeSignatureWithStrokeData, getSignatureData, extractStrokeData } = require('./update_to_stroke_storage');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -364,24 +365,18 @@ app.post('/register', async (req, res) => {
         );
         const userId = userResult.rows[0].id;
         
-        // Save signatures (multiple samples)
-        console.log('Saving signatures...');
+        // Save signatures with stroke data
+        console.log('Saving signatures with stroke data...');
         for (let i = 0; i < signatures.length; i++) {
             const signature = signatures[i];
             try {
                 // Calculate full ML features
                 const mlFeatures = calculateMLFeatures(signature);
                 
-                await pool.query(
-                    'INSERT INTO signatures (user_id, signature_data, features, metrics) VALUES ($1, $2, $3, $4)',
-                    [
-                        userId, 
-                        JSON.stringify(signature), 
-                        JSON.stringify(extractSignatureFeatures(signature.data)),
-                        JSON.stringify(mlFeatures)  // Store calculated ML features
-                    ]
-                );
-                console.log(`✅ Saved signature ${i + 1}/${signatures.length} with ${Object.keys(mlFeatures).length} ML features`);
+                // Store using new stroke data storage
+                const result = await storeSignatureWithStrokeData(userId, signature, mlFeatures);
+                
+                console.log(`✅ Saved signature ${i + 1}/${signatures.length} with stroke data (${result.size} bytes, format: ${result.dataFormat})`);
             } catch (sigError) {
                 console.error(`Error saving signature ${i + 1}:`, sigError);
                 throw sigError;
@@ -924,25 +919,16 @@ app.post('/login', async (req, res) => {
         
         const isSuccess = averageScore >= threshold;
         
-        // Save authentication signature with ML features for tracking
+        // Save authentication signature with stroke data for tracking
         let authSignatureId = null;
         try {
             // Calculate ML features for the authentication signature
             const mlFeatures = calculateMLFeatures(signature);
             
-            // Save the authentication signature
-            const sigResult = await pool.query(
-                'INSERT INTO signatures (user_id, signature_data, features, metrics) VALUES ($1, $2, $3, $4) RETURNING id, created_at',
-                [
-                    userId,
-                    JSON.stringify(signature),
-                    JSON.stringify(extractSignatureFeatures(signature.data)),
-                    JSON.stringify(mlFeatures)
-                ]
-            );
-            authSignatureId = sigResult.rows[0].id;
-            const sigCreatedAt = sigResult.rows[0].created_at;
-            console.log('Saved auth signature with ID:', authSignatureId, 'at:', sigCreatedAt);
+            // Save the authentication signature using stroke data storage
+            const result = await storeSignatureWithStrokeData(userId, signature, mlFeatures);
+            authSignatureId = result.signatureId;
+            console.log('Saved auth signature with stroke data - ID:', authSignatureId, 'size:', result.size, 'format:', result.dataFormat);
         } catch (err) {
             console.error('Failed to save auth signature:', err);
         }
@@ -2077,6 +2063,80 @@ function parseUserAgent(userAgent) {
     
     return { device, browser, inputMethod };
 }
+
+// New endpoint to retrieve signature data with stroke data support
+app.get('/api/signature/:id', async (req, res) => {
+    try {
+        const signatureId = parseInt(req.params.id);
+        
+        if (isNaN(signatureId)) {
+            return res.status(400).json({ error: 'Invalid signature ID' });
+        }
+        
+        const signatureData = await getSignatureData(signatureId);
+        
+        if (!signatureData) {
+            return res.status(404).json({ error: 'Signature not found' });
+        }
+        
+        res.json({
+            success: true,
+            signatureId: signatureId,
+            data: signatureData.data,
+            format: signatureData.format,
+            type: signatureData.type
+        });
+        
+    } catch (error) {
+        console.error('Error retrieving signature:', error);
+        res.status(500).json({ error: 'Failed to retrieve signature' });
+    }
+});
+
+// Endpoint to generate image from stroke data
+app.get('/api/signature/:id/image', async (req, res) => {
+    try {
+        const signatureId = parseInt(req.params.id);
+        
+        if (isNaN(signatureId)) {
+            return res.status(400).json({ error: 'Invalid signature ID' });
+        }
+        
+        const signatureData = await getSignatureData(signatureId);
+        
+        if (!signatureData) {
+            return res.status(404).json({ error: 'Signature not found' });
+        }
+        
+        if (signatureData.type === 'stroke_data') {
+            // Generate image from stroke data
+            const { generateImageFromStrokes } = require('./stroke-to-image');
+            const imageData = generateImageFromStrokes(signatureData.data, {
+                width: 400,
+                height: 200,
+                strokeColor: '#000',
+                strokeWidth: 2
+            });
+            
+            res.json({ 
+                success: true,
+                image: imageData,
+                format: 'generated_from_stroke_data'
+            });
+        } else {
+            // Return existing base64 data
+            res.json({ 
+                success: true,
+                image: signatureData.data,
+                format: 'base64'
+            });
+        }
+        
+    } catch (error) {
+        console.error('Error generating signature image:', error);
+        res.status(500).json({ error: 'Failed to generate signature image' });
+    }
+});
 
 // Global error handler - must be last middleware
 app.use((err, req, res, next) => {
