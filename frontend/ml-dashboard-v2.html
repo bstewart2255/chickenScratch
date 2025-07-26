@@ -74,8 +74,9 @@
         /* Main Layout */
         .main-content {
             display: grid;
-            grid-template-columns: 350px 1fr;
+            grid-template-columns: 380px 1fr;
             gap: 20px;
+            align-items: start;
         }
         
         /* Enrollment Baseline */
@@ -84,6 +85,9 @@
             border-radius: 8px;
             padding: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            width: 100%;
+            min-width: 0;
+            overflow: hidden; /* Prevent content overflow */
         }
         
         .enrollment-section h2 {
@@ -105,14 +109,18 @@
         
         .signature-preview {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             margin-bottom: 10px;
+            flex-wrap: wrap;
         }
         
         .signature-canvas {
             border: 1px solid #ddd;
             border-radius: 4px;
             background: #fafafa;
+            flex: 1;
+            min-width: 80px;
+            max-width: 100px;
         }
         
         .quality-score {
@@ -144,6 +152,9 @@
             border-radius: 8px;
             padding: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            width: 100%;
+            min-width: 0;
+            overflow: hidden; /* Prevent content overflow */
         }
         
         .attempts-header {
@@ -519,6 +530,19 @@
         }
         
         /* Responsive */
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 320px 1fr;
+            }
+        }
+        
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+        }
+        
         @media (max-width: 768px) {
             .main-content {
                 grid-template-columns: 1fr;
