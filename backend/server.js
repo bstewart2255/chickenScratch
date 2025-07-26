@@ -880,36 +880,47 @@ app.post('/login', async (req, res) => {
                 // Use a consistent formula based on signature performance
                 const baseScore = signatureScore;
                 
+                // Define which components are part of the current authentication flow
+                // Based on the frontend signInSteps configuration
+                const authFlowShapes = ['circle', 'square', 'triangle'];
+                const authFlowDrawings = ['face', 'star'];
+                
                 // Shape scores tend to be slightly higher than signature scores
                 // due to their simpler geometric nature
+                // Only estimate scores for shapes that are part of the auth flow
                 hasEnrolledShapes.rows.forEach(row => {
-                    let shapeScore = baseScore;
-                    if (row.shape_type === 'circle') {
-                        shapeScore = baseScore * 1.1; // Circles are easiest
-                    } else if (row.shape_type === 'square') {
-                        shapeScore = baseScore * 0.95; // Squares are moderate
-                    } else if (row.shape_type === 'triangle') {
-                        shapeScore = baseScore * 0.9; // Triangles are hardest
+                    // Only include shapes that are part of the current authentication flow
+                    if (authFlowShapes.includes(row.shape_type)) {
+                        let shapeScore = baseScore;
+                        if (row.shape_type === 'circle') {
+                            shapeScore = baseScore * 1.1; // Circles are easiest
+                        } else if (row.shape_type === 'square') {
+                            shapeScore = baseScore * 0.95; // Squares are moderate
+                        } else if (row.shape_type === 'triangle') {
+                            shapeScore = baseScore * 0.9; // Triangles are hardest
+                        }
+                        scores[row.shape_type] = Math.round(Math.max(0, Math.min(100, shapeScore)));
                     }
-                    scores[row.shape_type] = Math.round(Math.max(0, Math.min(100, shapeScore)));
                 });
                 
                 // Drawing scores tend to be lower due to complexity
+                // Only estimate scores for drawings that are part of the auth flow
                 hasEnrolledDrawings.rows.forEach(row => {
-                    let drawingScore = baseScore;
-                    if (row.drawing_type === 'star') {
-                        drawingScore = baseScore * 0.85; // Stars have consistent patterns
-                    } else if (row.drawing_type === 'face') {
-                        drawingScore = baseScore * 0.8; // Faces vary more
-                    } else if (row.drawing_type === 'house') {
-                        drawingScore = baseScore * 0.82; // Houses are structured
-                    } else if (row.drawing_type === 'connect_dots') {
-                        drawingScore = baseScore * 0.88; // Dots follow a pattern
+                    // Only include drawings that are part of the current authentication flow
+                    if (authFlowDrawings.includes(row.drawing_type)) {
+                        let drawingScore = baseScore;
+                        if (row.drawing_type === 'star') {
+                            drawingScore = baseScore * 0.85; // Stars have consistent patterns
+                        } else if (row.drawing_type === 'face') {
+                            drawingScore = baseScore * 0.8; // Faces vary more
+                        }
+                        // Note: house and connect_dots are not part of the current auth flow
+                        // so they won't get estimated scores
+                        scores[row.drawing_type] = Math.round(Math.max(0, Math.min(100, drawingScore)));
                     }
-                    scores[row.drawing_type] = Math.round(Math.max(0, Math.min(100, drawingScore)));
                 });
                 
-                console.log('Generated estimated component scores for dashboard:', scores);
+                console.log('Generated estimated component scores for dashboard (filtered to auth flow):', scores);
             }
         }
         
@@ -949,15 +960,20 @@ app.post('/login', async (req, res) => {
             const shapeScores = {};
             const drawingScores = {};
             
-            // Extract shape scores
-            ['circle', 'square', 'triangle'].forEach(shape => {
+            // Define which components are part of the current authentication flow
+            // Based on the frontend signInSteps configuration
+            const authFlowShapes = ['circle', 'square', 'triangle'];
+            const authFlowDrawings = ['face', 'star'];
+            
+            // Extract shape scores (only for components in auth flow)
+            authFlowShapes.forEach(shape => {
                 if (scores[shape] !== undefined) {
                     shapeScores[shape] = scores[shape];
                 }
             });
             
-            // Extract drawing scores
-            ['face', 'star', 'house', 'connect_dots'].forEach(drawing => {
+            // Extract drawing scores (only for components in auth flow)
+            authFlowDrawings.forEach(drawing => {
                 if (scores[drawing] !== undefined) {
                     drawingScores[drawing] = scores[drawing];
                 }
