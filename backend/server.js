@@ -681,10 +681,19 @@ app.post('/login', async (req, res) => {
         
         // If shapes were provided, verify them
         if (shapes) {
+            console.log('Processing shapes for authentication:', {
+                providedShapes: Object.keys(shapes),
+                hasCircle: !!shapes.circle,
+                hasSquare: !!shapes.square,
+                hasTriangle: !!shapes.triangle
+            });
+            
             const storedShapesResult = await pool.query(
                 'SELECT shape_type, shape_data, metrics FROM shapes WHERE user_id = $1 AND shape_type = ANY($2::text[])',
                 [userId, ['circle', 'square', 'triangle']]
             );
+            
+            console.log('Found stored shapes:', storedShapesResult.rows.map(row => row.shape_type));
             
             const storedShapes = {};
             storedShapesResult.rows.forEach(row => {
@@ -696,6 +705,7 @@ app.post('/login', async (req, res) => {
             
             // Verify each provided shape
             if (shapes.circle && storedShapes.circle) {
+                console.log('Comparing circle shape...');
                 const circleScore = await compareSignatures(
                     storedShapes.circle.data.data, 
                     shapes.circle.data,
@@ -706,9 +716,11 @@ app.post('/login', async (req, res) => {
                 scores.circle = Math.round(circleScore);
                 totalScore += circleScore;
                 scoreCount++;
+                console.log('✅ Circle shape score:', scores.circle);
             }
             
             if (shapes.square && storedShapes.square) {
+                console.log('Comparing square shape...');
                 const squareScore = await compareSignatures(
                     storedShapes.square.data.data, 
                     shapes.square.data,
@@ -719,9 +731,11 @@ app.post('/login', async (req, res) => {
                 scores.square = Math.round(squareScore);
                 totalScore += squareScore;
                 scoreCount++;
+                console.log('✅ Square shape score:', scores.square);
             }
             
             if (shapes.triangle && storedShapes.triangle) {
+                console.log('Comparing triangle shape...');
                 const triangleScore = await compareSignatures(
                     storedShapes.triangle.data.data, 
                     shapes.triangle.data,
@@ -732,17 +746,28 @@ app.post('/login', async (req, res) => {
                 scores.triangle = Math.round(triangleScore);
                 totalScore += triangleScore;
                 scoreCount++;
+                console.log('✅ Triangle shape score:', scores.triangle);
             }
         }
         
         // If drawings were provided, verify them
         if (drawings) {
+            console.log('Processing drawings for authentication:', {
+                providedDrawings: Object.keys(drawings),
+                hasFace: !!drawings.face,
+                hasStar: !!drawings.star,
+                hasHouse: !!drawings.house,
+                hasConnectDots: !!drawings.connect_dots
+            });
+            
             const { compareDrawings } = require('./drawingVerification');
             
             const storedDrawingsResult = await pool.query(
                 'SELECT drawing_type, drawing_data, metrics FROM drawings WHERE user_id = $1',
                 [userId]
             );
+            
+            console.log('Found stored drawings:', storedDrawingsResult.rows.map(row => row.drawing_type));
             
             const storedDrawings = {};
             storedDrawingsResult.rows.forEach(row => {
@@ -754,31 +779,82 @@ app.post('/login', async (req, res) => {
             
             // Compare each drawing type
             if (drawings.face && storedDrawings.face) {
-                const result = await compareDrawings(storedDrawings.face.data, drawings.face, 'face');
-                scores.face = result.score;
-                totalScore += result.score;
-                scoreCount++;
+                try {
+                    console.log('Comparing face drawings:', {
+                        storedData: typeof storedDrawings.face.data,
+                        attemptData: typeof drawings.face,
+                        hasStoredStrokes: !!(storedDrawings.face.data && storedDrawings.face.data.strokes),
+                        hasAttemptStrokes: !!(drawings.face && drawings.face.strokes)
+                    });
+                    
+                    const result = await compareDrawings(storedDrawings.face.data, drawings.face, 'face');
+                    if (result.error) {
+                        console.warn('Face drawing comparison error:', result.error);
+                        scores.face = 0;
+                    } else {
+                        scores.face = result.score;
+                        totalScore += result.score;
+                        scoreCount++;
+                        console.log('✅ Face drawing score:', scores.face);
+                    }
+                } catch (error) {
+                    console.error('Error in face drawing comparison:', error);
+                    scores.face = 0;
+                }
             }
             
             if (drawings.star && storedDrawings.star) {
-                const result = await compareDrawings(storedDrawings.star.data, drawings.star, 'star');
-                scores.star = result.score;
-                totalScore += result.score;
-                scoreCount++;
+                try {
+                    const result = await compareDrawings(storedDrawings.star.data, drawings.star, 'star');
+                    if (result.error) {
+                        console.warn('Star drawing comparison error:', result.error);
+                        scores.star = 0;
+                    } else {
+                        scores.star = result.score;
+                        totalScore += result.score;
+                        scoreCount++;
+                        console.log('✅ Star drawing score:', scores.star);
+                    }
+                } catch (error) {
+                    console.error('Error in star drawing comparison:', error);
+                    scores.star = 0;
+                }
             }
             
             if (drawings.house && storedDrawings.house) {
-                const result = await compareDrawings(storedDrawings.house.data, drawings.house, 'house');
-                scores.house = result.score;
-                totalScore += result.score;
-                scoreCount++;
+                try {
+                    const result = await compareDrawings(storedDrawings.house.data, drawings.house, 'house');
+                    if (result.error) {
+                        console.warn('House drawing comparison error:', result.error);
+                        scores.house = 0;
+                    } else {
+                        scores.house = result.score;
+                        totalScore += result.score;
+                        scoreCount++;
+                        console.log('✅ House drawing score:', scores.house);
+                    }
+                } catch (error) {
+                    console.error('Error in house drawing comparison:', error);
+                    scores.house = 0;
+                }
             }
             
             if (drawings.connect_dots && storedDrawings.connect_dots) {
-                const result = await compareDrawings(storedDrawings.connect_dots.data, drawings.connect_dots, 'connect_dots');
-                scores.connect_dots = result.score;
-                totalScore += result.score;
-                scoreCount++;
+                try {
+                    const result = await compareDrawings(storedDrawings.connect_dots.data, drawings.connect_dots, 'connect_dots');
+                    if (result.error) {
+                        console.warn('Connect dots drawing comparison error:', result.error);
+                        scores.connect_dots = 0;
+                    } else {
+                        scores.connect_dots = result.score;
+                        totalScore += result.score;
+                        scoreCount++;
+                        console.log('✅ Connect dots drawing score:', scores.connect_dots);
+                    }
+                } catch (error) {
+                    console.error('Error in connect dots drawing comparison:', error);
+                    scores.connect_dots = 0;
+                }
             }
         }
         
@@ -893,11 +969,23 @@ app.post('/login', async (req, res) => {
                 ...(Object.keys(drawingScores).length > 0 ? drawingScores : {})
             };
             
+            console.log('Saving authentication attempt:', {
+                userId,
+                success: isSuccess,
+                confidence: averageScore,
+                signatureId: authSignatureId,
+                componentScores: Object.keys(componentScores),
+                shapeScores: Object.keys(shapeScores),
+                drawingScores: Object.keys(drawingScores)
+            });
+            
             await pool.query(
                 'INSERT INTO auth_attempts (user_id, success, confidence, device_info, signature_id, drawing_scores) VALUES ($1, $2, $3, $4, $5, $6)',
                 [userId, isSuccess, averageScore, req.headers['user-agent'] || 'Unknown', authSignatureId, 
                  Object.keys(componentScores).length > 0 ? JSON.stringify(componentScores) : null]
             );
+            
+            console.log('✅ Authentication attempt saved successfully');
         } catch (err) {
             console.error('Failed to record auth attempt:', err);
         }

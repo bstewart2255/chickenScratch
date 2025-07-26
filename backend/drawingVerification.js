@@ -27,22 +27,44 @@ function extractKeyPoints(strokes) {
 // Compare face drawings
 async function compareFaceDrawings(storedFace, attemptFace) {
     try {
-        const storedPoints = extractKeyPoints(storedFace.strokes || []);
-        const attemptPoints = extractKeyPoints(attemptFace.strokes || []);
+        // Ensure both objects have strokes property
+        if (!storedFace || !attemptFace) {
+            console.warn('Missing face drawing data:', { storedFace: !!storedFace, attemptFace: !!attemptFace });
+            return { score: 0, error: 'Missing face drawing data' };
+        }
+
+        // Handle different data structures
+        const storedStrokes = storedFace.strokes || storedFace.raw || [];
+        const attemptStrokes = attemptFace.strokes || attemptFace.raw || [];
+
+        if (!Array.isArray(storedStrokes) || !Array.isArray(attemptStrokes)) {
+            console.warn('Invalid strokes data:', { 
+                storedStrokesType: typeof storedStrokes, 
+                attemptStrokesType: typeof attemptStrokes 
+            });
+            return { score: 0, error: 'Invalid strokes data format' };
+        }
+
+        const storedPoints = extractKeyPoints(storedStrokes);
+        const attemptPoints = extractKeyPoints(attemptStrokes);
         
-        // Basic metrics
-        const strokeCountScore = 1 - Math.abs(storedFace.strokes.length - attemptFace.strokes.length) / Math.max(storedFace.strokes.length, attemptFace.strokes.length);
-        const pointCountScore = 1 - Math.abs(storedPoints.length - attemptPoints.length) / Math.max(storedPoints.length, attemptPoints.length);
+        // Basic metrics with safety checks
+        const strokeCountScore = storedStrokes.length === 0 || attemptStrokes.length === 0 ? 0 :
+            1 - Math.abs(storedStrokes.length - attemptStrokes.length) / Math.max(storedStrokes.length, attemptStrokes.length);
+        
+        const pointCountScore = storedPoints.length === 0 || attemptPoints.length === 0 ? 0 :
+            1 - Math.abs(storedPoints.length - attemptPoints.length) / Math.max(storedPoints.length, attemptPoints.length);
         
         // Bounding box comparison
         const storedBounds = calculateBoundingBox(storedPoints);
         const attemptBounds = calculateBoundingBox(attemptPoints);
-        const sizeScore = 1 - Math.abs((storedBounds.width * storedBounds.height) - (attemptBounds.width * attemptBounds.height)) / 
-                              Math.max(storedBounds.width * storedBounds.height, attemptBounds.width * attemptBounds.height);
+        const sizeScore = storedBounds.width === 0 || attemptBounds.width === 0 ? 0 :
+            1 - Math.abs((storedBounds.width * storedBounds.height) - (attemptBounds.width * attemptBounds.height)) / 
+                Math.max(storedBounds.width * storedBounds.height, attemptBounds.width * attemptBounds.height);
         
         // Feature detection (simplified - checks for eye-like and mouth-like patterns)
-        const storedFeatures = detectFaceFeatures(storedFace.strokes);
-        const attemptFeatures = detectFaceFeatures(attemptFace.strokes);
+        const storedFeatures = detectFaceFeatures(storedStrokes);
+        const attemptFeatures = detectFaceFeatures(attemptStrokes);
         const featureScore = compareFeatures(storedFeatures, attemptFeatures);
         
         // Weighted average
@@ -51,7 +73,7 @@ async function compareFaceDrawings(storedFace, attemptFace) {
         return {
             score: Math.round(score),
             details: {
-                strokeCount: { stored: storedFace.strokes.length, attempt: attemptFace.strokes.length },
+                strokeCount: { stored: storedStrokes.length, attempt: attemptStrokes.length },
                 pointCount: { stored: storedPoints.length, attempt: attemptPoints.length },
                 features: { stored: storedFeatures, attempt: attemptFeatures }
             }
