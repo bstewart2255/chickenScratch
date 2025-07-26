@@ -4,7 +4,10 @@
   "main": "index.js",
   "scripts": {
     "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node run-all-tests.js",
+    "test:parallel": "node run-all-tests.js --parallel",
+    "test:validation": "node run-all-tests.js --category=validation",
+    "test:performance": "node run-all-tests.js --category=performance",
     "setup-db": "node setupDatabase.js",
     "update-db": "node updateDatabase.js",
     "verify-metrics": "node verifyMetrics.js",

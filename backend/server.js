@@ -91,6 +91,43 @@ app.get('/', (req, res) => {
     res.send('Signature Authentication API is running!');
 });
 
+// Basic health check
+app.get('/health', (req, res) => {
+    res.json({ 
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        service: 'signature-auth-backend'
+    });
+});
+
+// API health check
+app.get('/api/health', (req, res) => {
+    res.json({ 
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        service: 'signature-auth-backend'
+    });
+});
+
+// Dashboard stats (for monitor)
+app.get('/api/dashboard/stats', (req, res) => {
+    res.json({ 
+        status: 'available',
+        total_users: 0,  // You can make this dynamic later
+        total_signatures: 0,
+        timestamp: new Date().toISOString()
+    });
+});
+
+// Recent activity (for monitor)
+app.get('/api/recent-activity', (req, res) => {
+    res.json({ 
+        activities: [],
+        status: 'available',
+        timestamp: new Date().toISOString()
+    });
+});
+
 // Temporary storage for step-by-step drawing data
 // In production, consider using Redis or a temporary table
 const temporaryDrawingStorage = new Map();
