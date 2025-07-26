@@ -1743,15 +1743,13 @@ app.delete('/api/temp-drawings/:username', async (req, res) => {
     }
 });
 
-// User-specific detailed analysis endpoint
+// Enhanced detailed-analysis endpoint with proper ML feature extraction
 app.get('/api/user/:username/detailed-analysis', async (req, res) => {
-    const { username } = req.params;
-    
     try {
-        // Get user info
+        // Get user
         const userResult = await pool.query(
-            'SELECT id, username, created_at FROM users WHERE username = $1',
-            [username]
+            'SELECT * FROM users WHERE username = $1',
+            [req.params.username]
         );
         
         if (userResult.rows.length === 0) {
@@ -1759,141 +1757,117 @@ app.get('/api/user/:username/detailed-analysis', async (req, res) => {
         }
         
         const user = userResult.rows[0];
-        const userId = user.id;
         
-        // Get enrollment signatures
-        const enrollmentSignatures = await pool.query(
-            'SELECT id, signature_data, features, metrics, created_at FROM signatures WHERE user_id = $1 ORDER BY created_at ASC LIMIT 3',
-            [userId]
-        );
+        // Get enrollment data (signatures, shapes, drawings)
+        const [signatures, shapes, drawings] = await Promise.all([
+            pool.query('SELECT * FROM signatures WHERE user_id = $1 ORDER BY created_at DESC', [user.id]),
+            pool.query('SELECT * FROM shapes WHERE user_id = $1 ORDER BY created_at DESC', [user.id]),
+            pool.query('SELECT * FROM drawings WHERE user_id = $1 ORDER BY created_at DESC', [user.id]).catch(() => ({ rows: [] }))
+        ]);
         
-        // Get enrollment shapes
-        const enrollmentShapes = await pool.query(
-            'SELECT shape_type, shape_data, metrics, created_at FROM shapes WHERE user_id = $1',
-            [userId]
-        );
+        // Calculate baseline from enrollment signatures
+        const baseline = calculateUserBaseline(signatures.rows);
         
-        // Get enrollment drawings
-        const enrollmentDrawings = await pool.query(
-            'SELECT drawing_type, drawing_data, metrics, created_at FROM drawings WHERE user_id = $1',
-            [userId]
-        );
+        // Get auth attempts with enhanced ML feature extraction
+        const authAttemptsResult = await pool.query(`
+            SELECT 
+                a.id,
+                a.created_at,
+                a.success,
+                a.confidence,
+                a.device_info,
+                a.drawing_scores,
+                a.signature_id,
+                -- Get ML features from the referenced signature
+                s.metrics as signature_metrics
+            FROM auth_attempts a
+            LEFT JOIN signatures s ON a.signature_id = s.id
+            WHERE a.user_id = $1
+            ORDER BY a.created_at DESC
+            LIMIT 50
+        `, [user.id]);
         
-        // Get authentication attempts with detailed scores
-        const authAttempts = await pool.query(
-            `SELECT 
-                a.id, a.success, a.confidence, a.device_info, a.created_at, a.signature_id, a.drawing_scores,
-                s.signature_data, s.metrics as signature_metrics
-             FROM auth_attempts a
-             LEFT JOIN signatures s ON a.signature_id = s.id
-             WHERE a.user_id = $1
-             ORDER BY a.created_at DESC
-             LIMIT 50`,
-            [userId]
-        );
-        
-        // Calculate baseline metrics
-        const baseline = calculateUserBaseline(enrollmentSignatures.rows);
-        
-        // Parse and enhance auth attempts
-        const enhancedAuthAttempts = authAttempts.rows.map(attempt => {
-            const deviceInfo = parseUserAgent(attempt.device_info);
+        // Process auth attempts to include ML features
+        const enhancedAuthAttempts = authAttemptsResult.rows.map(attempt => {
+            // Extract ML features from signature metrics
+            const mlFeatures = attempt.signature_metrics || {};
             
-            // Parse component scores (shapes and drawings are combined in drawing_scores column)
-            let shapeScores = null;
-            let drawingScores = null;
-            
-            if (attempt.drawing_scores) {
-                const allScores = attempt.drawing_scores;
-                
-                // Separate shape scores from drawing scores
-                shapeScores = {};
-                drawingScores = {};
-                
-                ['circle', 'square', 'triangle'].forEach(shape => {
-                    if (allScores[shape] !== undefined) {
-                        shapeScores[shape] = allScores[shape];
-                    }
-                });
-                
-                ['face', 'star', 'house', 'connect_dots'].forEach(drawing => {
-                    if (allScores[drawing] !== undefined) {
-                        drawingScores[drawing] = allScores[drawing];
-                    }
-                });
-                
-                // Clean up empty objects
-                if (Object.keys(shapeScores).length === 0) shapeScores = null;
-                if (Object.keys(drawingScores).length === 0) drawingScores = null;
-            }
-            
+            // Format the attempt with all expected fields
             return {
                 id: attempt.id,
+                created_at: attempt.created_at,
                 success: attempt.success,
                 confidence: attempt.confidence,
-                device: deviceInfo,
-                created_at: attempt.created_at,
+                authentication_result: attempt.success ? 'success' : 'failed',
+                device_info: attempt.device_info,
+                drawing_scores: attempt.drawing_scores,
                 signature_id: attempt.signature_id,
-                shape_scores: shapeScores,
-                drawing_scores: drawingScores,
-                signature_metrics: attempt.signature_metrics
+                
+                // Add all ML features from signature metrics
+                ...mlFeatures,
+                
+                // Add shape scores (extracted from confidence if not separate)
+                shape_scores: extractShapeScores(attempt),
+                
+                // Ensure all expected ML features exist with fallback values
+                stroke_count: mlFeatures.stroke_count || null,
+                total_points: mlFeatures.total_points || null,
+                total_duration_ms: mlFeatures.total_duration_ms || null,
+                avg_velocity: mlFeatures.avg_velocity || null,
+                max_velocity: mlFeatures.max_velocity || null,
+                min_velocity: mlFeatures.min_velocity || null,
+                velocity_std: mlFeatures.velocity_std || null,
+                width: mlFeatures.width || null,
+                height: mlFeatures.height || null,
+                area: mlFeatures.area || null,
+                aspect_ratio: mlFeatures.aspect_ratio || null,
+                center_x: mlFeatures.center_x || null,
+                center_y: mlFeatures.center_y || null,
+                avg_stroke_length: mlFeatures.avg_stroke_length || null,
+                total_length: mlFeatures.total_length || null,
+                length_variation: mlFeatures.length_variation || null,
+                avg_stroke_duration: mlFeatures.avg_stroke_duration || null,
+                duration_variation: mlFeatures.duration_variation || null,
+                avg_points_per_stroke: mlFeatures.avg_points_per_stroke || null,
+                
+                // Additional metrics the dashboard expects
+                avg_pressure: mlFeatures.avg_pressure || null,
+                pause_count: mlFeatures.pause_count || null,
+                direction_changes: mlFeatures.direction_changes || null
             };
         });
         
-        // Calculate device performance
-        const devicePerformance = {};
-        enhancedAuthAttempts.forEach(attempt => {
-            const deviceKey = `${attempt.device.device}_${attempt.device.inputMethod}`;
-            if (!devicePerformance[deviceKey]) {
-                devicePerformance[deviceKey] = {
-                    device: attempt.device.device,
-                    inputMethod: attempt.device.inputMethod,
-                    attempts: 0,
-                    successes: 0,
-                    totalScore: 0
-                };
-            }
-            devicePerformance[deviceKey].attempts++;
-            if (attempt.success) devicePerformance[deviceKey].successes++;
-            devicePerformance[deviceKey].totalScore += attempt.confidence;
-        });
-        
-        // Process enrollment signatures to extract displayable data
-        const processedEnrollmentSignatures = enrollmentSignatures.rows.map(sig => ({
-            ...sig,
-            signature_data: extractDisplayableSignatureData(sig.signature_data)
-        }));
-        
-        // Process enrollment shapes to extract displayable data
-        const processedEnrollmentShapes = enrollmentShapes.rows.map(shape => ({
-            ...shape,
-            shape_data: extractDisplayableSignatureData(shape.shape_data)
-        }));
-        
-        // Process enrollment drawings to extract displayable data
-        const processedEnrollmentDrawings = enrollmentDrawings.rows.map(drawing => ({
-            ...drawing,
-            drawing_data: extractDisplayableSignatureData(drawing.drawing_data)
-        }));
+        // Calculate device performance stats
+        const devicePerformance = calculateDevicePerformance(enhancedAuthAttempts);
         
         res.json({
             user: {
                 id: user.id,
                 username: user.username,
-                enrolled_at: user.created_at
+                created_at: user.created_at
             },
             enrollment: {
-                signatures: processedEnrollmentSignatures,
-                shapes: processedEnrollmentShapes,
-                drawings: processedEnrollmentDrawings
+                signatures: signatures.rows.map(sig => ({
+                    id: sig.id,
+                    created_at: sig.created_at,
+                    metrics: sig.metrics
+                })),
+                shapes: shapes.rows.map(shape => ({
+                    id: shape.id,
+                    shape_type: shape.shape_type,
+                    created_at: shape.created_at,
+                    metrics: shape.metrics
+                })),
+                drawings: drawings.rows.map(drawing => ({
+                    id: drawing.id,
+                    drawing_type: drawing.drawing_type,
+                    created_at: drawing.created_at,
+                    metrics: drawing.metrics
+                }))
             },
             baseline,
             authAttempts: enhancedAuthAttempts,
-            devicePerformance: Object.values(devicePerformance).map(d => ({
-                ...d,
-                successRate: d.attempts > 0 ? (d.successes / d.attempts * 100).toFixed(1) : 0,
-                avgScore: d.attempts > 0 ? (d.totalScore / d.attempts).toFixed(1) : 0
-            }))
+            devicePerformance
         });
         
     } catch (error) {
@@ -2245,6 +2219,71 @@ app.get('/api/signature/:id/image', async (req, res) => {
         res.status(500).json({ error: 'Failed to generate signature image' });
     }
 });
+
+// Helper function to extract shape scores (if stored separately)
+function extractShapeScores(attempt) {
+    // If shape scores are stored in a separate field, return them
+    if (attempt.shape_scores) {
+        return attempt.shape_scores;
+    }
+    
+    // Otherwise, try to derive from drawing_scores or return null
+    if (attempt.drawing_scores) {
+        const { face, star, house, connect_dots, ...shapes } = attempt.drawing_scores;
+        return Object.keys(shapes).length > 0 ? shapes : null;
+    }
+    
+    return null;
+}
+
+// Helper function to calculate device performance
+function calculateDevicePerformance(authAttempts) {
+    const deviceStats = {};
+    
+    authAttempts.forEach(attempt => {
+        if (!attempt.device_info) return;
+        
+        // Extract device type from user agent
+        const deviceType = extractDeviceType(attempt.device_info);
+        
+        if (!deviceStats[deviceType]) {
+            deviceStats[deviceType] = {
+                total: 0,
+                success: 0,
+                totalConfidence: 0
+            };
+        }
+        
+        deviceStats[deviceType].total++;
+        if (attempt.success) {
+            deviceStats[deviceType].success++;
+        }
+        deviceStats[deviceType].totalConfidence += attempt.confidence || 0;
+    });
+    
+    // Convert to array format
+    return Object.entries(deviceStats).map(([device, stats]) => ({
+        device_type: device,
+        total_attempts: stats.total,
+        success_count: stats.success,
+        success_rate: stats.total > 0 ? ((stats.success / stats.total) * 100).toFixed(1) : 0,
+        avg_confidence: stats.total > 0 ? (stats.totalConfidence / stats.total).toFixed(1) : 0
+    }));
+}
+
+// Helper function to extract device type from user agent
+function extractDeviceType(userAgent) {
+    if (!userAgent) return 'Unknown';
+    
+    if (userAgent.includes('iPhone') || userAgent.includes('iPad')) return 'iOS';
+    if (userAgent.includes('Android')) return 'Android';
+    if (userAgent.includes('Mobile')) return 'Mobile';
+    if (userAgent.includes('Chrome')) return 'Desktop Chrome';
+    if (userAgent.includes('Firefox')) return 'Desktop Firefox';
+    if (userAgent.includes('Safari')) return 'Desktop Safari';
+    
+    return 'Desktop';
+}
 
 // Global error handler - must be last middleware
 app.use((err, req, res, next) => {
