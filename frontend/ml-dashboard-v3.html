@@ -463,7 +463,8 @@
         function renderDataTab() {
             if (!currentData) return;
             
-            const { baseline, attempts } = currentData;
+            const { baseline, authAttempts } = currentData;
+            const attempts = authAttempts || [];
             
             let html = `
                 <!-- Baseline Section -->
@@ -812,7 +813,8 @@
         function renderImagesTab() {
             if (!currentData) return;
             
-            const { baseline, attempts, baseline_strokes } = currentData;
+            const { baseline, authAttempts, baseline_strokes } = currentData;
+            const attempts = authAttempts || [];
             
             let html = `
                 <div class="images-layout">
