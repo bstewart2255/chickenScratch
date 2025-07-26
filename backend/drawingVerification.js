@@ -13,7 +13,7 @@ function angle(p1, p2, p3) {
     return Math.acos((a * a + b * b - c * c) / (2 * a * b)) * 180 / Math.PI;
 }
 
-// Extract key points from strokes
+// Extract key points from strokes (expects normalized stroke data)
 function extractKeyPoints(strokes) {
     const points = [];
     
@@ -23,18 +23,23 @@ function extractKeyPoints(strokes) {
     }
     
     strokes.forEach((stroke, strokeIndex) => {
-        if (!Array.isArray(stroke)) {
-            console.warn(`extractKeyPoints: stroke ${strokeIndex} is not an array:`, typeof stroke);
-            return;
+        // After normalization, strokes should be arrays of points
+        if (Array.isArray(stroke)) {
+            stroke.forEach((point, pointIndex) => {
+                if (point && typeof point === 'object' && (point.x !== undefined || point.y !== undefined)) {
+                    points.push(point);
+                } else {
+                    console.warn(`extractKeyPoints: invalid point at stroke ${strokeIndex}, point ${pointIndex}:`, point);
+                }
+            });
         }
-        
-        stroke.forEach((point, pointIndex) => {
-            if (point && typeof point === 'object' && (point.x !== undefined || point.x !== undefined)) {
-                points.push(point);
-            } else {
-                console.warn(`extractKeyPoints: invalid point at stroke ${strokeIndex}, point ${pointIndex}:`, point);
-            }
-        });
+        // Handle case where stroke might be a single point object
+        else if (stroke && typeof stroke === 'object' && (stroke.x !== undefined || stroke.y !== undefined)) {
+            points.push(stroke);
+        }
+        else {
+            console.warn(`extractKeyPoints: stroke ${strokeIndex} has unsupported format:`, typeof stroke, stroke);
+        }
     });
     
     return points;
@@ -50,23 +55,65 @@ async function compareFaceDrawings(storedFace, attemptFace) {
         }
 
         // Handle different data structures
-        const storedStrokes = storedFace.strokes || storedFace.raw || [];
-        const attemptStrokes = attemptFace.strokes || attemptFace.raw || [];
-
-        if (!Array.isArray(storedStrokes) || !Array.isArray(attemptStrokes)) {
-            console.warn('Invalid strokes data:', { 
-                storedStrokesType: typeof storedStrokes, 
-                attemptStrokesType: typeof attemptStrokes 
-            });
-            return { score: 0, error: 'Invalid strokes data format' };
+        let storedStrokes = storedFace.strokes || storedFace.raw || storedFace.data || [];
+        let attemptStrokes = attemptFace.strokes || attemptFace.raw || attemptFace.data || [];
+        
+        // If the data is stored as a string, try to parse it
+        if (typeof storedStrokes === 'string') {
+            try {
+                storedStrokes = JSON.parse(storedStrokes);
+            } catch (e) {
+                console.warn('Failed to parse stored strokes:', e);
+                storedStrokes = [];
+            }
+        }
+        if (typeof attemptStrokes === 'string') {
+            try {
+                attemptStrokes = JSON.parse(attemptStrokes);
+            } catch (e) {
+                console.warn('Failed to parse attempt strokes:', e);
+                attemptStrokes = [];
+            }
+        }
+        
+        // Handle case where strokes might be stored as a JSON string in the database
+        if (Array.isArray(storedStrokes) && storedStrokes.length > 0 && typeof storedStrokes[0] === 'string') {
+            try {
+                storedStrokes = storedStrokes.map(stroke => JSON.parse(stroke));
+            } catch (e) {
+                console.warn('Failed to parse stored stroke strings:', e);
+                storedStrokes = [];
+            }
+        }
+        if (Array.isArray(attemptStrokes) && attemptStrokes.length > 0 && typeof attemptStrokes[0] === 'string') {
+            try {
+                attemptStrokes = attemptStrokes.map(stroke => JSON.parse(stroke));
+            } catch (e) {
+                console.warn('Failed to parse attempt stroke strings:', e);
+                attemptStrokes = [];
+            }
         }
 
-        const storedPoints = extractKeyPoints(storedStrokes);
-        const attemptPoints = extractKeyPoints(attemptStrokes);
+        // Ensure we have valid arrays after parsing
+        if (!Array.isArray(storedStrokes)) {
+            console.warn('Invalid stored strokes data after parsing:', typeof storedStrokes);
+            storedStrokes = [];
+        }
+        if (!Array.isArray(attemptStrokes)) {
+            console.warn('Invalid attempt strokes data after parsing:', typeof attemptStrokes);
+            attemptStrokes = [];
+        }
+
+        // Normalize stroke data to consistent format
+        const normalizedStoredStrokes = normalizeStrokeData(storedStrokes);
+        const normalizedAttemptStrokes = normalizeStrokeData(attemptStrokes);
+        
+        const storedPoints = extractKeyPoints(normalizedStoredStrokes);
+        const attemptPoints = extractKeyPoints(normalizedAttemptStrokes);
         
         // Basic metrics with safety checks
-        const strokeCountScore = storedStrokes.length === 0 || attemptStrokes.length === 0 ? 0 :
-            1 - Math.abs(storedStrokes.length - attemptStrokes.length) / Math.max(storedStrokes.length, attemptStrokes.length);
+        const strokeCountScore = normalizedStoredStrokes.length === 0 || normalizedAttemptStrokes.length === 0 ? 0 :
+            1 - Math.abs(normalizedStoredStrokes.length - normalizedAttemptStrokes.length) / Math.max(normalizedStoredStrokes.length, normalizedAttemptStrokes.length);
         
         const pointCountScore = storedPoints.length === 0 || attemptPoints.length === 0 ? 0 :
             1 - Math.abs(storedPoints.length - attemptPoints.length) / Math.max(storedPoints.length, attemptPoints.length);
@@ -79,8 +126,8 @@ async function compareFaceDrawings(storedFace, attemptFace) {
                 Math.max(storedBounds.width * storedBounds.height, attemptBounds.width * attemptBounds.height);
         
         // Feature detection (simplified - checks for eye-like and mouth-like patterns)
-        const storedFeatures = detectFaceFeatures(storedStrokes);
-        const attemptFeatures = detectFaceFeatures(attemptStrokes);
+        const storedFeatures = detectFaceFeatures(normalizedStoredStrokes);
+        const attemptFeatures = detectFaceFeatures(normalizedAttemptStrokes);
         const featureScore = compareFeatures(storedFeatures, attemptFeatures);
         
         // Weighted average
@@ -89,7 +136,7 @@ async function compareFaceDrawings(storedFace, attemptFace) {
         return {
             score: Math.round(score),
             details: {
-                strokeCount: { stored: storedStrokes.length, attempt: attemptStrokes.length },
+                strokeCount: { stored: normalizedStoredStrokes.length, attempt: normalizedAttemptStrokes.length },
                 pointCount: { stored: storedPoints.length, attempt: attemptPoints.length },
                 features: { stored: storedFeatures, attempt: attemptFeatures }
             }
@@ -110,19 +157,61 @@ async function compareStarDrawings(storedStar, attemptStar) {
         }
 
         // Handle different data structures
-        const storedStrokes = storedStar.strokes || storedStar.raw || [];
-        const attemptStrokes = attemptStar.strokes || attemptStar.raw || [];
-
-        if (!Array.isArray(storedStrokes) || !Array.isArray(attemptStrokes)) {
-            console.warn('Invalid star strokes data:', { 
-                storedStrokesType: typeof storedStrokes, 
-                attemptStrokesType: typeof attemptStrokes 
-            });
-            return { score: 0, error: 'Invalid star strokes data format' };
+        let storedStrokes = storedStar.strokes || storedStar.raw || storedStar.data || [];
+        let attemptStrokes = attemptStar.strokes || attemptStar.raw || attemptStar.data || [];
+        
+        // If the data is stored as a string, try to parse it
+        if (typeof storedStrokes === 'string') {
+            try {
+                storedStrokes = JSON.parse(storedStrokes);
+            } catch (e) {
+                console.warn('Failed to parse stored star strokes:', e);
+                storedStrokes = [];
+            }
+        }
+        if (typeof attemptStrokes === 'string') {
+            try {
+                attemptStrokes = JSON.parse(attemptStrokes);
+            } catch (e) {
+                console.warn('Failed to parse attempt star strokes:', e);
+                attemptStrokes = [];
+            }
+        }
+        
+        // Handle case where strokes might be stored as a JSON string in the database
+        if (Array.isArray(storedStrokes) && storedStrokes.length > 0 && typeof storedStrokes[0] === 'string') {
+            try {
+                storedStrokes = storedStrokes.map(stroke => JSON.parse(stroke));
+            } catch (e) {
+                console.warn('Failed to parse stored star stroke strings:', e);
+                storedStrokes = [];
+            }
+        }
+        if (Array.isArray(attemptStrokes) && attemptStrokes.length > 0 && typeof attemptStrokes[0] === 'string') {
+            try {
+                attemptStrokes = attemptStrokes.map(stroke => JSON.parse(stroke));
+            } catch (e) {
+                console.warn('Failed to parse attempt star stroke strings:', e);
+                attemptStrokes = [];
+            }
         }
 
-        const storedPoints = extractKeyPoints(storedStrokes);
-        const attemptPoints = extractKeyPoints(attemptStrokes);
+        // Ensure we have valid arrays after parsing
+        if (!Array.isArray(storedStrokes)) {
+            console.warn('Invalid stored star strokes data after parsing:', typeof storedStrokes);
+            storedStrokes = [];
+        }
+        if (!Array.isArray(attemptStrokes)) {
+            console.warn('Invalid attempt star strokes data after parsing:', typeof attemptStrokes);
+            attemptStrokes = [];
+        }
+
+        // Normalize stroke data to consistent format
+        const normalizedStoredStrokes = normalizeStrokeData(storedStrokes);
+        const normalizedAttemptStrokes = normalizeStrokeData(attemptStrokes);
+        
+        const storedPoints = extractKeyPoints(normalizedStoredStrokes);
+        const attemptPoints = extractKeyPoints(normalizedAttemptStrokes);
         
         // Detect star points
         const storedStarPoints = detectStarPoints(storedPoints);
@@ -161,8 +250,52 @@ async function compareStarDrawings(storedStar, attemptStar) {
 // Compare house drawings
 async function compareHouseDrawings(storedHouse, attemptHouse) {
     try {
-        const storedComponents = detectHouseComponents(storedHouse.strokes || []);
-        const attemptComponents = detectHouseComponents(attemptHouse.strokes || []);
+        // Handle different data structures
+        let storedStrokes = storedHouse.strokes || storedHouse.raw || storedHouse.data || [];
+        let attemptStrokes = attemptHouse.strokes || attemptHouse.raw || attemptHouse.data || [];
+        
+        // If the data is stored as a string, try to parse it
+        if (typeof storedStrokes === 'string') {
+            try {
+                storedStrokes = JSON.parse(storedStrokes);
+            } catch (e) {
+                console.warn('Failed to parse stored house strokes:', e);
+                storedStrokes = [];
+            }
+        }
+        if (typeof attemptStrokes === 'string') {
+            try {
+                attemptStrokes = JSON.parse(attemptStrokes);
+            } catch (e) {
+                console.warn('Failed to parse attempt house strokes:', e);
+                attemptStrokes = [];
+            }
+        }
+        
+        // Handle case where strokes might be stored as a JSON string in the database
+        if (Array.isArray(storedStrokes) && storedStrokes.length > 0 && typeof storedStrokes[0] === 'string') {
+            try {
+                storedStrokes = storedStrokes.map(stroke => JSON.parse(stroke));
+            } catch (e) {
+                console.warn('Failed to parse stored house stroke strings:', e);
+                storedStrokes = [];
+            }
+        }
+        if (Array.isArray(attemptStrokes) && attemptStrokes.length > 0 && typeof attemptStrokes[0] === 'string') {
+            try {
+                attemptStrokes = attemptStrokes.map(stroke => JSON.parse(stroke));
+            } catch (e) {
+                console.warn('Failed to parse attempt house stroke strings:', e);
+                attemptStrokes = [];
+            }
+        }
+        
+        // Normalize stroke data to consistent format
+        const normalizedStoredStrokes = normalizeStrokeData(storedStrokes);
+        const normalizedAttemptStrokes = normalizeStrokeData(attemptStrokes);
+        
+        const storedComponents = detectHouseComponents(normalizedStoredStrokes);
+        const attemptComponents = detectHouseComponents(normalizedAttemptStrokes);
         
         // Component presence comparison
         const componentScore = compareHouseComponents(storedComponents, attemptComponents);
@@ -173,7 +306,7 @@ async function compareHouseDrawings(storedHouse, attemptHouse) {
         const proportionScore = compareProportions(storedProportions, attemptProportions);
         
         // Structure similarity
-        const structureScore = compareHouseStructure(storedHouse.strokes, attemptHouse.strokes);
+        const structureScore = compareHouseStructure(normalizedStoredStrokes, normalizedAttemptStrokes);
         
         // Weighted average
         const score = (componentScore * 0.4 + proportionScore * 0.3 + structureScore * 0.3) * 100;
@@ -194,8 +327,52 @@ async function compareHouseDrawings(storedHouse, attemptHouse) {
 // Compare connect-dots drawings
 async function compareConnectDotsDrawings(storedDots, attemptDots) {
     try {
-        const storedPath = extractConnectPath(storedDots.strokes || []);
-        const attemptPath = extractConnectPath(attemptDots.strokes || []);
+        // Handle different data structures
+        let storedStrokes = storedDots.strokes || storedDots.raw || storedDots.data || [];
+        let attemptStrokes = attemptDots.strokes || attemptDots.raw || attemptDots.data || [];
+        
+        // If the data is stored as a string, try to parse it
+        if (typeof storedStrokes === 'string') {
+            try {
+                storedStrokes = JSON.parse(storedStrokes);
+            } catch (e) {
+                console.warn('Failed to parse stored dots strokes:', e);
+                storedStrokes = [];
+            }
+        }
+        if (typeof attemptStrokes === 'string') {
+            try {
+                attemptStrokes = JSON.parse(attemptStrokes);
+            } catch (e) {
+                console.warn('Failed to parse attempt dots strokes:', e);
+                attemptStrokes = [];
+            }
+        }
+        
+        // Handle case where strokes might be stored as a JSON string in the database
+        if (Array.isArray(storedStrokes) && storedStrokes.length > 0 && typeof storedStrokes[0] === 'string') {
+            try {
+                storedStrokes = storedStrokes.map(stroke => JSON.parse(stroke));
+            } catch (e) {
+                console.warn('Failed to parse stored dots stroke strings:', e);
+                storedStrokes = [];
+            }
+        }
+        if (Array.isArray(attemptStrokes) && attemptStrokes.length > 0 && typeof attemptStrokes[0] === 'string') {
+            try {
+                attemptStrokes = attemptStrokes.map(stroke => JSON.parse(stroke));
+            } catch (e) {
+                console.warn('Failed to parse attempt dots stroke strings:', e);
+                attemptStrokes = [];
+            }
+        }
+        
+        // Normalize stroke data to consistent format
+        const normalizedStoredStrokes = normalizeStrokeData(storedStrokes);
+        const normalizedAttemptStrokes = normalizeStrokeData(attemptStrokes);
+        
+        const storedPath = extractConnectPath(normalizedStoredStrokes);
+        const attemptPath = extractConnectPath(normalizedAttemptStrokes);
         
         // Path order comparison
         const orderScore = comparePathOrder(storedPath, attemptPath);
@@ -226,6 +403,33 @@ async function compareConnectDotsDrawings(storedDots, attemptDots) {
 
 // Helper functions
 
+// Normalize stroke data to handle different formats
+function normalizeStrokeData(strokes) {
+    if (!Array.isArray(strokes)) {
+        console.warn('normalizeStrokeData: strokes is not an array:', typeof strokes);
+        return [];
+    }
+    
+    return strokes.map((stroke, index) => {
+        // Handle SignaturePad v4 format: stroke is an object with points array
+        if (stroke && typeof stroke === 'object' && stroke.points && Array.isArray(stroke.points)) {
+            return stroke.points;
+        }
+        // Handle legacy format: stroke is directly an array of points
+        else if (Array.isArray(stroke)) {
+            return stroke;
+        }
+        // Handle case where stroke might be a single point object
+        else if (stroke && typeof stroke === 'object' && (stroke.x !== undefined || stroke.y !== undefined)) {
+            return [stroke];
+        }
+        else {
+            console.warn(`normalizeStrokeData: stroke ${index} has unsupported format:`, typeof stroke, stroke);
+            return [];
+        }
+    });
+}
+
 function calculateBoundingBox(points) {
     if (!points || points.length === 0) return { width: 0, height: 0 };
     
@@ -253,10 +457,13 @@ function detectFaceFeatures(strokes) {
     };
     
     strokes.forEach(stroke => {
-        if (isCircularStroke(stroke)) {
-            features.eyeCount++;
-        } else if (isCurvedLine(stroke)) {
-            features.hasMouth = true;
+        // After normalization, strokes should be arrays of points
+        if (Array.isArray(stroke)) {
+            if (isCircularStroke(stroke)) {
+                features.eyeCount++;
+            } else if (isCurvedLine(stroke)) {
+                features.hasMouth = true;
+            }
         }
     });
     
@@ -369,14 +576,17 @@ function detectHouseComponents(strokes) {
     };
     
     strokes.forEach(stroke => {
-        if (isTriangularShape(stroke)) {
-            components.hasRoof = true;
-        } else if (isRectangularShape(stroke)) {
-            const bounds = calculateBoundingBox(stroke);
-            if (bounds.height > bounds.width * 1.5) {
-                components.hasDoor = true;
-            } else {
-                components.windowCount++;
+        // After normalization, strokes should be arrays of points
+        if (Array.isArray(stroke)) {
+            if (isTriangularShape(stroke)) {
+                components.hasRoof = true;
+            } else if (isRectangularShape(stroke)) {
+                const bounds = calculateBoundingBox(stroke);
+                if (bounds.height > bounds.width * 1.5) {
+                    components.hasDoor = true;
+                } else {
+                    components.windowCount++;
+                }
             }
         }
     });
@@ -462,7 +672,8 @@ function extractConnectPath(strokes) {
     // Extract the connection order from strokes
     const path = [];
     strokes.forEach(stroke => {
-        if (stroke.length > 0) {
+        // After normalization, strokes should be arrays of points
+        if (Array.isArray(stroke) && stroke.length > 0) {
             path.push(stroke[0]); // Start point of each stroke
         }
     });
@@ -535,8 +746,36 @@ function normalizeShape(points) {
     }));
 }
 
+// Debug function to log drawing data structure
+function debugDrawingData(drawing, label) {
+    console.log(`=== ${label} Drawing Data ===`);
+    console.log('Type:', typeof drawing);
+    console.log('Keys:', drawing ? Object.keys(drawing) : 'null');
+    
+    if (drawing && drawing.strokes) {
+        console.log('Strokes type:', typeof drawing.strokes);
+        console.log('Strokes is array:', Array.isArray(drawing.strokes));
+        if (Array.isArray(drawing.strokes) && drawing.strokes.length > 0) {
+            console.log('First stroke type:', typeof drawing.strokes[0]);
+            console.log('First stroke keys:', drawing.strokes[0] ? Object.keys(drawing.strokes[0]) : 'null');
+            if (drawing.strokes[0] && drawing.strokes[0].points) {
+                console.log('First stroke points type:', typeof drawing.strokes[0].points);
+                console.log('First stroke points is array:', Array.isArray(drawing.strokes[0].points));
+                if (Array.isArray(drawing.strokes[0].points) && drawing.strokes[0].points.length > 0) {
+                    console.log('First point:', drawing.strokes[0].points[0]);
+                }
+            }
+        }
+    }
+    console.log('========================');
+}
+
 // Main comparison function
 async function compareDrawings(storedDrawing, attemptDrawing, drawingType) {
+    // Debug the data structures
+    debugDrawingData(storedDrawing, 'Stored');
+    debugDrawingData(attemptDrawing, 'Attempt');
+    
     switch (drawingType) {
         case 'face':
             return await compareFaceDrawings(storedDrawing, attemptDrawing);
