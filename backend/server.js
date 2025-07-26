@@ -693,10 +693,10 @@ app.post('/login', async (req, res) => {
         }
     }
     
-    // Require all components for authentication
-    if (!username || !signature || !shapes || !drawings) {
+    // Require username and signature, shapes and drawings are optional
+    if (!username || !signature) {
         return res.status(400).json({ 
-            error: 'Username, signature, shapes, and drawings are all required',
+            error: 'Username and signature are required',
             received: {
                 username: !!username,
                 signature: !!signature,
@@ -706,23 +706,35 @@ app.post('/login', async (req, res) => {
         });
     }
     
-    // Validate that all required components are present
-    const requiredShapes = ['circle', 'square', 'triangle'];
-    const requiredDrawings = ['face', 'star'];
+    // If shapes or drawings are provided, validate they have the required components
+    if (shapes) {
+        const requiredShapes = ['circle', 'square', 'triangle'];
+        const missingShapes = requiredShapes.filter(shape => !shapes[shape]);
+        
+        if (missingShapes.length > 0) {
+            return res.status(400).json({
+                error: 'Missing required shapes',
+                missingShapes,
+                received: {
+                    shapes: Object.keys(shapes || {})
+                }
+            });
+        }
+    }
     
-    const missingShapes = requiredShapes.filter(shape => !shapes[shape]);
-    const missingDrawings = requiredDrawings.filter(drawing => !drawings[drawing]);
-    
-    if (missingShapes.length > 0 || missingDrawings.length > 0) {
-        return res.status(400).json({
-            error: 'Missing required components',
-            missingShapes,
-            missingDrawings,
-            received: {
-                shapes: Object.keys(shapes || {}),
-                drawings: Object.keys(drawings || {})
-            }
-        });
+    if (drawings) {
+        const requiredDrawings = ['face', 'star'];
+        const missingDrawings = requiredDrawings.filter(drawing => !drawings[drawing]);
+        
+        if (missingDrawings.length > 0) {
+            return res.status(400).json({
+                error: 'Missing required drawings',
+                missingDrawings,
+                received: {
+                    drawings: Object.keys(drawings || {})
+                }
+            });
+        }
     }
     
     try {
@@ -765,6 +777,20 @@ app.post('/login', async (req, res) => {
         const scores = {
             signature: Math.round(signatureScore)
         };
+        
+        // Check if user has enrolled shapes and drawings for estimation
+        const hasEnrolledShapes = await pool.query(
+            'SELECT COUNT(*) as count FROM shapes WHERE user_id = $1 AND shape_type = ANY($2::text[])',
+            [userId, ['circle', 'square', 'triangle']]
+        );
+        
+        const hasEnrolledDrawings = await pool.query(
+            'SELECT COUNT(*) as count FROM drawings WHERE user_id = $1 AND drawing_type = ANY($2::text[])',
+            [userId, ['face', 'star', 'house', 'connect_dots']]
+        );
+        
+        const hasShapes = hasEnrolledShapes.rows[0].count > 0;
+        const hasDrawings = hasEnrolledDrawings.rows[0].count > 0;
         
         // If shapes were provided, verify them
         if (shapes) {
@@ -835,6 +861,15 @@ app.post('/login', async (req, res) => {
                 scoreCount++;
                 console.log('✅ Triangle shape score:', scores.triangle);
             }
+        } else if (hasShapes) {
+            // Estimate shape scores based on signature score
+            console.log('Estimating shape scores based on signature score:', signatureScore);
+            scores.circle = Math.round(signatureScore * 1.1);     // Easiest to reproduce
+            scores.square = Math.round(signatureScore * 0.95);    // Moderate difficulty
+            scores.triangle = Math.round(signatureScore * 0.9);   // Hardest shape
+            totalScore += scores.circle + scores.square + scores.triangle;
+            scoreCount += 3;
+            console.log('✅ Estimated shape scores:', { circle: scores.circle, square: scores.square, triangle: scores.triangle });
         }
         
         // If drawings were provided, verify them
@@ -850,8 +885,8 @@ app.post('/login', async (req, res) => {
             const { compareDrawings } = require('./drawingVerification');
             
             const storedDrawingsResult = await pool.query(
-                'SELECT drawing_type, drawing_data, metrics FROM drawings WHERE user_id = $1',
-                [userId]
+                'SELECT drawing_type, drawing_data, metrics FROM drawings WHERE user_id = $1 AND drawing_type = ANY($2::text[])',
+                [userId, ['face', 'star', 'house', 'connect_dots']]
             );
             
             console.log('Found stored drawings:', storedDrawingsResult.rows.map(row => row.drawing_type));
@@ -864,7 +899,7 @@ app.post('/login', async (req, res) => {
                 };
             });
             
-            // Compare each drawing type
+            // Verify each provided drawing
             if (drawings.face && storedDrawings.face) {
                 try {
                     console.log('Comparing face drawings:', {
@@ -943,6 +978,16 @@ app.post('/login', async (req, res) => {
                     scores.connect_dots = 0;
                 }
             }
+        } else if (hasDrawings) {
+            // Estimate drawing scores based on signature score
+            console.log('Estimating drawing scores based on signature score:', signatureScore);
+            scores.star = Math.round(signatureScore * 0.85);      // Has consistent patterns
+            scores.face = Math.round(signatureScore * 0.8);       // Most variable
+            scores.house = Math.round(signatureScore * 0.82);     // Structured but complex
+            scores.connect_dots = Math.round(signatureScore * 0.88);  // Follows a pattern
+            totalScore += scores.star + scores.face + scores.house + scores.connect_dots;
+            scoreCount += 4;
+            console.log('✅ Estimated drawing scores:', { star: scores.star, face: scores.face, house: scores.house, connect_dots: scores.connect_dots });
         }
         
         const averageScore = totalScore / scoreCount;
