@@ -474,27 +474,27 @@
                             <div class="group-title">Core Metrics</div>
                             <div class="metric-item">
                                 <span>Stroke Count:</span>
-                                <span>${baseline.strokeCount.toFixed(1)} avg</span>
+                                <span>${baseline.stroke_count.toFixed(1)} avg</span>
                             </div>
                             <div class="metric-item">
                                 <span>Total Points:</span>
-                                <span>${baseline.totalPoints.toFixed(1)} avg</span>
+                                <span>${baseline.total_points.toFixed(1)} avg</span>
                             </div>
                             <div class="metric-item">
                                 <span>Duration (ms):</span>
-                                <span>${Math.round(baseline.totalDuration).toLocaleString()} avg</span>
+                                <span>${Math.round(baseline.total_duration_ms).toLocaleString()} avg</span>
                             </div>
                             <div class="metric-item">
                                 <span>Avg Velocity:</span>
-                                <span>${baseline.avgVelocity.toFixed(3)} avg</span>
+                                <span>${baseline.avg_velocity.toFixed(3)} avg</span>
                             </div>
                             <div class="metric-item">
                                 <span>Max Velocity:</span>
-                                <span>${baseline.maxVelocity.toFixed(3)} avg</span>
+                                <span>${baseline.max_velocity.toFixed(3)} avg</span>
                             </div>
                             <div class="metric-item">
                                 <span>Velocity Std:</span>
-                                <span>${baseline.velocityStdDev.toFixed(3)} avg</span>
+                                <span>${baseline.velocity_std.toFixed(3)} avg</span>
                             </div>
                         </div>
                         
@@ -514,15 +514,15 @@
                             </div>
                             <div class="metric-item">
                                 <span>Aspect Ratio:</span>
-                                <span>${baseline.aspectRatio.toFixed(2)} avg</span>
+                                <span>${baseline.aspect_ratio.toFixed(2)} avg</span>
                             </div>
                             <div class="metric-item">
                                 <span>Center X:</span>
-                                <span>${Math.round(baseline.centerX)} avg</span>
+                                <span>${Math.round(baseline.center_x)} avg</span>
                             </div>
                             <div class="metric-item">
                                 <span>Center Y:</span>
-                                <span>${Math.round(baseline.centerY)} avg</span>
+                                <span>${Math.round(baseline.center_y)} avg</span>
                             </div>
                         </div>
 
@@ -530,15 +530,15 @@
                             <div class="group-title">Shapes</div>
                             <div class="metric-item">
                                 <span>Circle Roundness:</span>
-                                <span>${formatPercentage(baseline.circleRoundness)} avg</span>
+                                <span>${formatPercentage(baseline.circle_roundness)} avg</span>
                             </div>
                             <div class="metric-item">
                                 <span>Square Corners:</span>
-                                <span>${formatPercentage(baseline.squareCornerAccuracy)} avg</span>
+                                <span>${formatPercentage(baseline.square_corner_accuracy)} avg</span>
                             </div>
                             <div class="metric-item">
                                 <span>Triangle Closure:</span>
-                                <span>${formatPercentage(baseline.triangleClosure)} avg</span>
+                                <span>${formatPercentage(baseline.triangle_closure)} avg</span>
                             </div>
                         </div>
 
@@ -546,19 +546,19 @@
                             <div class="group-title">Drawings</div>
                             <div class="metric-item">
                                 <span>Face Features:</span>
-                                <span>${formatPercentage(baseline.faceScore)} avg</span>
+                                <span>${formatPercentage(baseline.face_score)} avg</span>
                             </div>
                             <div class="metric-item">
                                 <span>Star Points:</span>
-                                <span>${formatPercentage(baseline.starScore)} avg</span>
+                                <span>${formatPercentage(baseline.star_score)} avg</span>
                             </div>
                             <div class="metric-item">
                                 <span>House Structure:</span>
-                                <span>${baseline.houseScore ? formatPercentage(baseline.houseScore) + ' avg' : 'N/A'}</span>
+                                <span>${baseline.house_score ? formatPercentage(baseline.house_score) + ' avg' : 'N/A'}</span>
                             </div>
                             <div class="metric-item">
                                 <span>Connect Dots:</span>
-                                <span>${baseline.connectDotsScore ? formatPercentage(baseline.connectDotsScore) + ' avg' : 'N/A'}</span>
+                                <span>${baseline.connect_dots_score ? formatPercentage(baseline.connect_dots_score) + ' avg' : 'N/A'}</span>
                             </div>
                         </div>
 
@@ -566,23 +566,23 @@
                             <div class="group-title">Additional Metrics</div>
                             <div class="metric-item">
                                 <span>Stroke Length Avg:</span>
-                                <span>${baseline.strokeLengthAvg.toFixed(1)} avg</span>
+                                <span>${baseline.avg_stroke_length.toFixed(1)} avg</span>
                             </div>
                             <div class="metric-item">
                                 <span>Stroke Length Std:</span>
-                                <span>${baseline.strokeLengthStdDev.toFixed(1)} avg</span>
+                                <span>${baseline.length_variation.toFixed(1)} avg</span>
                             </div>
                             <div class="metric-item">
                                 <span>Pressure Avg:</span>
-                                <span>${baseline.avgPressure.toFixed(3)} avg</span>
+                                <span>${baseline.avg_pressure.toFixed(3)} avg</span>
                             </div>
                             <div class="metric-item">
                                 <span>Pause Count:</span>
-                                <span>${baseline.pauseCount.toFixed(1)} avg</span>
+                                <span>${baseline.pause_count.toFixed(1)} avg</span>
                             </div>
                             <div class="metric-item">
                                 <span>Direction Changes:</span>
-                                <span>${baseline.directionChanges.toFixed(1)} avg</span>
+                                <span>${baseline.direction_changes.toFixed(1)} avg</span>
                             </div>
                         </div>
                     </div>
@@ -595,8 +595,8 @@
             // Render each attempt
             attempts.forEach((attempt, index) => {
                 const attemptNumber = attempts.length - index;
-                const status = attempt.authenticationResult === 'success' ? 'PASSED' : 'FAILED';
-                const statusClass = attempt.authenticationResult === 'success' ? 'status-passed' : 'status-failed';
+                const status = attempt.authentication_result === 'success' ? 'PASSED' : 'FAILED';
+                const statusClass = attempt.authentication_result === 'success' ? 'status-passed' : 'status-failed';
                 
                 html += `
                     <div class="attempt-card">
@@ -607,7 +607,7 @@
                             </div>
                             <div class="attempt-result">
                                 <span class="${statusClass}">${status}</span>
-                                <span>${formatPercentage(attempt.signatureScore)}</span>
+                                <span>${formatPercentage(attempt.signature_score)}</span>
                             </div>
                         </div>
                         
@@ -616,27 +616,27 @@
                                 <div class="data-group-title">Core Metrics</div>
                                 <div class="data-metric">
                                     <span class="metric-name">Stroke Count:</span>
-                                    <span class="metric-value">${formatMetricValue(attempt.strokeCount, baseline.strokeCount)}</span>
+                                    <span class="metric-value">${formatMetricValue(attempt.stroke_count, baseline.stroke_count)}</span>
                                 </div>
                                 <div class="data-metric">
                                     <span class="metric-name">Total Points:</span>
-                                    <span class="metric-value">${formatMetricValue(attempt.totalPoints, baseline.totalPoints)}</span>
+                                    <span class="metric-value">${formatMetricValue(attempt.total_points, baseline.totalPoints)}</span>
                                 </div>
                                 <div class="data-metric">
                                     <span class="metric-name">Duration (ms):</span>
-                                    <span class="metric-value">${formatMetricValue(Math.round(attempt.totalDuration), Math.round(baseline.totalDuration))}</span>
+                                    <span class="metric-value">${formatMetricValue(Math.round(attempt.total_duration_ms), Math.round(baseline.totalDuration))}</span>
                                 </div>
                                 <div class="data-metric">
                                     <span class="metric-name">Avg Velocity:</span>
-                                    <span class="metric-value">${formatMetricValue(attempt.avgVelocity?.toFixed(3), baseline.avgVelocity?.toFixed(3))}</span>
+                                    <span class="metric-value">${formatMetricValue(attempt.avg_velocity?.toFixed(3), baseline.avgVelocity?.toFixed(3))}</span>
                                 </div>
                                 <div class="data-metric">
                                     <span class="metric-name">Max Velocity:</span>
-                                    <span class="metric-value">${formatMetricValue(attempt.maxVelocity?.toFixed(3), baseline.maxVelocity?.toFixed(3))}</span>
+                                    <span class="metric-value">${formatMetricValue(attempt.max_velocity?.toFixed(3), baseline.maxVelocity?.toFixed(3))}</span>
                                 </div>
                                 <div class="data-metric">
                                     <span class="metric-name">Velocity Std:</span>
-                                    <span class="metric-value">${formatMetricValue(attempt.velocityStdDev?.toFixed(3), baseline.velocityStdDev?.toFixed(3))}</span>
+                                    <span class="metric-value">${formatMetricValue(attempt.velocity_std?.toFixed(3), baseline.velocityStdDev?.toFixed(3))}</span>
                                 </div>
                             </div>
 
@@ -656,15 +656,15 @@
                                 </div>
                                 <div class="data-metric">
                                     <span class="metric-name">Aspect Ratio:</span>
-                                    <span class="metric-value">${formatMetricValue(attempt.aspectRatio?.toFixed(2), baseline.aspectRatio?.toFixed(2))}</span>
+                                    <span class="metric-value">${formatMetricValue(attempt.aspect_ratio?.toFixed(2), baseline.aspectRatio?.toFixed(2))}</span>
                                 </div>
                                 <div class="data-metric">
                                     <span class="metric-name">Center X:</span>
-                                    <span class="metric-value">${formatMetricValue(Math.round(attempt.centerX), Math.round(baseline.centerX))}</span>
+                                    <span class="metric-value">${formatMetricValue(Math.round(attempt.center_x), Math.round(baseline.centerX))}</span>
                                 </div>
                                 <div class="data-metric">
                                     <span class="metric-name">Center Y:</span>
-                                    <span class="metric-value">${formatMetricValue(Math.round(attempt.centerY), Math.round(baseline.centerY))}</span>
+                                    <span class="metric-value">${formatMetricValue(Math.round(attempt.center_y), Math.round(baseline.centerY))}</span>
                                 </div>
                             </div>
 
@@ -672,15 +672,15 @@
                                 <div class="data-group-title">Shapes Performance</div>
                                 <div class="data-metric">
                                     <span class="metric-name">Circle Score:</span>
-                                    <span class="metric-value">${formatPercentage(attempt.circleScore)} (Roundness: ${formatMetricValue(attempt.circleRoundness, baseline.circleRoundness, false)}%)</span>
+                                    <span class="metric-value">${formatPercentage(attempt.circle_score)} (Roundness: ${formatMetricValue(attempt.circle_roundness, baseline.circleRoundness, false)}%)</span>
                                 </div>
                                 <div class="data-metric">
                                     <span class="metric-name">Square Score:</span>
-                                    <span class="metric-value">${formatPercentage(attempt.squareScore)} (Corners: ${formatMetricValue(attempt.squareCornerAccuracy, baseline.squareCornerAccuracy, false)}%)</span>
+                                    <span class="metric-value">${formatPercentage(attempt.square_score)} (Corners: ${formatMetricValue(attempt.square_corner_accuracy, baseline.squareCornerAccuracy, false)}%)</span>
                                 </div>
                                 <div class="data-metric">
                                     <span class="metric-name">Triangle Score:</span>
-                                    <span class="metric-value">${formatPercentage(attempt.triangleScore)} (Closure: ${formatMetricValue(attempt.triangleClosure, baseline.triangleClosure, false)}%)</span>
+                                    <span class="metric-value">${formatPercentage(attempt.triangle_score)} (Closure: ${formatMetricValue(attempt.triangle_closure, baseline.triangleClosure, false)}%)</span>
                                 </div>
                             </div>
 
@@ -688,19 +688,19 @@
                                 <div class="data-group-title">Drawings Performance</div>
                                 <div class="data-metric">
                                     <span class="metric-name">Face Score:</span>
-                                    <span class="metric-value">${formatPercentage(attempt.faceScore)}</span>
+                                    <span class="metric-value">${formatPercentage(attempt.face_score)}</span>
                                 </div>
                                 <div class="data-metric">
                                     <span class="metric-name">Star Score:</span>
-                                    <span class="metric-value">${formatPercentage(attempt.starScore)}</span>
+                                    <span class="metric-value">${formatPercentage(attempt.star_score)}</span>
                                 </div>
                                 <div class="data-metric">
                                     <span class="metric-name">House Score:</span>
-                                    <span class="metric-value">${attempt.houseScore !== null && attempt.houseScore !== undefined ? formatPercentage(attempt.houseScore) : 'N/A'}</span>
+                                    <span class="metric-value">${attempt.house_score !== null && attempt.house_score !== undefined ? formatPercentage(attempt.house_score) : 'N/A'}</span>
                                 </div>
                                 <div class="data-metric">
                                     <span class="metric-name">Connect Dots:</span>
-                                    <span class="metric-value">${attempt.connectDotsScore !== null && attempt.connectDotsScore !== undefined ? formatPercentage(attempt.connectDotsScore) : 'N/A'}</span>
+                                    <span class="metric-value">${attempt.connect_dots_score !== null && attempt.connect_dots_score !== undefined ? formatPercentage(attempt.connect_dots_score) : 'N/A'}</span>
                                 </div>
                             </div>
 
@@ -708,23 +708,23 @@
                                 <div class="data-group-title">Additional Metrics</div>
                                 <div class="data-metric">
                                     <span class="metric-name">Stroke Length Avg:</span>
-                                    <span class="metric-value">${formatMetricValue(attempt.strokeLengthAvg?.toFixed(1), baseline.strokeLengthAvg?.toFixed(1))}</span>
+                                    <span class="metric-value">${formatMetricValue(attempt.avg_stroke_length?.toFixed(1), baseline.avg_stroke_length?.toFixed(1))}</span>
                                 </div>
                                 <div class="data-metric">
                                     <span class="metric-name">Stroke Length Std:</span>
-                                    <span class="metric-value">${formatMetricValue(attempt.strokeLengthStdDev?.toFixed(1), baseline.strokeLengthStdDev?.toFixed(1))}</span>
+                                    <span class="metric-value">${formatMetricValue(attempt.length_variation?.toFixed(1), baseline.length_variation?.toFixed(1))}</span>
                                 </div>
                                 <div class="data-metric">
                                     <span class="metric-name">Pressure Avg:</span>
-                                    <span class="metric-value">${formatMetricValue(attempt.avgPressure?.toFixed(3), baseline.avgPressure?.toFixed(3))}</span>
+                                    <span class="metric-value">${formatMetricValue(attempt.avg_pressure?.toFixed(3), baseline.avgPressure?.toFixed(3))}</span>
                                 </div>
                                 <div class="data-metric">
                                     <span class="metric-name">Pause Count:</span>
-                                    <span class="metric-value">${formatMetricValue(attempt.pauseCount, baseline.pauseCount)}</span>
+                                    <span class="metric-value">${formatMetricValue(attempt.pause_count, baseline.pauseCount)}</span>
                                 </div>
                                 <div class="data-metric">
                                     <span class="metric-name">Direction Changes:</span>
-                                    <span class="metric-value">${formatMetricValue(attempt.directionChanges, baseline.directionChanges)}</span>
+                                    <span class="metric-value">${formatMetricValue(attempt.direction_changes, baseline.directionChanges)}</span>
                                 </div>
                             </div>
 
@@ -744,7 +744,7 @@
                                 </div>
                                 <div class="data-metric">
                                     <span class="metric-name">Canvas Coverage:</span>
-                                    <span class="metric-value">${formatPercentage(attempt.canvasCoverage)}</span>
+                                    <span class="metric-value">${formatPercentage(attempt.canvas_coverage)}</span>
                                 </div>
                             </div>
                         </div>
@@ -812,7 +812,7 @@
         function renderImagesTab() {
             if (!currentData) return;
             
-            const { baseline, attempts, baselineStrokes } = currentData;
+            const { baseline, attempts, baseline_strokes } = currentData;
             
             let html = `
                 <div class="images-layout">
@@ -822,14 +822,14 @@
             `;
             
             // Baseline signatures
-            if (baselineStrokes && baselineStrokes.signatures) {
+            if (baseline_strokes && baseline_strokes.signatures) {
                 html += `
                     <div class="image-group">
-                        <div class="image-group-title">Signatures (${baselineStrokes.signatures.length} enrollment samples)</div>
+                        <div class="image-group-title">Signatures (${baseline_strokes.signatures.length} enrollment samples)</div>
                         <div class="image-grid">
                 `;
                 
-                baselineStrokes.signatures.forEach((sig, index) => {
+                baseline_strokes.signatures.forEach((sig, index) => {
                     html += `
                         <div class="image-item">
                             <canvas class="image-canvas" id="baseline-sig-${index}"></canvas>
@@ -845,7 +845,7 @@
             }
             
             // Baseline shapes
-            if (baselineStrokes) {
+            if (baseline_strokes) {
                 html += `
                     <div class="image-group">
                         <div class="image-group-title">Shapes</div>
@@ -853,7 +853,7 @@
                 `;
                 
                 ['circle', 'square', 'triangle'].forEach(shape => {
-                    if (baselineStrokes[shape]) {
+                    if (baseline_strokes[shape]) {
                         html += `
                             <div class="image-item">
                                 <canvas class="image-canvas" id="baseline-${shape}"></canvas>
@@ -870,7 +870,7 @@
             }
             
             // Baseline drawings
-            if (baselineStrokes) {
+            if (baseline_strokes) {
                 html += `
                     <div class="image-group">
                         <div class="image-group-title">Drawings</div>
@@ -878,7 +878,7 @@
                 `;
                 
                 ['face', 'star', 'house', 'connect_dots'].forEach(drawing => {
-                    if (baselineStrokes[drawing]) {
+                    if (baseline_strokes[drawing]) {
                         html += `
                             <div class="image-item">
                                 <canvas class="image-canvas" id="baseline-${drawing}"></canvas>
@@ -905,25 +905,25 @@
             // Attempt images
             attempts.forEach((attempt, index) => {
                 const attemptNumber = attempts.length - index;
-                const status = attempt.authenticationResult === 'success' ? 'PASSED' : 'FAILED';
+                const status = attempt.authentication_result === 'success' ? 'PASSED' : 'FAILED';
                 
                 html += `
                     <div class="attempt-image-card">
                         <div class="attempt-image-header">
-                            <span>Attempt #${attemptNumber} - ${status} (${formatPercentage(attempt.signatureScore)})</span>
+                            <span>Attempt #${attemptNumber} - ${status} (${formatPercentage(attempt.signature_score)})</span>
                             <span>${formatTimestamp(attempt.timestamp)}</span>
                         </div>
                 `;
                 
                 // Signature
-                if (attempt.signatureStrokes) {
+                if (attempt.signature_strokes) {
                     html += `
                         <div class="image-group">
                             <div class="image-group-title">Signature</div>
                             <div class="image-grid">
                                 <div class="image-item">
                                     <canvas class="image-canvas" id="attempt-${index}-signature"></canvas>
-                                    <div class="image-label">${formatPercentage(attempt.signatureScore)} match</div>
+                                    <div class="image-label">${formatPercentage(attempt.signature_score)} match</div>
                                 </div>
                             </div>
                         </div>
@@ -932,7 +932,7 @@
                 
                 // Shapes
                 const shapes = ['circle', 'square', 'triangle'];
-                const hasShapes = shapes.some(shape => attempt[shape + 'Strokes']);
+                const hasShapes = shapes.some(shape => attempt[shape + '_strokes']);
                 
                 if (hasShapes) {
                     html += `
@@ -942,7 +942,7 @@
                     `;
                     
                     shapes.forEach(shape => {
-                        if (attempt[shape + 'Strokes']) {
+                        if (attempt[shape + '_strokes']) {
                             html += `
                                 <div class="image-item">
                                     <canvas class="image-canvas" id="attempt-${index}-${shape}"></canvas>
@@ -960,7 +960,7 @@
                 
                 // Drawings
                 const drawings = ['face', 'star', 'house', 'connect_dots'];
-                const hasDrawings = drawings.some(drawing => attempt[drawing + 'Strokes']);
+                const hasDrawings = drawings.some(drawing => attempt[drawing + '_strokes']);
                 
                 if (hasDrawings) {
                     html += `
@@ -970,7 +970,7 @@
                     `;
                     
                     drawings.forEach(drawing => {
-                        if (attempt[drawing + 'Strokes']) {
+                        if (attempt[drawing + '_strokes']) {
                             const drawingName = drawing.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
                             html += `
                                 <div class="image-item">
@@ -1002,10 +1002,10 @@
             // Draw all canvases after DOM update
             setTimeout(() => {
                 // Draw baseline images
-                if (baselineStrokes) {
+                if (baseline_strokes) {
                     // Signatures
-                    if (baselineStrokes.signatures) {
-                        baselineStrokes.signatures.forEach((sig, index) => {
+                    if (baseline_strokes.signatures) {
+                        baseline_strokes.signatures.forEach((sig, index) => {
                             const canvas = document.getElementById(`baseline-sig-${index}`);
                             if (canvas) drawStrokesOnCanvas(canvas, sig);
                         });
@@ -1013,9 +1013,9 @@
                     
                     // Shapes and drawings
                     ['circle', 'square', 'triangle', 'face', 'star', 'house', 'connect_dots'].forEach(component => {
-                        if (baselineStrokes[component]) {
+                        if (baseline_strokes[component]) {
                             const canvas = document.getElementById(`baseline-${component}`);
-                            if (canvas) drawStrokesOnCanvas(canvas, baselineStrokes[component]);
+                            if (canvas) drawStrokesOnCanvas(canvas, baseline_strokes[component]);
                         }
                     });
                 }
@@ -1025,12 +1025,12 @@
                     // Signature
                     if (attempt.signatureStrokes) {
                         const canvas = document.getElementById(`attempt-${index}-signature`);
-                        if (canvas) drawStrokesOnCanvas(canvas, attempt.signatureStrokes);
+                        if (canvas) drawStrokesOnCanvas(canvas, attempt.signature_strokes);
                     }
                     
                     // Components
                     ['circle', 'square', 'triangle', 'face', 'star', 'house', 'connect_dots'].forEach(component => {
-                        const strokesKey = component + 'Strokes';
+                        const strokesKey = component + '_strokes';
                         if (attempt[strokesKey]) {
                             const canvas = document.getElementById(`attempt-${index}-${component}`);
                             if (canvas) drawStrokesOnCanvas(canvas, attempt[strokesKey]);
