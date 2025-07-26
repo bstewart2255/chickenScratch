@@ -16,11 +16,27 @@ function angle(p1, p2, p3) {
 // Extract key points from strokes
 function extractKeyPoints(strokes) {
     const points = [];
-    strokes.forEach(stroke => {
-        stroke.forEach(point => {
-            points.push(point);
+    
+    if (!Array.isArray(strokes)) {
+        console.warn('extractKeyPoints: strokes is not an array:', typeof strokes);
+        return points;
+    }
+    
+    strokes.forEach((stroke, strokeIndex) => {
+        if (!Array.isArray(stroke)) {
+            console.warn(`extractKeyPoints: stroke ${strokeIndex} is not an array:`, typeof stroke);
+            return;
+        }
+        
+        stroke.forEach((point, pointIndex) => {
+            if (point && typeof point === 'object' && (point.x !== undefined || point.x !== undefined)) {
+                points.push(point);
+            } else {
+                console.warn(`extractKeyPoints: invalid point at stroke ${strokeIndex}, point ${pointIndex}:`, point);
+            }
         });
     });
+    
     return points;
 }
 
@@ -87,8 +103,26 @@ async function compareFaceDrawings(storedFace, attemptFace) {
 // Compare star drawings
 async function compareStarDrawings(storedStar, attemptStar) {
     try {
-        const storedPoints = extractKeyPoints(storedStar.strokes || []);
-        const attemptPoints = extractKeyPoints(attemptStar.strokes || []);
+        // Ensure both objects have strokes property
+        if (!storedStar || !attemptStar) {
+            console.warn('Missing star drawing data:', { storedStar: !!storedStar, attemptStar: !!attemptStar });
+            return { score: 0, error: 'Missing star drawing data' };
+        }
+
+        // Handle different data structures
+        const storedStrokes = storedStar.strokes || storedStar.raw || [];
+        const attemptStrokes = attemptStar.strokes || attemptStar.raw || [];
+
+        if (!Array.isArray(storedStrokes) || !Array.isArray(attemptStrokes)) {
+            console.warn('Invalid star strokes data:', { 
+                storedStrokesType: typeof storedStrokes, 
+                attemptStrokesType: typeof attemptStrokes 
+            });
+            return { score: 0, error: 'Invalid star strokes data format' };
+        }
+
+        const storedPoints = extractKeyPoints(storedStrokes);
+        const attemptPoints = extractKeyPoints(attemptStrokes);
         
         // Detect star points
         const storedStarPoints = detectStarPoints(storedPoints);
