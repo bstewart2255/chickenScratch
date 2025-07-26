@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ML Dashboard - Redesigned</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .header {
+            background: white;
+            padding: 20px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-selector select {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .tabs {
+            background: white;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tab-buttons {
+            display: flex;
+            padding: 0 20px;
+        }
+
+        .tab-button {
+            padding: 15px 25px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .tab-button.active {
+            border-bottom-color: #007AFF;
+            color: #007AFF;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .main-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Data Tab Styles */
+        .baseline-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 2px solid #e3f2fd;
+        }
+
+        .baseline-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #1976d2;
+        }
+
+        .baseline-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .baseline-group {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+        }
+
+        .group-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #555;
+        }
+
+        .metric-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 13px;
+        }
+
+        .auth-attempts {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .attempt-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .attempt-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .attempt-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .attempt-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .attempt-meta {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .attempt-result {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+        }
+
+        .status-failed {
+            color: #d32f2f;
+        }
+
+        .status-passed {
+            color: #388e3c;
+        }
+
+        .attempt-data {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .data-group {
+            background: #fafafa;
+            padding: 15px;
+            border-radius: 6px;
+        }
+
+        .data-group-title {
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #333;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+
+        .data-metric {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+
+        .metric-name {
+            color: #555;
+        }
+
+        .metric-value {
+            font-weight: 500;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Images Tab Styles */
+        .images-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            height: calc(100vh - 200px);
+        }
+
+        .baseline-images {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #e3f2fd;
+        }
+
+        .baseline-images-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #1976d2;
+        }
+
+        .auth-images {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-y: auto;
+        }
+
+        .auth-images-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 1;
+        }
+
+        .image-group {
+            margin-bottom: 25px;
+        }
+
+        .image-group-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #555;
+        }
+
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .image-item {
+            text-align: center;
+        }
+
+        .image-canvas {
+            width: 150px;
+            height: 100px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            margin-bottom: 5px;
+        }
+
+        .image-label {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .attempt-image-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+
+        .attempt-image-header {
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>ML Dashboard</h1>
+        <div class="user-selector">
+            <label for="userSelect">User:</label>
+            <select id="userSelect">
+                <option value="">Loading users...</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <div class="tab-buttons">
+            <button class="tab-button active" onclick="switchTab('data')">Data</button>
+            <button class="tab-button" onclick="switchTab('images')">Images</button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <!-- Data Tab -->
+        <div id="dataTab" class="tab-content active">
+            <div class="loading">Loading data...</div>
+        </div>
+
+        <!-- Images Tab -->
+        <div id="imagesTab" class="tab-content">
+            <div class="loading">Loading images...</div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://chickenscratch.onrender.com';
+        let currentData = null;
+        let currentUser = null;
+
+        // Initialize the dashboard
+        async function init() {
+            await loadUsers();
+            const userSelect = document.getElementById('userSelect');
+            if (userSelect.options.length > 0) {
+                userSelect.selectedIndex = 0;
+                await loadUserData(userSelect.value);
+            }
+        }
+
+        // Load available users
+        async function loadUsers() {
+            try {
+                const response = await fetch(`${API_URL}/users`);
+                const users = await response.json();
+                
+                const userSelect = document.getElementById('userSelect');
+                userSelect.innerHTML = '';
+                
+                users.forEach(user => {
+                    const option = document.createElement('option');
+                    option.value = user.username;
+                    option.textContent = user.username;
+                    userSelect.appendChild(option);
+                });
+                
+                userSelect.addEventListener('change', (e) => {
+                    loadUserData(e.target.value);
+                });
+            } catch (error) {
+                console.error('Error loading users:', error);
+                // Fallback to default users
+                const userSelect = document.getElementById('userSelect');
+                userSelect.innerHTML = `
+                    <option value="testuser">testuser</option>
+                    <option value="demo">demo</option>
+                    <option value="admin">admin</option>
+                `;
+                userSelect.addEventListener('change', (e) => {
+                    loadUserData(e.target.value);
+                });
+            }
+        }
+
+        // Load user data from API
+        async function loadUserData(username) {
+            if (!username) return;
+            
+            currentUser = username;
+            
+            // Show loading state
+            document.getElementById('dataTab').innerHTML = '<div class="loading">Loading data...</div>';
+            document.getElementById('imagesTab').innerHTML = '<div class="loading">Loading images...</div>';
+            
+            try {
+                const response = await fetch(`${API_URL}/api/user/${username}/detailed-analysis`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                currentData = await response.json();
+                
+                // Render both tabs
+                renderDataTab();
+                renderImagesTab();
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                document.getElementById('dataTab').innerHTML = `
+                    <div class="error">
+                        Error loading data for user "${username}": ${error.message}
+                    </div>
+                `;
+                document.getElementById('imagesTab').innerHTML = `
+                    <div class="error">
+                        Error loading data for user "${username}": ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Format metric value with baseline comparison
+        function formatMetricValue(value, baseline, showPercentage = true) {
+            if (value === null || value === undefined || baseline === null || baseline === undefined) {
+                return 'N/A';
+            }
+            
+            const percentage = Math.round((value / baseline) * 100);
+            if (showPercentage) {
+                return `${value}/${baseline} (${percentage}%)`;
+            }
+            return `${value}`;
+        }
+
+        // Format percentage value
+        function formatPercentage(value) {
+            if (value === null || value === undefined) return 'N/A';
+            return `${Math.round(value)}%`;
+        }
+
+        // Format timestamp
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleString('en-US', {
+                month: 'numeric',
+                day: 'numeric',
+                year: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+            });
+        }
+
+        // Render the Data tab
+        function renderDataTab() {
+            if (!currentData) return;
+            
+            const { baseline, attempts } = currentData;
+            
+            let html = `
+                <!-- Baseline Section -->
+                <div class="baseline-section">
+                    <div class="baseline-title">📊 Baseline Reference (Enrollment + Verified Attempts)</div>
+                    <div class="baseline-grid">
+                        <div class="baseline-group">
+                            <div class="group-title">Core Metrics</div>
+                            <div class="metric-item">
+                                <span>Stroke Count:</span>
+                                <span>${baseline.strokeCount.toFixed(1)} avg</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Total Points:</span>
+                                <span>${baseline.totalPoints.toFixed(1)} avg</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Duration (ms):</span>
+                                <span>${Math.round(baseline.totalDuration).toLocaleString()} avg</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Avg Velocity:</span>
+                                <span>${baseline.avgVelocity.toFixed(3)} avg</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Max Velocity:</span>
+                                <span>${baseline.maxVelocity.toFixed(3)} avg</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Velocity Std:</span>
+                                <span>${baseline.velocityStdDev.toFixed(3)} avg</span>
+                            </div>
+                        </div>
+                        
+                        <div class="baseline-group">
+                            <div class="group-title">Shape Metrics</div>
+                            <div class="metric-item">
+                                <span>Width:</span>
+                                <span>${Math.round(baseline.width)} avg</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Height:</span>
+                                <span>${Math.round(baseline.height)} avg</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Area:</span>
+                                <span>${Math.round(baseline.area).toLocaleString()} avg</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Aspect Ratio:</span>
+                                <span>${baseline.aspectRatio.toFixed(2)} avg</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Center X:</span>
+                                <span>${Math.round(baseline.centerX)} avg</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Center Y:</span>
+                                <span>${Math.round(baseline.centerY)} avg</span>
+                            </div>
+                        </div>
+
+                        <div class="baseline-group">
+                            <div class="group-title">Shapes</div>
+                            <div class="metric-item">
+                                <span>Circle Roundness:</span>
+                                <span>${formatPercentage(baseline.circleRoundness)} avg</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Square Corners:</span>
+                                <span>${formatPercentage(baseline.squareCornerAccuracy)} avg</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Triangle Closure:</span>
+                                <span>${formatPercentage(baseline.triangleClosure)} avg</span>
+                            </div>
+                        </div>
+
+                        <div class="baseline-group">
+                            <div class="group-title">Drawings</div>
+                            <div class="metric-item">
+                                <span>Face Features:</span>
+                                <span>${formatPercentage(baseline.faceScore)} avg</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Star Points:</span>
+                                <span>${formatPercentage(baseline.starScore)} avg</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>House Structure:</span>
+                                <span>${baseline.houseScore ? formatPercentage(baseline.houseScore) + ' avg' : 'N/A'}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Connect Dots:</span>
+                                <span>${baseline.connectDotsScore ? formatPercentage(baseline.connectDotsScore) + ' avg' : 'N/A'}</span>
+                            </div>
+                        </div>
+
+                        <div class="baseline-group">
+                            <div class="group-title">Additional Metrics</div>
+                            <div class="metric-item">
+                                <span>Stroke Length Avg:</span>
+                                <span>${baseline.strokeLengthAvg.toFixed(1)} avg</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Stroke Length Std:</span>
+                                <span>${baseline.strokeLengthStdDev.toFixed(1)} avg</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Pressure Avg:</span>
+                                <span>${baseline.avgPressure.toFixed(3)} avg</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Pause Count:</span>
+                                <span>${baseline.pauseCount.toFixed(1)} avg</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Direction Changes:</span>
+                                <span>${baseline.directionChanges.toFixed(1)} avg</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Authentication Attempts -->
+                <div class="auth-attempts">
+            `;
+            
+            // Render each attempt
+            attempts.forEach((attempt, index) => {
+                const attemptNumber = attempts.length - index;
+                const status = attempt.authenticationResult === 'success' ? 'PASSED' : 'FAILED';
+                const statusClass = attempt.authenticationResult === 'success' ? 'status-passed' : 'status-failed';
+                
+                html += `
+                    <div class="attempt-card">
+                        <div class="attempt-header">
+                            <div class="attempt-info">
+                                <div class="attempt-title">Attempt #${attemptNumber}</div>
+                                <div class="attempt-meta">${formatTimestamp(attempt.timestamp)} • ${attempt.device_type || 'Unknown'} • ${attempt.browser || 'Unknown'}</div>
+                            </div>
+                            <div class="attempt-result">
+                                <span class="${statusClass}">${status}</span>
+                                <span>${formatPercentage(attempt.signatureScore)}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="attempt-data">
+                            <div class="data-group">
+                                <div class="data-group-title">Core Metrics</div>
+                                <div class="data-metric">
+                                    <span class="metric-name">Stroke Count:</span>
+                                    <span class="metric-value">${formatMetricValue(attempt.strokeCount, baseline.strokeCount)}</span>
+                                </div>
+                                <div class="data-metric">
+                                    <span class="metric-name">Total Points:</span>
+                                    <span class="metric-value">${formatMetricValue(attempt.totalPoints, baseline.totalPoints)}</span>
+                                </div>
+                                <div class="data-metric">
+                                    <span class="metric-name">Duration (ms):</span>
+                                    <span class="metric-value">${formatMetricValue(Math.round(attempt.totalDuration), Math.round(baseline.totalDuration))}</span>
+                                </div>
+                                <div class="data-metric">
+                                    <span class="metric-name">Avg Velocity:</span>
+                                    <span class="metric-value">${formatMetricValue(attempt.avgVelocity?.toFixed(3), baseline.avgVelocity?.toFixed(3))}</span>
+                                </div>
+                                <div class="data-metric">
+                                    <span class="metric-name">Max Velocity:</span>
+                                    <span class="metric-value">${formatMetricValue(attempt.maxVelocity?.toFixed(3), baseline.maxVelocity?.toFixed(3))}</span>
+                                </div>
+                                <div class="data-metric">
+                                    <span class="metric-name">Velocity Std:</span>
+                                    <span class="metric-value">${formatMetricValue(attempt.velocityStdDev?.toFixed(3), baseline.velocityStdDev?.toFixed(3))}</span>
+                                </div>
+                            </div>
+
+                            <div class="data-group">
+                                <div class="data-group-title">Shape Analysis</div>
+                                <div class="data-metric">
+                                    <span class="metric-name">Width:</span>
+                                    <span class="metric-value">${formatMetricValue(Math.round(attempt.width), Math.round(baseline.width))}</span>
+                                </div>
+                                <div class="data-metric">
+                                    <span class="metric-name">Height:</span>
+                                    <span class="metric-value">${formatMetricValue(Math.round(attempt.height), Math.round(baseline.height))}</span>
+                                </div>
+                                <div class="data-metric">
+                                    <span class="metric-name">Area:</span>
+                                    <span class="metric-value">${formatMetricValue(Math.round(attempt.area), Math.round(baseline.area))}</span>
+                                </div>
+                                <div class="data-metric">
+                                    <span class="metric-name">Aspect Ratio:</span>
+                                    <span class="metric-value">${formatMetricValue(attempt.aspectRatio?.toFixed(2), baseline.aspectRatio?.toFixed(2))}</span>
+                                </div>
+                                <div class="data-metric">
+                                    <span class="metric-name">Center X:</span>
+                                    <span class="metric-value">${formatMetricValue(Math.round(attempt.centerX), Math.round(baseline.centerX))}</span>
+                                </div>
+                                <div class="data-metric">
+                                    <span class="metric-name">Center Y:</span>
+                                    <span class="metric-value">${formatMetricValue(Math.round(attempt.centerY), Math.round(baseline.centerY))}</span>
+                                </div>
+                            </div>
+
+                            <div class="data-group">
+                                <div class="data-group-title">Shapes Performance</div>
+                                <div class="data-metric">
+                                    <span class="metric-name">Circle Score:</span>
+                                    <span class="metric-value">${formatPercentage(attempt.circleScore)} (Roundness: ${formatMetricValue(attempt.circleRoundness, baseline.circleRoundness, false)}%)</span>
+                                </div>
+                                <div class="data-metric">
+                                    <span class="metric-name">Square Score:</span>
+                                    <span class="metric-value">${formatPercentage(attempt.squareScore)} (Corners: ${formatMetricValue(attempt.squareCornerAccuracy, baseline.squareCornerAccuracy, false)}%)</span>
+                                </div>
+                                <div class="data-metric">
+                                    <span class="metric-name">Triangle Score:</span>
+                                    <span class="metric-value">${formatPercentage(attempt.triangleScore)} (Closure: ${formatMetricValue(attempt.triangleClosure, baseline.triangleClosure, false)}%)</span>
+                                </div>
+                            </div>
+
+                            <div class="data-group">
+                                <div class="data-group-title">Drawings Performance</div>
+                                <div class="data-metric">
+                                    <span class="metric-name">Face Score:</span>
+                                    <span class="metric-value">${formatPercentage(attempt.faceScore)}</span>
+                                </div>
+                                <div class="data-metric">
+                                    <span class="metric-name">Star Score:</span>
+                                    <span class="metric-value">${formatPercentage(attempt.starScore)}</span>
+                                </div>
+                                <div class="data-metric">
+                                    <span class="metric-name">House Score:</span>
+                                    <span class="metric-value">${attempt.houseScore !== null && attempt.houseScore !== undefined ? formatPercentage(attempt.houseScore) : 'N/A'}</span>
+                                </div>
+                                <div class="data-metric">
+                                    <span class="metric-name">Connect Dots:</span>
+                                    <span class="metric-value">${attempt.connectDotsScore !== null && attempt.connectDotsScore !== undefined ? formatPercentage(attempt.connectDotsScore) : 'N/A'}</span>
+                                </div>
+                            </div>
+
+                            <div class="data-group">
+                                <div class="data-group-title">Additional Metrics</div>
+                                <div class="data-metric">
+                                    <span class="metric-name">Stroke Length Avg:</span>
+                                    <span class="metric-value">${formatMetricValue(attempt.strokeLengthAvg?.toFixed(1), baseline.strokeLengthAvg?.toFixed(1))}</span>
+                                </div>
+                                <div class="data-metric">
+                                    <span class="metric-name">Stroke Length Std:</span>
+                                    <span class="metric-value">${formatMetricValue(attempt.strokeLengthStdDev?.toFixed(1), baseline.strokeLengthStdDev?.toFixed(1))}</span>
+                                </div>
+                                <div class="data-metric">
+                                    <span class="metric-name">Pressure Avg:</span>
+                                    <span class="metric-value">${formatMetricValue(attempt.avgPressure?.toFixed(3), baseline.avgPressure?.toFixed(3))}</span>
+                                </div>
+                                <div class="data-metric">
+                                    <span class="metric-name">Pause Count:</span>
+                                    <span class="metric-value">${formatMetricValue(attempt.pauseCount, baseline.pauseCount)}</span>
+                                </div>
+                                <div class="data-metric">
+                                    <span class="metric-name">Direction Changes:</span>
+                                    <span class="metric-value">${formatMetricValue(attempt.directionChanges, baseline.directionChanges)}</span>
+                                </div>
+                            </div>
+
+                            <div class="data-group">
+                                <div class="data-group-title">Device & Context</div>
+                                <div class="data-metric">
+                                    <span class="metric-name">Device Type:</span>
+                                    <span class="metric-value">${attempt.device_type || 'Unknown'}</span>
+                                </div>
+                                <div class="data-metric">
+                                    <span class="metric-name">Browser:</span>
+                                    <span class="metric-value">${attempt.browser || 'Unknown'}</span>
+                                </div>
+                                <div class="data-metric">
+                                    <span class="metric-name">Input Method:</span>
+                                    <span class="metric-value">${attempt.input_method || 'Unknown'}</span>
+                                </div>
+                                <div class="data-metric">
+                                    <span class="metric-name">Canvas Coverage:</span>
+                                    <span class="metric-value">${formatPercentage(attempt.canvasCoverage)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            document.getElementById('dataTab').innerHTML = html;
+        }
+
+        // Draw strokes on canvas
+        function drawStrokesOnCanvas(canvas, strokeData) {
+            if (!strokeData || !Array.isArray(strokeData)) return;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Find bounds
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            strokeData.forEach(stroke => {
+                stroke.points.forEach(point => {
+                    minX = Math.min(minX, point.x);
+                    minY = Math.min(minY, point.y);
+                    maxX = Math.max(maxX, point.x);
+                    maxY = Math.max(maxY, point.y);
+                });
+            });
+            
+            // Calculate scale to fit canvas
+            const padding = 10;
+            const scaleX = (canvas.width - 2 * padding) / (maxX - minX || 1);
+            const scaleY = (canvas.height - 2 * padding) / (maxY - minY || 1);
+            const scale = Math.min(scaleX, scaleY);
+            
+            // Center the drawing
+            const offsetX = (canvas.width - (maxX - minX) * scale) / 2;
+            const offsetY = (canvas.height - (maxY - minY) * scale) / 2;
+            
+            // Draw strokes
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            strokeData.forEach(stroke => {
+                if (stroke.points.length < 2) return;
+                
+                ctx.beginPath();
+                stroke.points.forEach((point, index) => {
+                    const x = (point.x - minX) * scale + offsetX;
+                    const y = (point.y - minY) * scale + offsetY;
+                    
+                    if (index === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                });
+                ctx.stroke();
+            });
+        }
+
+        // Render the Images tab
+        function renderImagesTab() {
+            if (!currentData) return;
+            
+            const { baseline, attempts, baselineStrokes } = currentData;
+            
+            let html = `
+                <div class="images-layout">
+                    <!-- Baseline Images -->
+                    <div class="baseline-images">
+                        <div class="baseline-images-title">🎯 Baseline Images</div>
+            `;
+            
+            // Baseline signatures
+            if (baselineStrokes && baselineStrokes.signatures) {
+                html += `
+                    <div class="image-group">
+                        <div class="image-group-title">Signatures (${baselineStrokes.signatures.length} enrollment samples)</div>
+                        <div class="image-grid">
+                `;
+                
+                baselineStrokes.signatures.forEach((sig, index) => {
+                    html += `
+                        <div class="image-item">
+                            <canvas class="image-canvas" id="baseline-sig-${index}"></canvas>
+                            <div class="image-label">Signature ${index + 1}</div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Baseline shapes
+            if (baselineStrokes) {
+                html += `
+                    <div class="image-group">
+                        <div class="image-group-title">Shapes</div>
+                        <div class="image-grid">
+                `;
+                
+                ['circle', 'square', 'triangle'].forEach(shape => {
+                    if (baselineStrokes[shape]) {
+                        html += `
+                            <div class="image-item">
+                                <canvas class="image-canvas" id="baseline-${shape}"></canvas>
+                                <div class="image-label">${shape.charAt(0).toUpperCase() + shape.slice(1)}</div>
+                            </div>
+                        `;
+                    }
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Baseline drawings
+            if (baselineStrokes) {
+                html += `
+                    <div class="image-group">
+                        <div class="image-group-title">Drawings</div>
+                        <div class="image-grid">
+                `;
+                
+                ['face', 'star', 'house', 'connect_dots'].forEach(drawing => {
+                    if (baselineStrokes[drawing]) {
+                        html += `
+                            <div class="image-item">
+                                <canvas class="image-canvas" id="baseline-${drawing}"></canvas>
+                                <div class="image-label">${drawing.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</div>
+                            </div>
+                        `;
+                    }
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            }
+            
+            html += `
+                    </div>
+
+                    <!-- Authentication Attempt Images -->
+                    <div class="auth-images">
+                        <div class="auth-images-title">📋 Authentication Attempts</div>
+            `;
+            
+            // Attempt images
+            attempts.forEach((attempt, index) => {
+                const attemptNumber = attempts.length - index;
+                const status = attempt.authenticationResult === 'success' ? 'PASSED' : 'FAILED';
+                
+                html += `
+                    <div class="attempt-image-card">
+                        <div class="attempt-image-header">
+                            <span>Attempt #${attemptNumber} - ${status} (${formatPercentage(attempt.signatureScore)})</span>
+                            <span>${formatTimestamp(attempt.timestamp)}</span>
+                        </div>
+                `;
+                
+                // Signature
+                if (attempt.signatureStrokes) {
+                    html += `
+                        <div class="image-group">
+                            <div class="image-group-title">Signature</div>
+                            <div class="image-grid">
+                                <div class="image-item">
+                                    <canvas class="image-canvas" id="attempt-${index}-signature"></canvas>
+                                    <div class="image-label">${formatPercentage(attempt.signatureScore)} match</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // Shapes
+                const shapes = ['circle', 'square', 'triangle'];
+                const hasShapes = shapes.some(shape => attempt[shape + 'Strokes']);
+                
+                if (hasShapes) {
+                    html += `
+                        <div class="image-group">
+                            <div class="image-group-title">Shapes</div>
+                            <div class="image-grid">
+                    `;
+                    
+                    shapes.forEach(shape => {
+                        if (attempt[shape + 'Strokes']) {
+                            html += `
+                                <div class="image-item">
+                                    <canvas class="image-canvas" id="attempt-${index}-${shape}"></canvas>
+                                    <div class="image-label">${shape.charAt(0).toUpperCase() + shape.slice(1)} - ${formatPercentage(attempt[shape + 'Score'])}</div>
+                                </div>
+                            `;
+                        }
+                    });
+                    
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // Drawings
+                const drawings = ['face', 'star', 'house', 'connect_dots'];
+                const hasDrawings = drawings.some(drawing => attempt[drawing + 'Strokes']);
+                
+                if (hasDrawings) {
+                    html += `
+                        <div class="image-group">
+                            <div class="image-group-title">Drawings</div>
+                            <div class="image-grid">
+                    `;
+                    
+                    drawings.forEach(drawing => {
+                        if (attempt[drawing + 'Strokes']) {
+                            const drawingName = drawing.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                            html += `
+                                <div class="image-item">
+                                    <canvas class="image-canvas" id="attempt-${index}-${drawing}"></canvas>
+                                    <div class="image-label">${drawingName} - ${formatPercentage(attempt[drawing + 'Score'])}</div>
+                                </div>
+                            `;
+                        }
+                    });
+                    
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                html += `
+                    </div>
+                `;
+            });
+            
+            html += `
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('imagesTab').innerHTML = html;
+            
+            // Draw all canvases after DOM update
+            setTimeout(() => {
+                // Draw baseline images
+                if (baselineStrokes) {
+                    // Signatures
+                    if (baselineStrokes.signatures) {
+                        baselineStrokes.signatures.forEach((sig, index) => {
+                            const canvas = document.getElementById(`baseline-sig-${index}`);
+                            if (canvas) drawStrokesOnCanvas(canvas, sig);
+                        });
+                    }
+                    
+                    // Shapes and drawings
+                    ['circle', 'square', 'triangle', 'face', 'star', 'house', 'connect_dots'].forEach(component => {
+                        if (baselineStrokes[component]) {
+                            const canvas = document.getElementById(`baseline-${component}`);
+                            if (canvas) drawStrokesOnCanvas(canvas, baselineStrokes[component]);
+                        }
+                    });
+                }
+                
+                // Draw attempt images
+                attempts.forEach((attempt, index) => {
+                    // Signature
+                    if (attempt.signatureStrokes) {
+                        const canvas = document.getElementById(`attempt-${index}-signature`);
+                        if (canvas) drawStrokesOnCanvas(canvas, attempt.signatureStrokes);
+                    }
+                    
+                    // Components
+                    ['circle', 'square', 'triangle', 'face', 'star', 'house', 'connect_dots'].forEach(component => {
+                        const strokesKey = component + 'Strokes';
+                        if (attempt[strokesKey]) {
+                            const canvas = document.getElementById(`attempt-${index}-${component}`);
+                            if (canvas) drawStrokesOnCanvas(canvas, attempt[strokesKey]);
+                        }
+                    });
+                });
+            }, 100);
+        }
+
+        // Tab switching
+        function switchTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
