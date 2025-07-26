@@ -526,8 +526,8 @@ app.get('/auth/challenges/:username', async (req, res) => {
         console.log(`Risk score for ${username}: ${riskScore}`);
         const challenges = {
             signature: true, // Always required
-            shapes: riskScore >= 30 || true, // TEMP: Always require shapes for testing
-            drawings: riskScore >= 60,
+            shapes: true, // Always require shapes
+            drawings: true, // Always require drawings
             required: []
         };
         
@@ -604,8 +604,11 @@ app.post('/login', async (req, res) => {
         if (tempData && tempData.drawings.length > 0) {
             console.log(`Using temporary data for login ${username}: ${tempData.drawings.length} drawings`);
             
-            // For sign-in, we only need the signature
+            // For sign-in, we need all components (signature, shapes, drawings)
             const signatureDrawing = tempData.drawings.find(d => d.type === 'signature');
+            const shapeDrawings = tempData.drawings.filter(d => d.type === 'shape');
+            const drawingDrawings = tempData.drawings.filter(d => d.type === 'drawing');
+            
             if (signatureDrawing) {
                 signature = {
                     data: signatureDrawing.signature,
@@ -615,25 +618,77 @@ app.post('/login', async (req, res) => {
                 };
             }
             
+            // Convert shapes array to object
+            if (shapeDrawings.length > 0) {
+                shapes = {};
+                shapeDrawings.forEach(item => {
+                    const key = item.instruction?.toLowerCase().includes('circle') ? 'circle' :
+                               item.instruction?.toLowerCase().includes('square') ? 'square' :
+                               item.instruction?.toLowerCase().includes('triangle') ? 'triangle' : 'shape';
+                    shapes[key] = {
+                        data: item.signature,
+                        raw: item.raw,
+                        metrics: item.metrics || {},
+                        timestamp: item.timestamp
+                    };
+                });
+            }
+            
+            // Convert drawings array to object
+            if (drawingDrawings.length > 0) {
+                drawings = {};
+                drawingDrawings.forEach(item => {
+                    const key = item.instruction?.toLowerCase().includes('face') ? 'face' :
+                               item.instruction?.toLowerCase().includes('star') ? 'star' :
+                               item.instruction?.toLowerCase().includes('house') ? 'house' :
+                               item.instruction?.toLowerCase().includes('dots') ? 'connect_dots' : 'drawing';
+                    drawings[key] = {
+                        data: item.signature,
+                        raw: item.raw,
+                        metrics: item.metrics || {},
+                        timestamp: item.timestamp
+                    };
+                });
+            }
+            
             // Clear temporary data after using it
             temporaryDrawingStorage.delete(userKey);
             console.log(`Cleared temporary data for ${username}`);
         } else {
             return res.status(400).json({ 
-                error: 'No temporary data found. Please complete the sign-in process.' 
+                error: 'No temporary data found. Please complete the sign-in process with all required components (signature, shapes, and drawings).' 
             });
         }
     }
     
-    // Minimum requirement is username and signature
-    if (!username || !signature) {
+    // Require all components for authentication
+    if (!username || !signature || !shapes || !drawings) {
         return res.status(400).json({ 
-            error: 'Username and signature required',
+            error: 'Username, signature, shapes, and drawings are all required',
             received: {
                 username: !!username,
                 signature: !!signature,
                 shapes: !!shapes,
                 drawings: !!drawings
+            }
+        });
+    }
+    
+    // Validate that all required components are present
+    const requiredShapes = ['circle', 'square', 'triangle'];
+    const requiredDrawings = ['face', 'star'];
+    
+    const missingShapes = requiredShapes.filter(shape => !shapes[shape]);
+    const missingDrawings = requiredDrawings.filter(drawing => !drawings[drawing]);
+    
+    if (missingShapes.length > 0 || missingDrawings.length > 0) {
+        return res.status(400).json({
+            error: 'Missing required components',
+            missingShapes,
+            missingDrawings,
+            received: {
+                shapes: Object.keys(shapes || {}),
+                drawings: Object.keys(drawings || {})
             }
         });
     }
@@ -861,73 +916,11 @@ app.post('/login', async (req, res) => {
         const averageScore = totalScore / scoreCount;
         scores.average = Math.round(averageScore);
         
-        // If no component scores were calculated (signature-only auth), estimate them
-        // This ensures dashboard always has data to display
-        if (!shapes && !drawings) {
-            // Check if user has enrolled components
-            const hasEnrolledShapes = await pool.query(
-                'SELECT shape_type FROM shapes WHERE user_id = $1',
-                [userId]
-            );
-            
-            const hasEnrolledDrawings = await pool.query(
-                'SELECT drawing_type FROM drawings WHERE user_id = $1',
-                [userId]
-            );
-            
-            if (hasEnrolledShapes.rows.length > 0 || hasEnrolledDrawings.rows.length > 0) {
-                // Generate estimated scores based on signature score
-                // Use a consistent formula based on signature performance
-                const baseScore = signatureScore;
-                
-                // Define which components are part of the current authentication flow
-                // Based on the frontend signInSteps configuration
-                const authFlowShapes = ['circle', 'square', 'triangle'];
-                const authFlowDrawings = ['face', 'star'];
-                
-                // Shape scores tend to be slightly higher than signature scores
-                // due to their simpler geometric nature
-                // Only estimate scores for shapes that are part of the auth flow
-                hasEnrolledShapes.rows.forEach(row => {
-                    // Only include shapes that are part of the current authentication flow
-                    if (authFlowShapes.includes(row.shape_type)) {
-                        let shapeScore = baseScore;
-                        if (row.shape_type === 'circle') {
-                            shapeScore = baseScore * 1.1; // Circles are easiest
-                        } else if (row.shape_type === 'square') {
-                            shapeScore = baseScore * 0.95; // Squares are moderate
-                        } else if (row.shape_type === 'triangle') {
-                            shapeScore = baseScore * 0.9; // Triangles are hardest
-                        }
-                        scores[row.shape_type] = Math.round(Math.max(0, Math.min(100, shapeScore)));
-                    }
-                });
-                
-                // Drawing scores tend to be lower due to complexity
-                // Only estimate scores for drawings that are part of the auth flow
-                hasEnrolledDrawings.rows.forEach(row => {
-                    // Only include drawings that are part of the current authentication flow
-                    if (authFlowDrawings.includes(row.drawing_type)) {
-                        let drawingScore = baseScore;
-                        if (row.drawing_type === 'star') {
-                            drawingScore = baseScore * 0.85; // Stars have consistent patterns
-                        } else if (row.drawing_type === 'face') {
-                            drawingScore = baseScore * 0.8; // Faces vary more
-                        }
-                        // Note: house and connect_dots are not part of the current auth flow
-                        // so they won't get estimated scores
-                        scores[row.drawing_type] = Math.round(Math.max(0, Math.min(100, drawingScore)));
-                    }
-                });
-                
-                console.log('Generated estimated component scores for dashboard (filtered to auth flow):', scores);
-            }
-        }
+        // All components are now required, so no estimation needed
+        // The scores object will contain actual scores from all components
         
-        // Adjust threshold based on what was provided
-        let threshold = 40; // Default threshold
-        if (shapes) threshold = 45; // Higher threshold when more factors
-        if (drawings) threshold = 50; // Even higher with drawings
+        // All components are required, so use the highest threshold
+        let threshold = 50; // Threshold for full multi-factor authentication
         
         const isSuccess = averageScore >= threshold;
         
