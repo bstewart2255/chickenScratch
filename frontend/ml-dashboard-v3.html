@@ -474,27 +474,27 @@
                             <div class="group-title">Core Metrics</div>
                             <div class="metric-item">
                                 <span>Stroke Count:</span>
-                                <span>${baseline.stroke_count.toFixed(1)} avg</span>
+                                <span>${baseline.stroke_count?.toFixed(1) || 'N/A'} avg</span>
                             </div>
                             <div class="metric-item">
                                 <span>Total Points:</span>
-                                <span>${baseline.total_points.toFixed(1)} avg</span>
+                                <span>${baseline.total_points?.toFixed(1) || 'N/A'} avg</span>
                             </div>
                             <div class="metric-item">
                                 <span>Duration (ms):</span>
-                                <span>${Math.round(baseline.total_duration_ms).toLocaleString()} avg</span>
+                                <span>${baseline.total_duration_ms ? Math.round(baseline.total_duration_ms).toLocaleString() : 'N/A'} avg</span>
                             </div>
                             <div class="metric-item">
                                 <span>Avg Velocity:</span>
-                                <span>${baseline.avg_velocity.toFixed(3)} avg</span>
+                                <span>${baseline.avg_velocity?.toFixed(3) || 'N/A'} avg</span>
                             </div>
                             <div class="metric-item">
                                 <span>Max Velocity:</span>
-                                <span>${baseline.max_velocity.toFixed(3)} avg</span>
+                                <span>${baseline.max_velocity?.toFixed(3) || 'N/A'} avg</span>
                             </div>
                             <div class="metric-item">
                                 <span>Velocity Std:</span>
-                                <span>${baseline.velocity_std.toFixed(3)} avg</span>
+                                <span>${baseline.velocity_std?.toFixed(3) || 'N/A'} avg</span>
                             </div>
                         </div>
                         
@@ -502,27 +502,27 @@
                             <div class="group-title">Shape Metrics</div>
                             <div class="metric-item">
                                 <span>Width:</span>
-                                <span>${Math.round(baseline.width)} avg</span>
+                                <span>${baseline.width ? Math.round(baseline.width) : 'N/A'} avg</span>
                             </div>
                             <div class="metric-item">
                                 <span>Height:</span>
-                                <span>${Math.round(baseline.height)} avg</span>
+                                <span>${baseline.height ? Math.round(baseline.height) : 'N/A'} avg</span>
                             </div>
                             <div class="metric-item">
                                 <span>Area:</span>
-                                <span>${Math.round(baseline.area).toLocaleString()} avg</span>
+                                <span>${baseline.area ? Math.round(baseline.area).toLocaleString() : 'N/A'} avg</span>
                             </div>
                             <div class="metric-item">
                                 <span>Aspect Ratio:</span>
-                                <span>${baseline.aspect_ratio.toFixed(2)} avg</span>
+                                <span>${baseline.aspect_ratio?.toFixed(2) || 'N/A'} avg</span>
                             </div>
                             <div class="metric-item">
                                 <span>Center X:</span>
-                                <span>${Math.round(baseline.center_x)} avg</span>
+                                <span>${baseline.center_x ? Math.round(baseline.center_x) : 'N/A'} avg</span>
                             </div>
                             <div class="metric-item">
                                 <span>Center Y:</span>
-                                <span>${Math.round(baseline.center_y)} avg</span>
+                                <span>${baseline.center_y ? Math.round(baseline.center_y) : 'N/A'} avg</span>
                             </div>
                         </div>
 
@@ -530,15 +530,15 @@
                             <div class="group-title">Shapes</div>
                             <div class="metric-item">
                                 <span>Circle Roundness:</span>
-                                <span>${formatPercentage(baseline.circle_roundness)} avg</span>
+                                <span>${baseline.circle_roundness ? formatPercentage(baseline.circle_roundness) + ' avg' : 'N/A'}</span>
                             </div>
                             <div class="metric-item">
                                 <span>Square Corners:</span>
-                                <span>${formatPercentage(baseline.square_corner_accuracy)} avg</span>
+                                <span>${baseline.square_corner_accuracy ? formatPercentage(baseline.square_corner_accuracy) + ' avg' : 'N/A'}</span>
                             </div>
                             <div class="metric-item">
                                 <span>Triangle Closure:</span>
-                                <span>${formatPercentage(baseline.triangle_closure)} avg</span>
+                                <span>${baseline.triangle_closure ? formatPercentage(baseline.triangle_closure) + ' avg' : 'N/A'}</span>
                             </div>
                         </div>
 
@@ -546,11 +546,11 @@
                             <div class="group-title">Drawings</div>
                             <div class="metric-item">
                                 <span>Face Features:</span>
-                                <span>${formatPercentage(baseline.face_score)} avg</span>
+                                <span>${baseline.face_score ? formatPercentage(baseline.face_score) + ' avg' : 'N/A'}</span>
                             </div>
                             <div class="metric-item">
                                 <span>Star Points:</span>
-                                <span>${formatPercentage(baseline.star_score)} avg</span>
+                                <span>${baseline.star_score ? formatPercentage(baseline.star_score) + ' avg' : 'N/A'}</span>
                             </div>
                             <div class="metric-item">
                                 <span>House Structure:</span>
@@ -566,23 +566,23 @@
                             <div class="group-title">Additional Metrics</div>
                             <div class="metric-item">
                                 <span>Stroke Length Avg:</span>
-                                <span>${baseline.avg_stroke_length.toFixed(1)} avg</span>
+                                <span>${baseline.avg_stroke_length?.toFixed(1) || 'N/A'} avg</span>
                             </div>
                             <div class="metric-item">
                                 <span>Stroke Length Std:</span>
-                                <span>${baseline.length_variation.toFixed(1)} avg</span>
+                                <span>${baseline.length_variation?.toFixed(1) || 'N/A'} avg</span>
                             </div>
                             <div class="metric-item">
                                 <span>Pressure Avg:</span>
-                                <span>${baseline.avg_pressure.toFixed(3)} avg</span>
+                                <span>${baseline.avg_pressure?.toFixed(3) || 'N/A'} avg</span>
                             </div>
                             <div class="metric-item">
                                 <span>Pause Count:</span>
-                                <span>${baseline.pause_count.toFixed(1)} avg</span>
+                                <span>${baseline.pause_count?.toFixed(1) || 'N/A'} avg</span>
                             </div>
                             <div class="metric-item">
                                 <span>Direction Changes:</span>
-                                <span>${baseline.direction_changes.toFixed(1)} avg</span>
+                                <span>${baseline.direction_changes?.toFixed(1) || 'N/A'} avg</span>
                             </div>
                         </div>
                     </div>
@@ -620,23 +620,23 @@
                                 </div>
                                 <div class="data-metric">
                                     <span class="metric-name">Total Points:</span>
-                                    <span class="metric-value">${formatMetricValue(attempt.total_points, baseline.totalPoints)}</span>
+                                    <span class="metric-value">${formatMetricValue(attempt.total_points, baseline.total_points)}</span>
                                 </div>
                                 <div class="data-metric">
                                     <span class="metric-name">Duration (ms):</span>
-                                    <span class="metric-value">${formatMetricValue(Math.round(attempt.total_duration_ms), Math.round(baseline.totalDuration))}</span>
+                                    <span class="metric-value">${formatMetricValue(Math.round(attempt.total_duration_ms), baseline.total_duration_ms ? Math.round(baseline.total_duration_ms) : null)}</span>
                                 </div>
                                 <div class="data-metric">
                                     <span class="metric-name">Avg Velocity:</span>
-                                    <span class="metric-value">${formatMetricValue(attempt.avg_velocity?.toFixed(3), baseline.avgVelocity?.toFixed(3))}</span>
+                                    <span class="metric-value">${formatMetricValue(attempt.avg_velocity?.toFixed(3), baseline.avg_velocity?.toFixed(3))}</span>
                                 </div>
                                 <div class="data-metric">
                                     <span class="metric-name">Max Velocity:</span>
-                                    <span class="metric-value">${formatMetricValue(attempt.max_velocity?.toFixed(3), baseline.maxVelocity?.toFixed(3))}</span>
+                                    <span class="metric-value">${formatMetricValue(attempt.max_velocity?.toFixed(3), baseline.max_velocity?.toFixed(3))}</span>
                                 </div>
                                 <div class="data-metric">
                                     <span class="metric-name">Velocity Std:</span>
-                                    <span class="metric-value">${formatMetricValue(attempt.velocity_std?.toFixed(3), baseline.velocityStdDev?.toFixed(3))}</span>
+                                    <span class="metric-value">${formatMetricValue(attempt.velocity_std?.toFixed(3), baseline.velocity_std?.toFixed(3))}</span>
                                 </div>
                             </div>
 
@@ -656,15 +656,15 @@
                                 </div>
                                 <div class="data-metric">
                                     <span class="metric-name">Aspect Ratio:</span>
-                                    <span class="metric-value">${formatMetricValue(attempt.aspect_ratio?.toFixed(2), baseline.aspectRatio?.toFixed(2))}</span>
+                                    <span class="metric-value">${formatMetricValue(attempt.aspect_ratio?.toFixed(2), baseline.aspect_ratio?.toFixed(2))}</span>
                                 </div>
                                 <div class="data-metric">
                                     <span class="metric-name">Center X:</span>
-                                    <span class="metric-value">${formatMetricValue(Math.round(attempt.center_x), Math.round(baseline.centerX))}</span>
+                                    <span class="metric-value">${formatMetricValue(Math.round(attempt.center_x), baseline.center_x ? Math.round(baseline.center_x) : null)}</span>
                                 </div>
                                 <div class="data-metric">
                                     <span class="metric-name">Center Y:</span>
-                                    <span class="metric-value">${formatMetricValue(Math.round(attempt.center_y), Math.round(baseline.centerY))}</span>
+                                    <span class="metric-value">${formatMetricValue(Math.round(attempt.center_y), baseline.center_y ? Math.round(baseline.center_y) : null)}</span>
                                 </div>
                             </div>
 
@@ -672,15 +672,15 @@
                                 <div class="data-group-title">Shapes Performance</div>
                                 <div class="data-metric">
                                     <span class="metric-name">Circle Score:</span>
-                                    <span class="metric-value">${formatPercentage(attempt.circle_score)} (Roundness: ${formatMetricValue(attempt.circle_roundness, baseline.circleRoundness, false)}%)</span>
+                                    <span class="metric-value">${formatPercentage(attempt.circle_score)} (Roundness: ${formatMetricValue(attempt.circle_roundness, baseline.circle_roundness, false)}%)</span>
                                 </div>
                                 <div class="data-metric">
                                     <span class="metric-name">Square Score:</span>
-                                    <span class="metric-value">${formatPercentage(attempt.square_score)} (Corners: ${formatMetricValue(attempt.square_corner_accuracy, baseline.squareCornerAccuracy, false)}%)</span>
+                                    <span class="metric-value">${formatPercentage(attempt.square_score)} (Corners: ${formatMetricValue(attempt.square_corner_accuracy, baseline.square_corner_accuracy, false)}%)</span>
                                 </div>
                                 <div class="data-metric">
                                     <span class="metric-name">Triangle Score:</span>
-                                    <span class="metric-value">${formatPercentage(attempt.triangle_score)} (Closure: ${formatMetricValue(attempt.triangle_closure, baseline.triangleClosure, false)}%)</span>
+                                    <span class="metric-value">${formatPercentage(attempt.triangle_score)} (Closure: ${formatMetricValue(attempt.triangle_closure, baseline.triangle_closure, false)}%)</span>
                                 </div>
                             </div>
 
@@ -716,15 +716,15 @@
                                 </div>
                                 <div class="data-metric">
                                     <span class="metric-name">Pressure Avg:</span>
-                                    <span class="metric-value">${formatMetricValue(attempt.avg_pressure?.toFixed(3), baseline.avgPressure?.toFixed(3))}</span>
+                                    <span class="metric-value">${formatMetricValue(attempt.avg_pressure?.toFixed(3), baseline.avg_pressure?.toFixed(3))}</span>
                                 </div>
                                 <div class="data-metric">
                                     <span class="metric-name">Pause Count:</span>
-                                    <span class="metric-value">${formatMetricValue(attempt.pause_count, baseline.pauseCount)}</span>
+                                    <span class="metric-value">${formatMetricValue(attempt.pause_count, baseline.pause_count)}</span>
                                 </div>
                                 <div class="data-metric">
                                     <span class="metric-name">Direction Changes:</span>
-                                    <span class="metric-value">${formatMetricValue(attempt.direction_changes, baseline.directionChanges)}</span>
+                                    <span class="metric-value">${formatMetricValue(attempt.direction_changes, baseline.direction_changes)}</span>
                                 </div>
                             </div>
 

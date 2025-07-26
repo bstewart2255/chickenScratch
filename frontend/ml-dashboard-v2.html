@@ -1334,17 +1334,23 @@
             const features = getMLFeatures();
             
             featuresDiv.innerHTML = features.map(feature => {
-                const baselineValue = detailedAnalysis.baseline[feature.key] || 0;
-                const attemptValue = breakdown.signature?.metrics?.[feature.key] || 0;
-                const diff = Math.abs(baselineValue - attemptValue);
-                const maxDiff = baselineValue * 0.5; // 50% difference threshold
+                const baselineValue = detailedAnalysis.baseline?.[feature.key];
+                const attemptValue = breakdown.signature?.metrics?.[feature.key];
+                
+                // Skip features that don't exist in baseline
+                if (baselineValue === undefined || baselineValue === null) {
+                    return '';
+                }
+                
+                const diff = Math.abs((baselineValue || 0) - (attemptValue || 0));
+                const maxDiff = Math.max(baselineValue * 0.5, 1); // Prevent division by zero
                 const similarity = Math.max(0, 100 - (diff / maxDiff * 100));
                 
                 return `
                     <div class="feature-item">
                         <span class="feature-name">${feature.name}</span>
                         <div class="feature-comparison">
-                            <span>${attemptValue.toFixed(1)}</span>
+                            <span>${attemptValue !== undefined && attemptValue !== null ? attemptValue.toFixed(1) : 'N/A'}</span>
                             <div class="feature-bar">
                                 <div class="feature-bar-fill ${getFeatureClass(similarity)}" 
                                      style="width: ${similarity}%"></div>
@@ -1353,7 +1359,7 @@
                         </div>
                     </div>
                 `;
-            }).join('');
+            }).filter(html => html !== '').join('');
         }
         
         // Update shapes analysis
