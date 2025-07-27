@@ -1765,7 +1765,7 @@ function calculateShapeBaseline(shapes) {
     if (!shapes || shapes.length === 0) {
         return {
             circle_roundness: null,
-            square_corners: null,
+            square_corner_accuracy: null,  // FIXED: was square_corners
             triangle_closure: null
         };
     }
@@ -1782,8 +1782,8 @@ function calculateShapeBaseline(shapes) {
                 baseline.circle_roundness = calculateCircleRoundness(metrics);
                 break;
             case 'square':
-                // Calculate corner accuracy from aspect ratio and regularity
-                baseline.square_corners = calculateSquareCorners(metrics);
+                // FIXED: Return with correct property name
+                baseline.square_corner_accuracy = calculateSquareCorners(metrics);
                 break;
             case 'triangle':
                 // Calculate closure quality from shape metrics
