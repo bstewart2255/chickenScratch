@@ -1743,6 +1743,176 @@ app.delete('/api/temp-drawings/:username', async (req, res) => {
     }
 });
 
+// Enhanced baseline calculation function that includes shapes and drawings
+function calculateEnhancedBaseline(signatures, shapes, drawings) {
+    // Calculate signature baseline (existing logic)
+    const signatureBaseline = calculateUserBaseline(signatures);
+    
+    // Calculate shape-specific baseline metrics
+    const shapeBaseline = calculateShapeBaseline(shapes);
+    
+    // Calculate drawing-specific baseline metrics  
+    const drawingBaseline = calculateDrawingBaseline(drawings);
+    
+    return {
+        ...signatureBaseline,
+        ...shapeBaseline,
+        ...drawingBaseline
+    };
+}
+
+function calculateShapeBaseline(shapes) {
+    if (!shapes || shapes.length === 0) {
+        return {
+            circle_roundness: null,
+            square_corners: null,
+            triangle_closure: null
+        };
+    }
+    
+    const baseline = {};
+    
+    shapes.forEach(shape => {
+        const shapeType = shape.shape_type;
+        const metrics = shape.metrics || {};
+        
+        switch(shapeType) {
+            case 'circle':
+                // Calculate roundness from aspect ratio and other metrics
+                baseline.circle_roundness = calculateCircleRoundness(metrics);
+                break;
+            case 'square':
+                // Calculate corner accuracy from aspect ratio and regularity
+                baseline.square_corners = calculateSquareCorners(metrics);
+                break;
+            case 'triangle':
+                // Calculate closure quality from shape metrics
+                baseline.triangle_closure = calculateTriangleClosure(metrics);
+                break;
+        }
+    });
+    
+    return baseline;
+}
+
+function calculateDrawingBaseline(drawings) {
+    if (!drawings || drawings.length === 0) {
+        return {
+            face_features: null,
+            star_points: null,
+            house_structure: null,
+            connect_dots: null
+        };
+    }
+    
+    const baseline = {};
+    
+    drawings.forEach(drawing => {
+        const drawingType = drawing.drawing_type;
+        const metrics = drawing.metrics || {};
+        
+        // Check if this drawing actually has data
+        const hasData = metrics.strokeCount > 0 && metrics.pointCount > 0;
+        
+        switch(drawingType) {
+            case 'face':
+                baseline.face_features = hasData ? calculateFaceScore(metrics) : null;
+                break;
+            case 'star':
+                baseline.star_points = hasData ? calculateStarScore(metrics) : null;
+                break;
+            case 'house':
+                baseline.house_structure = hasData ? calculateHouseScore(metrics) : null;
+                break;
+            case 'connect_dots':
+                baseline.connect_dots = hasData ? calculateConnectDotsScore(metrics) : null;
+                break;
+        }
+    });
+    
+    return baseline;
+}
+
+// Shape-specific scoring functions
+function calculateCircleRoundness(metrics) {
+    // A perfect circle has aspect ratio of 1.0
+    const aspectRatio = metrics.aspect_ratio || 1;
+    const roundness = Math.max(0, 100 - Math.abs(aspectRatio - 1) * 100);
+    return Math.round(roundness);
+}
+
+function calculateSquareCorners(metrics) {
+    // A perfect square has aspect ratio close to 1.0
+    const aspectRatio = metrics.aspect_ratio || 1;
+    const squareness = Math.max(0, 100 - Math.abs(aspectRatio - 1) * 50);
+    return Math.round(squareness);
+}
+
+function calculateTriangleClosure(metrics) {
+    // For now, use stroke consistency as a proxy for closure quality
+    const velocity_std = metrics.velocity_std || 0;
+    const closure = Math.max(0, 100 - velocity_std * 200);
+    return Math.round(closure);
+}
+
+// Drawing-specific scoring functions
+function calculateFaceScore(metrics) {
+    // If no actual data, return null
+    if (metrics.strokeCount === 0) return null;
+    
+    // Basic face score based on complexity and completeness
+    const strokeCount = metrics.strokeCount || 0;
+    const pointCount = metrics.pointCount || 0;
+    
+    // A face typically has 3-7 strokes (2 eyes, nose, mouth, maybe head outline)
+    const strokeScore = Math.min(100, (strokeCount / 5) * 100);
+    const pointScore = Math.min(100, (pointCount / 50) * 100);
+    
+    return Math.round((strokeScore + pointScore) / 2);
+}
+
+function calculateStarScore(metrics) {
+    if (metrics.strokeCount === 0) return null;
+    
+    // Star scoring based on stroke count and complexity
+    const strokeCount = metrics.strokeCount || 0;
+    const pointCount = metrics.pointCount || 0;
+    
+    // A 5-pointed star typically has 1-2 strokes
+    const strokeScore = strokeCount >= 1 ? 80 : 20;
+    const pointScore = Math.min(100, (pointCount / 30) * 100);
+    
+    return Math.round((strokeScore + pointScore) / 2);
+}
+
+function calculateHouseScore(metrics) {
+    if (metrics.strokeCount === 0) return null;
+    
+    // House scoring based on component count
+    const strokeCount = metrics.strokeCount || 0;
+    const pointCount = metrics.pointCount || 0;
+    
+    // A house typically has 4-8 strokes (walls, roof, door, windows)
+    const strokeScore = Math.min(100, (strokeCount / 6) * 100);
+    const pointScore = Math.min(100, (pointCount / 60) * 100);
+    
+    return Math.round((strokeScore + pointScore) / 2);
+}
+
+function calculateConnectDotsScore(metrics) {
+    if (metrics.strokeCount === 0) return null;
+    
+    // Connect dots scoring based on efficiency
+    const strokeCount = metrics.strokeCount || 0;
+    const pointCount = metrics.pointCount || 0;
+    
+    // Connect dots should be efficient (fewer strokes is better)
+    const efficiency = strokeCount > 0 ? Math.max(0, 100 - (strokeCount - 1) * 20) : 0;
+    const completeness = Math.min(100, (pointCount / 20) * 100);
+    
+    return Math.round((efficiency + completeness) / 2);
+}
+
 // Enhanced detailed-analysis endpoint with proper ML feature extraction
 app.get('/api/user/:username/detailed-analysis', async (req, res) => {
     try {
@@ -1760,13 +1930,17 @@ app.get('/api/user/:username/detailed-analysis', async (req, res) => {
         
         // Get enrollment data (signatures, shapes, drawings)
         const [signatures, shapes, drawings] = await Promise.all([
-            pool.query('SELECT * FROM signatures WHERE user_id = $1 ORDER BY created_at DESC', [user.id]),
-            pool.query('SELECT * FROM shapes WHERE user_id = $1 ORDER BY created_at DESC', [user.id]),
-            pool.query('SELECT * FROM drawings WHERE user_id = $1 ORDER BY created_at DESC', [user.id]).catch(() => ({ rows: [] }))
+            pool.query('SELECT * FROM signatures WHERE user_id = $1 ORDER BY created_at ASC', [user.id]),
+            pool.query('SELECT * FROM shapes WHERE user_id = $1 ORDER BY created_at ASC', [user.id]),
+            pool.query('SELECT * FROM drawings WHERE user_id = $1 ORDER BY created_at ASC', [user.id])
         ]);
         
-        // Calculate baseline from enrollment signatures
-        const baseline = calculateUserBaseline(signatures.rows);
+        // Calculate enhanced baseline including shapes and drawings
+        const baseline = calculateEnhancedBaseline(
+            signatures.rows, 
+            shapes.rows, 
+            drawings.rows
+        );
         
         // Get auth attempts with enhanced ML feature extraction
         const authAttemptsResult = await pool.query(`
@@ -1778,7 +1952,6 @@ app.get('/api/user/:username/detailed-analysis', async (req, res) => {
                 a.device_info,
                 a.drawing_scores,
                 a.signature_id,
-                -- Get ML features from the referenced signature
                 s.metrics as signature_metrics
             FROM auth_attempts a
             LEFT JOIN signatures s ON a.signature_id = s.id
@@ -1789,10 +1962,8 @@ app.get('/api/user/:username/detailed-analysis', async (req, res) => {
         
         // Process auth attempts to include ML features
         const enhancedAuthAttempts = authAttemptsResult.rows.map(attempt => {
-            // Extract ML features from signature metrics
             const mlFeatures = attempt.signature_metrics || {};
             
-            // Format the attempt with all expected fields
             return {
                 id: attempt.id,
                 created_at: attempt.created_at,
@@ -1803,41 +1974,15 @@ app.get('/api/user/:username/detailed-analysis', async (req, res) => {
                 drawing_scores: attempt.drawing_scores,
                 signature_id: attempt.signature_id,
                 
-                // Add all ML features from signature metrics
+                // Include all ML features from signature metrics
                 ...mlFeatures,
                 
-                // Add shape scores (extracted from confidence if not separate)
-                shape_scores: extractShapeScores(attempt),
-                
-                // Ensure all expected ML features exist with fallback values
-                stroke_count: mlFeatures.stroke_count || null,
-                total_points: mlFeatures.total_points || null,
-                total_duration_ms: mlFeatures.total_duration_ms || null,
-                avg_velocity: mlFeatures.avg_velocity || null,
-                max_velocity: mlFeatures.max_velocity || null,
-                min_velocity: mlFeatures.min_velocity || null,
-                velocity_std: mlFeatures.velocity_std || null,
-                width: mlFeatures.width || null,
-                height: mlFeatures.height || null,
-                area: mlFeatures.area || null,
-                aspect_ratio: mlFeatures.aspect_ratio || null,
-                center_x: mlFeatures.center_x || null,
-                center_y: mlFeatures.center_y || null,
-                avg_stroke_length: mlFeatures.avg_stroke_length || null,
-                total_length: mlFeatures.total_length || null,
-                length_variation: mlFeatures.length_variation || null,
-                avg_stroke_duration: mlFeatures.avg_stroke_duration || null,
-                duration_variation: mlFeatures.duration_variation || null,
-                avg_points_per_stroke: mlFeatures.avg_points_per_stroke || null,
-                
-                // Additional metrics the dashboard expects
-                avg_pressure: mlFeatures.avg_pressure || null,
-                pause_count: mlFeatures.pause_count || null,
-                direction_changes: mlFeatures.direction_changes || null
+                // Add shape scores (if available)
+                shape_scores: extractShapeScores(attempt)
             };
         });
         
-        // Calculate device performance stats
+        // Calculate device performance
         const devicePerformance = calculateDevicePerformance(enhancedAuthAttempts);
         
         res.json({
