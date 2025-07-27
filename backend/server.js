@@ -830,50 +830,41 @@ app.post('/login', async (req, res) => {
                 };
             });
             
-            // Verify each provided shape
+            // Verify each provided shape using shape-specific scoring
             if (shapes.circle && storedShapes.circle) {
                 console.log('Comparing circle shape...');
-                const circleScore = await compareSignatures(
-                    storedShapes.circle.data.data, 
-                    shapes.circle.data,
-                    storedShapes.circle.metrics,
-                    shapes.circle.metrics || {},
-                    username
-                );
+                // Use shape-specific scoring based on the PROVIDED shape's metrics
+                const providedMetrics = shapes.circle.metrics || {};
+                const circleScore = calculateCircleRoundness(providedMetrics);
+                
                 scores.circle = Math.round(circleScore);
                 totalScore += circleScore;
                 scoreCount++;
-                console.log('✅ Circle shape score:', scores.circle);
+                console.log('✅ Circle shape score:', scores.circle, '(aspect ratio:', providedMetrics.aspect_ratio, ')');
             }
             
             if (shapes.square && storedShapes.square) {
                 console.log('Comparing square shape...');
-                const squareScore = await compareSignatures(
-                    storedShapes.square.data.data, 
-                    shapes.square.data,
-                    storedShapes.square.metrics,
-                    shapes.square.metrics || {},
-                    username
-                );
+                // Use shape-specific scoring based on the PROVIDED shape's metrics
+                const providedMetrics = shapes.square.metrics || {};
+                const squareScore = calculateSquareCorners(providedMetrics);
+                
                 scores.square = Math.round(squareScore);
                 totalScore += squareScore;
                 scoreCount++;
-                console.log('✅ Square shape score:', scores.square);
+                console.log('✅ Square shape score:', scores.square, '(aspect ratio:', providedMetrics.aspect_ratio, ')');
             }
             
             if (shapes.triangle && storedShapes.triangle) {
                 console.log('Comparing triangle shape...');
-                const triangleScore = await compareSignatures(
-                    storedShapes.triangle.data.data, 
-                    shapes.triangle.data,
-                    storedShapes.triangle.metrics,
-                    shapes.triangle.metrics || {},
-                    username
-                );
+                // Use shape-specific scoring based on the PROVIDED shape's metrics
+                const providedMetrics = shapes.triangle.metrics || {};
+                const triangleScore = calculateTriangleClosure(providedMetrics);
+                
                 scores.triangle = Math.round(triangleScore);
                 totalScore += triangleScore;
                 scoreCount++;
-                console.log('✅ Triangle shape score:', scores.triangle);
+                console.log('✅ Triangle shape score:', scores.triangle, '(velocity std:', providedMetrics.velocity_std, ')');
             }
         } else if (hasShapes) {
             // Estimate shape scores based on signature score
