@@ -26,7 +26,7 @@ const CONFIG = {
 
 // Database connection
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: process.env.DATABASE_URL || 'postgresql://localhost:5432/signature_auth',
     ssl: { rejectUnauthorized: false }
 });
 
