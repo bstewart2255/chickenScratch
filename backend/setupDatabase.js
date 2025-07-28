@@ -1,8 +1,10 @@
+require('dotenv').config();
 const { Pool } = require('pg');
 
 // Use your External Database URL for this one-time setup
 const pool = new Pool({
-  connectionString: 'postgresql://signatureauth_user:XVzIXGqeLXanJIqn5aVwLIRcXmrGmmpV@dpg-d1tsq36r433s73e4gtvg-a.oregon-postgres.render.com/signatureauth',
+  connectionString: process.env.DATABASE_URL || 
+    `postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`,
   ssl: {
     rejectUnauthorized: false
   }
