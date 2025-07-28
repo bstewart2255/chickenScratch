@@ -66,7 +66,7 @@ SELECT
     ROUND(avg_processing_time_ms, 2) as avg_ms,
     ROUND(min_processing_time_ms, 2) as min_ms,
     ROUND(max_processing_time_ms, 2) as max_ms,
-    ROUND(shapes_processed * 60.0 / 60, 1) as shapes_per_minute
+    shapes_processed as shapes_per_minute
 FROM processing_windows
 ORDER BY minute_window DESC
 LIMIT 20;
