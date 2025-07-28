@@ -28,6 +28,7 @@ async function runMigration() {
     console.log('Pre-migration check:');
     console.table(safetyCheck.rows);
     
+
     if (parseInt(safetyCheck.rows[0].with_raw_key) !== 85) {
       throw new Error(`Expected 85 shapes with raw key, found ${safetyCheck.rows[0].with_raw_key}`);
     }
@@ -126,6 +127,7 @@ async function runMigration() {
     console.log('='.repeat(60));
     console.table(postCheck.rows);
     
+
     if (parseInt(postCheck.rows[0].base64_with_raw) === 0 && parseInt(postCheck.rows[0].base64_images) === 30) {
       console.log('\n✅ Migration completed successfully!');
       console.log(`✅ ${totalUpdated} shapes migrated from base64 to stroke_data`);
