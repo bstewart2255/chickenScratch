@@ -47,6 +47,7 @@ BEGIN
     END IF;
     
     -- Check 3: Verify backup integrity
+    -- Note: Checksums exclude data_format field since that's what we're changing
     SELECT MD5(string_agg(id::text || COALESCE(shape_data::text, 'null'), ',' ORDER BY id))
     INTO v_checksum_original
     FROM shapes 

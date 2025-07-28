@@ -78,6 +78,7 @@ FROM shapes
 WHERE data_format = 'base64';
 
 -- 9. Generate checksums for validation
+-- Note: Checksums exclude data_format field since that's what we'll be changing
 WITH affected_shapes AS (
     SELECT id, shape_data
     FROM shapes 

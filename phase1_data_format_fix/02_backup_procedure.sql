@@ -79,11 +79,12 @@ WITH backup_verification AS (
 SELECT * FROM backup_verification;
 
 -- Verify data integrity with checksums
+-- Note: Checksums exclude data_format field since that's what we're changing in the migration
 WITH checksum_verification AS (
     SELECT 
         'Original data checksum' as checksum_type,
         MD5(string_agg(
-            id::text || COALESCE(shape_data::text, 'null') || COALESCE(data_format, 'null'), 
+            id::text || COALESCE(shape_data::text, 'null'), 
             ',' ORDER BY id
         )) as checksum
     FROM shapes 
@@ -94,7 +95,7 @@ WITH checksum_verification AS (
     SELECT 
         'Backup data checksum' as checksum_type,
         MD5(string_agg(
-            id::text || COALESCE(shape_data::text, 'null') || COALESCE(data_format, 'null'), 
+            id::text || COALESCE(shape_data::text, 'null'), 
             ',' ORDER BY id
         )) as checksum
     FROM backup_phase1_data_format.shapes_backup_20250128
@@ -159,7 +160,7 @@ SELECT
     'shapes' as source_table,
     COUNT(*) as record_count,
     MD5(string_agg(
-        id::text || COALESCE(shape_data::text, 'null') || COALESCE(data_format, 'null'), 
+        id::text || COALESCE(shape_data::text, 'null'), 
         ',' ORDER BY id
     )) as checksum,
     'Backup before fixing data_format from base64 to stroke_data for 115 shape records' as notes
