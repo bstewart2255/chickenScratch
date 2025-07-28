@@ -2,7 +2,7 @@ const { Client } = require('pg');
 const fs = require('fs');
 
 // Database connection configuration
-const connectionString = process.env.DATABASE_URL || 'postgresql://signature_auth_dev_user:cKfLaS3d6nW5JvJCLBMUOsLNFUwr7EkB@dpg-ct27tjpopnds739fr3kg-a.oregon-postgres.render.com/signature_auth_dev';
+const connectionString = process.env.DATABASE_URL || `postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}/${process.env.DB_NAME}`;
 
 async function runEmpiricalAnalysis() {
     const client = new Client({

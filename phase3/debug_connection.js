@@ -2,7 +2,7 @@ const { Client } = require('pg');
 
 async function debugConnection() {
   const connectionString = process.env.DATABASE_URL || 
-    'postgresql://signature_auth_dev_user:cKfLaS3d6nW5JvJCLBMUOsLNFUwr7EkB@dpg-ct27tjpopnds739fr3kg-a.oregon-postgres.render.com/signature_auth_dev';
+    `postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}/${process.env.DB_NAME}`;
   
   console.log('Connection string:', connectionString.replace(/:[^:@]*@/, ':****@'));
   
