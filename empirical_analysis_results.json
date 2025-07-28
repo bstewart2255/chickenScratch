@@ -1,0 +1,290 @@
+[
+  {
+    "title": "Signatures Data Format Distribution",
+    "data": [
+      {
+        "data_format": "stroke_data",
+        "count": "91",
+        "percentage": "98.91",
+        "oldest_record": "2025-07-22T03:53:18.692Z",
+        "newest_record": "2025-07-27T04:11:20.498Z"
+      },
+      {
+        "data_format": "base64",
+        "count": "1",
+        "percentage": "1.09",
+        "oldest_record": "2025-07-20T00:12:20.785Z",
+        "newest_record": "2025-07-20T00:12:20.785Z"
+      }
+    ]
+  },
+  {
+    "title": "Signatures Content Type Analysis",
+    "data": [
+      {
+        "data_format": "base64",
+        "content_type": "Other stroke format",
+        "count": "1",
+        "min_data_length": 9200,
+        "max_data_length": 9200,
+        "avg_data_length": 9200
+      },
+      {
+        "data_format": "stroke_data",
+        "content_type": "Other stroke format",
+        "count": "91",
+        "min_data_length": 12604,
+        "max_data_length": 116717,
+        "avg_data_length": 68051
+      }
+    ]
+  },
+  {
+    "title": "Potential Legacy Data in Signatures",
+    "data": [
+      {
+        "id": 1,
+        "user_id": 1,
+        "data_format": "base64",
+        "issue_type": "Invalid base64 format",
+        "created_at": "2025-07-20T00:12:20.785Z",
+        "data_preview": "{\"data\": \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAWwAAADKCAYAAACBrXr+AAAAAXNSR0IArs4c6QAAAERl"
+      },
+      {
+        "id": 10,
+        "user_id": 4,
+        "data_format": "stroke_data",
+        "issue_type": "Invalid stroke format",
+        "created_at": "2025-07-22T04:28:17.544Z",
+        "data_preview": "{\"raw\": [{\"points\": [{\"x\": 60, \"y\": 26.28125, \"time\": 1753133237407, \"pressure\": 0.5}, {\"x\": 60, \"y\""
+      },
+      {
+        "id": 9,
+        "user_id": 4,
+        "data_format": "stroke_data",
+        "issue_type": "Invalid stroke format",
+        "created_at": "2025-07-22T04:28:17.544Z",
+        "data_preview": "{\"raw\": [{\"points\": [{\"x\": 35, \"y\": 30.28125, \"time\": 1753133210207, \"pressure\": 0.5}, {\"x\": 35, \"y\""
+      },
+      {
+        "id": 7,
+        "user_id": 3,
+        "data_format": "stroke_data",
+        "issue_type": "Invalid stroke format",
+        "created_at": "2025-07-22T04:19:07.887Z",
+        "data_preview": "{\"raw\": [{\"points\": [{\"x\": 52, \"y\": 29.78125, \"time\": 1753132673814, \"pressure\": 0.5}, {\"x\": 52, \"y\""
+      },
+      {
+        "id": 2,
+        "user_id": 2,
+        "data_format": "stroke_data",
+        "issue_type": "Invalid stroke format",
+        "created_at": "2025-07-22T03:53:18.692Z",
+        "data_preview": "{\"raw\": [{\"points\": [{\"x\": 45, \"y\": 50.78125, \"time\": 1753131160388, \"pressure\": 0.5}, {\"x\": 60, \"y\""
+      },
+      {
+        "id": 8,
+        "user_id": 4,
+        "data_format": "stroke_data",
+        "issue_type": "Invalid stroke format",
+        "created_at": "2025-07-22T04:28:17.544Z",
+        "data_preview": "{\"raw\": [{\"points\": [{\"x\": 34, \"y\": 26.78125, \"time\": 1753133191656, \"pressure\": 0.5}, {\"x\": 34, \"y\""
+      },
+      {
+        "id": 6,
+        "user_id": 3,
+        "data_format": "stroke_data",
+        "issue_type": "Invalid stroke format",
+        "created_at": "2025-07-22T04:19:07.887Z",
+        "data_preview": "{\"raw\": [{\"points\": [{\"x\": 47, \"y\": 43.28125, \"time\": 1753132654231, \"pressure\": 0.5}, {\"x\": 47, \"y\""
+      },
+      {
+        "id": 14,
+        "user_id": 6,
+        "data_format": "stroke_data",
+        "issue_type": "Invalid stroke format",
+        "created_at": "2025-07-22T06:10:37.665Z",
+        "data_preview": "{\"raw\": [{\"points\": [{\"x\": 33, \"y\": 27.78125, \"time\": 1753139307742, \"pressure\": 0.5}, {\"x\": 33, \"y\""
+      },
+      {
+        "id": 16,
+        "user_id": 6,
+        "data_format": "stroke_data",
+        "issue_type": "Invalid stroke format",
+        "created_at": "2025-07-22T06:10:37.665Z",
+        "data_preview": "{\"raw\": [{\"points\": [{\"x\": 57, \"y\": 29.5625, \"time\": 1753139351909, \"pressure\": 0.5}, {\"x\": 57, \"y\":"
+      },
+      {
+        "id": 15,
+        "user_id": 6,
+        "data_format": "stroke_data",
+        "issue_type": "Invalid stroke format",
+        "created_at": "2025-07-22T06:10:37.665Z",
+        "data_preview": "{\"raw\": [{\"points\": [{\"x\": 37, \"y\": 31.28125, \"time\": 1753139329909, \"pressure\": 0.5}, {\"x\": 37, \"y\""
+      },
+      {
+        "id": 13,
+        "user_id": 5,
+        "data_format": "stroke_data",
+        "issue_type": "Invalid stroke format",
+        "created_at": "2025-07-22T05:06:11.276Z",
+        "data_preview": "{\"raw\": [{\"points\": [{\"x\": 35, \"y\": 24.78125, \"time\": 1753135503194, \"pressure\": 0.5}, {\"x\": 35, \"y\""
+      },
+      {
+        "id": 11,
+        "user_id": 5,
+        "data_format": "stroke_data",
+        "issue_type": "Invalid stroke format",
+        "created_at": "2025-07-22T05:06:11.276Z",
+        "data_preview": "{\"raw\": [{\"points\": [{\"x\": 22, \"y\": 30.78125, \"time\": 1753135466310, \"pressure\": 0.5}, {\"x\": 22, \"y\""
+      },
+      {
+        "id": 12,
+        "user_id": 5,
+        "data_format": "stroke_data",
+        "issue_type": "Invalid stroke format",
+        "created_at": "2025-07-22T05:06:11.276Z",
+        "data_preview": "{\"raw\": [{\"points\": [{\"x\": 31, \"y\": 28.28125, \"time\": 1753135483527, \"pressure\": 0.5}, {\"x\": 31, \"y\""
+      },
+      {
+        "id": 109,
+        "user_id": 22,
+        "data_format": "stroke_data",
+        "issue_type": "Invalid stroke format",
+        "created_at": "2025-07-27T04:10:36.850Z",
+        "data_preview": "{\"raw\": [{\"points\": [{\"x\": 121, \"y\": 111, \"time\": 1753564188774, \"pressure\": 0}, {\"x\": 123, \"y\": 115"
+      },
+      {
+        "id": 110,
+        "user_id": 22,
+        "data_format": "stroke_data",
+        "issue_type": "Invalid stroke format",
+        "created_at": "2025-07-27T04:10:36.850Z",
+        "data_preview": "{\"raw\": [{\"points\": [{\"x\": 150, \"y\": 111, \"time\": 1753564195889, \"pressure\": 0}, {\"x\": 151, \"y\": 116"
+      },
+      {
+        "id": 111,
+        "user_id": 22,
+        "data_format": "stroke_data",
+        "issue_type": "Invalid stroke format",
+        "created_at": "2025-07-27T04:10:36.850Z",
+        "data_preview": "{\"raw\": [{\"points\": [{\"x\": 153, \"y\": 116, \"time\": 1753564201643, \"pressure\": 0}, {\"x\": 154, \"y\": 131"
+      },
+      {
+        "id": 18,
+        "user_id": 6,
+        "data_format": "stroke_data",
+        "issue_type": "Invalid stroke format",
+        "created_at": "2025-07-23T00:16:49.080Z",
+        "data_preview": "{\"raw\": [{\"points\": [{\"x\": 96, \"y\": 144.5, \"time\": 1753204603474, \"pressure\": 0}, {\"x\": 98, \"y\": 156"
+      },
+      {
+        "id": 19,
+        "user_id": 6,
+        "data_format": "stroke_data",
+        "issue_type": "Invalid stroke format",
+        "created_at": "2025-07-23T00:17:44.489Z",
+        "data_preview": "{\"raw\": [{\"points\": [{\"x\": 105, \"y\": 149.5, \"time\": 1753204658664, \"pressure\": 0}, {\"x\": 106, \"y\": 1"
+      },
+      {
+        "id": 20,
+        "user_id": 6,
+        "data_format": "stroke_data",
+        "issue_type": "Invalid stroke format",
+        "created_at": "2025-07-23T00:46:34.186Z",
+        "data_preview": "{\"raw\": [{\"points\": [{\"x\": 137, \"y\": 124, \"time\": 1753206387112, \"pressure\": 0}, {\"x\": 139, \"y\": 128"
+      },
+      {
+        "id": 21,
+        "user_id": 7,
+        "data_format": "stroke_data",
+        "issue_type": "Invalid stroke format",
+        "created_at": "2025-07-23T00:48:48.879Z",
+        "data_preview": "{\"raw\": [{\"points\": [{\"x\": 131, \"y\": 115, \"time\": 1753206480259, \"pressure\": 0}, {\"x\": 132, \"y\": 121"
+      }
+    ]
+  },
+  {
+    "title": "Shapes Data Format Distribution",
+    "data": [
+      {
+        "data_format": "stroke_data",
+        "count": "85",
+        "percentage": "73.91",
+        "oldest_record": "2025-07-22T03:53:18.692Z",
+        "newest_record": "2025-07-27T04:10:36.850Z"
+      },
+      {
+        "data_format": "base64",
+        "count": "30",
+        "percentage": "26.09",
+        "oldest_record": "2025-07-20T00:12:20.785Z",
+        "newest_record": "2025-07-24T08:55:49.193Z"
+      }
+    ]
+  },
+  {
+    "title": "Metrics Calculation Success Rate",
+    "data": [
+      {
+        "data_format": "stroke_data",
+        "total_shapes": "85",
+        "shapes_with_metrics": "85",
+        "shapes_without_metrics": "0",
+        "metrics_success_rate": "100.00"
+      },
+      {
+        "data_format": "base64",
+        "total_shapes": "30",
+        "shapes_with_metrics": "28",
+        "shapes_without_metrics": "2",
+        "metrics_success_rate": "93.33"
+      }
+    ]
+  },
+  {
+    "title": "Cross-Table Format Summary",
+    "data": [
+      {
+        "table_name": "signatures",
+        "total_records": "92",
+        "base64_count": "1",
+        "stroke_count": "91",
+        "null_format_count": "0"
+      },
+      {
+        "table_name": "shapes",
+        "total_records": "115",
+        "base64_count": "30",
+        "stroke_count": "85",
+        "null_format_count": "0"
+      }
+    ]
+  },
+  {
+    "title": "Authentication Success by Data Format",
+    "data": [
+      {
+        "data_format": "stroke_data",
+        "total_attempts": "10",
+        "successful_attempts": "0",
+        "failed_attempts": "10",
+        "success_rate": "0.00"
+      }
+    ]
+  },
+  {
+    "title": "Data Quality Summary",
+    "data": [
+      {
+        "signatures_null_format": "0",
+        "signatures_null_data": "0",
+        "shapes_null_format": "0",
+        "shapes_null_data": "0",
+        "invalid_base64": "1",
+        "invalid_stroke": "91",
+        "total_issues": "92"
+      }
+    ]
+  }
+]
