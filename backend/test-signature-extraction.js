@@ -1,4 +1,5 @@
 // Test script to verify signature data extraction
+require('dotenv').config();
 const { Pool } = require('pg');
 
 // Helper function (copy from server.js for testing)
@@ -88,7 +89,8 @@ if (username) {
     console.log(`\nTesting with actual data for user: ${username}\n`);
     
     const pool = new Pool({
-        connectionString: process.env.DATABASE_URL || 'postgresql://localhost/signature_auth'
+        connectionString: process.env.DATABASE_URL || 
+          `postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`
     });
     
     (async () => {

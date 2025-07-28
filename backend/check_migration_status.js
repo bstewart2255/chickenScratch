@@ -55,7 +55,8 @@ async function checkStatus() {
     console.log('='.repeat(60));
     console.log(`Records to migrate: ${base64Count.rows[0].count}`);
     console.log(`Expected: 115`);
-    console.log(`Status: ${base64Count.rows[0].count === '115' ? '✓ READY' : base64Count.rows[0].count === '0' ? '✓ ALREADY MIGRATED' : '⚠ UNEXPECTED COUNT'}`);
+    console.log(`Status: ${parseInt(base64Count.rows[0].count) === 115 ? '✓ READY' : parseInt(base64Count.rows[0].count) === 0 ? '✓ ALREADY MIGRATED' : '⚠ UNEXPECTED COUNT'}`);
+
     console.log('='.repeat(60));
 
   } catch (error) {
