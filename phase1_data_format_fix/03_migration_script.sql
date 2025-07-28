@@ -1,12 +1,18 @@
 -- Phase 1: Data Format Migration Script
 -- Purpose: Safely update data_format from 'base64' to 'stroke_data' for affected shapes
 -- Safety: Uses transactions, batch processing, and comprehensive validation
+-- 
+-- FIXED: Batch processing resume functionality now properly tracks last processed shape ID
+--        instead of incorrectly querying migration_log.id (which doesn't exist)
 
 -- ============================================
 -- CONFIGURATION
 -- ============================================
 \set ON_ERROR_STOP on
 \set BATCH_SIZE 1000
+
+-- Note: This migration supports resume functionality. If interrupted, 
+-- it will automatically resume from the last processed shape ID.
 
 -- ============================================
 -- PRE-MIGRATION SAFETY CHECKS
@@ -67,6 +73,7 @@ CREATE TABLE IF NOT EXISTS backup_phase1_data_format.migration_log (
     migration_phase VARCHAR(50),
     operation VARCHAR(100),
     affected_records INTEGER,
+    last_processed_id INTEGER,  -- Track the last processed shape ID for resume functionality
     status VARCHAR(20),
     error_message TEXT,
     executed_at TIMESTAMP DEFAULT NOW(),
@@ -84,13 +91,19 @@ DECLARE
     v_batch_ids INTEGER[];
     v_affected_count INTEGER;
     v_batch_updated INTEGER;
+    v_last_processed_id INTEGER := 0;  -- Track the last processed shape ID
 BEGIN
     v_start_time := clock_timestamp();
     
+    -- Get the last processed ID from previous runs (if any)
+    SELECT COALESCE(MAX(last_processed_id), 0) INTO v_last_processed_id
+    FROM backup_phase1_data_format.migration_log 
+    WHERE operation = 'batch_update' AND status = 'completed';
+    
     -- Log migration start
     INSERT INTO backup_phase1_data_format.migration_log 
-    (migration_phase, operation, status)
-    VALUES ('phase1_data_format', 'migration_start', 'started');
+    (migration_phase, operation, status, last_processed_id)
+    VALUES ('phase1_data_format', 'migration_start', 'started', v_last_processed_id);
     
     -- Get all affected IDs in batches
     LOOP
@@ -101,8 +114,7 @@ BEGIN
             FROM shapes 
             WHERE data_format = 'base64' 
                 AND shape_data::jsonb ? 'raw'
-                AND id > COALESCE((SELECT MAX(id) FROM backup_phase1_data_format.migration_log 
-                                  WHERE operation = 'batch_update' AND status = 'completed'), 0)
+                AND id > v_last_processed_id  -- Resume from last processed ID
             ORDER BY id
             LIMIT v_batch_size
         ) batch_ids;
@@ -134,14 +146,18 @@ BEGIN
             -- Update counters based on actual results
             v_total_updated := v_total_updated + v_batch_updated;
             
+            -- Update the last processed ID to the maximum ID in this batch
+            SELECT MAX(id) INTO v_last_processed_id FROM shapes WHERE id = ANY(v_batch_ids);
+            
             -- Log batch completion
             INSERT INTO backup_phase1_data_format.migration_log 
-            (migration_phase, operation, affected_records, status)
+            (migration_phase, operation, affected_records, status, last_processed_id)
             VALUES (
                 'phase1_data_format', 
                 'batch_update', 
                 v_batch_updated, 
-                'completed'
+                'completed',
+                v_last_processed_id
             );
             
             RAISE NOTICE 'Batch % completed: % records updated (Total: %)', 
@@ -154,12 +170,13 @@ BEGIN
             WHEN OTHERS THEN
                 -- Log error and re-raise
                 INSERT INTO backup_phase1_data_format.migration_log 
-                (migration_phase, operation, status, error_message)
+                (migration_phase, operation, status, error_message, last_processed_id)
                 VALUES (
                     'phase1_data_format', 
                     'batch_update_error', 
                     'failed',
-                    SQLERRM
+                    SQLERRM,
+                    v_last_processed_id
                 );
                 RAISE;
         END;
@@ -169,12 +186,13 @@ BEGIN
     
     -- Log migration completion
     INSERT INTO backup_phase1_data_format.migration_log 
-    (migration_phase, operation, affected_records, status)
+    (migration_phase, operation, affected_records, status, last_processed_id)
     VALUES (
         'phase1_data_format', 
         'migration_complete', 
         v_total_updated, 
-        'completed'
+        'completed',
+        v_last_processed_id
     );
     
     RAISE NOTICE 'Migration completed successfully. Total records updated: %', v_total_updated;
