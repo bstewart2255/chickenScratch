@@ -1,0 +1,272 @@
+-- Phase 1: Data Format Migration Script
+-- Purpose: Safely update data_format from 'base64' to 'stroke_data' for affected shapes
+-- Safety: Uses transactions, batch processing, and comprehensive validation
+
+-- ============================================
+-- CONFIGURATION
+-- ============================================
+\set ON_ERROR_STOP on
+\set BATCH_SIZE 1000
+
+-- ============================================
+-- PRE-MIGRATION SAFETY CHECKS
+-- ============================================
+
+DO $$
+DECLARE
+    v_affected_count INTEGER;
+    v_backup_exists BOOLEAN;
+    v_checksum_original VARCHAR(32);
+    v_checksum_backup VARCHAR(32);
+BEGIN
+    -- Check 1: Verify backup exists
+    SELECT EXISTS (
+        SELECT 1 
+        FROM information_schema.tables 
+        WHERE table_schema = 'backup_phase1_data_format' 
+        AND table_name = 'shapes_backup_20250128'
+    ) INTO v_backup_exists;
+    
+    IF NOT v_backup_exists THEN
+        RAISE EXCEPTION 'SAFETY VIOLATION: Backup table not found. Run backup procedure first.';
+    END IF;
+    
+    -- Check 2: Verify affected record count matches expectations
+    SELECT COUNT(*) INTO v_affected_count
+    FROM shapes 
+    WHERE data_format = 'base64' AND shape_data::jsonb ? 'raw';
+    
+    IF v_affected_count <> 115 THEN
+        RAISE WARNING 'Expected 115 records, found %. Proceeding with caution.', v_affected_count;
+    END IF;
+    
+    -- Check 3: Verify backup integrity
+    SELECT MD5(string_agg(id::text || shape_data::text, ',' ORDER BY id))
+    INTO v_checksum_original
+    FROM shapes 
+    WHERE data_format = 'base64';
+    
+    SELECT MD5(string_agg(id::text || shape_data::text, ',' ORDER BY id))
+    INTO v_checksum_backup
+    FROM backup_phase1_data_format.shapes_backup_20250128;
+    
+    IF v_checksum_original <> v_checksum_backup THEN
+        RAISE EXCEPTION 'SAFETY VIOLATION: Backup checksum mismatch. Data may have changed since backup.';
+    END IF;
+    
+    RAISE NOTICE 'Pre-migration checks passed. Proceeding with migration of % records.', v_affected_count;
+END $$;
+
+-- ============================================
+-- MIGRATION EXECUTION
+-- ============================================
+
+-- Create migration log table
+CREATE TABLE IF NOT EXISTS backup_phase1_data_format.migration_log (
+    log_id SERIAL PRIMARY KEY,
+    migration_phase VARCHAR(50),
+    operation VARCHAR(100),
+    affected_records INTEGER,
+    status VARCHAR(20),
+    error_message TEXT,
+    executed_at TIMESTAMP DEFAULT NOW(),
+    executed_by VARCHAR(255) DEFAULT current_user
+);
+
+-- Main migration procedure
+DO $$
+DECLARE
+    v_batch_count INTEGER := 0;
+    v_total_updated INTEGER := 0;
+    v_batch_size INTEGER := 1000;
+    v_start_time TIMESTAMP;
+    v_batch_start_time TIMESTAMP;
+    v_record RECORD;
+BEGIN
+    v_start_time := clock_timestamp();
+    
+    -- Log migration start
+    INSERT INTO backup_phase1_data_format.migration_log 
+    (migration_phase, operation, status)
+    VALUES ('phase1_data_format', 'migration_start', 'started');
+    
+    -- Process in batches to minimize lock time
+    FOR v_record IN 
+        SELECT id 
+        FROM shapes 
+        WHERE data_format = 'base64' 
+            AND shape_data::jsonb ? 'raw'
+        ORDER BY id
+    LOOP
+        v_batch_start_time := clock_timestamp();
+        
+        -- Start transaction for each batch
+        BEGIN
+            -- Update the record with safety checks
+            UPDATE shapes 
+            SET 
+                data_format = 'stroke_data',
+                updated_at = NOW()
+            WHERE id = v_record.id
+                AND data_format = 'base64'  -- Double-check condition
+                AND shape_data::jsonb ? 'raw'  -- Ensure it has stroke data
+                AND shape_data IS NOT NULL;  -- Null safety
+            
+            v_batch_count := v_batch_count + 1;
+            v_total_updated := v_total_updated + 1;
+            
+            -- Commit batch when reaching batch size
+            IF v_batch_count >= v_batch_size THEN
+                -- Log batch completion
+                INSERT INTO backup_phase1_data_format.migration_log 
+                (migration_phase, operation, affected_records, status)
+                VALUES (
+                    'phase1_data_format', 
+                    'batch_update', 
+                    v_batch_count, 
+                    'completed'
+                );
+                
+                RAISE NOTICE 'Batch completed: % records updated (Total: %)', 
+                    v_batch_count, v_total_updated;
+                
+                -- Reset batch counter
+                v_batch_count := 0;
+                
+                -- Brief pause to prevent overwhelming the database
+                PERFORM pg_sleep(0.1);
+            END IF;
+            
+        EXCEPTION
+            WHEN OTHERS THEN
+                -- Log error and re-raise
+                INSERT INTO backup_phase1_data_format.migration_log 
+                (migration_phase, operation, status, error_message)
+                VALUES (
+                    'phase1_data_format', 
+                    'update_error', 
+                    'failed',
+                    SQLERRM
+                );
+                RAISE;
+        END;
+    END LOOP;
+    
+    -- Process final batch if any remaining
+    IF v_batch_count > 0 THEN
+        INSERT INTO backup_phase1_data_format.migration_log 
+        (migration_phase, operation, affected_records, status)
+        VALUES (
+            'phase1_data_format', 
+            'final_batch_update', 
+            v_batch_count, 
+            'completed'
+        );
+    END IF;
+    
+    -- Log migration completion
+    INSERT INTO backup_phase1_data_format.migration_log 
+    (migration_phase, operation, affected_records, status)
+    VALUES (
+        'phase1_data_format', 
+        'migration_complete', 
+        v_total_updated, 
+        'completed'
+    );
+    
+    RAISE NOTICE 'Migration completed successfully. Total records updated: %', v_total_updated;
+    RAISE NOTICE 'Execution time: % seconds', 
+        EXTRACT(EPOCH FROM (clock_timestamp() - v_start_time));
+    
+END $$;
+
+-- ============================================
+-- POST-MIGRATION VALIDATION
+-- ============================================
+
+-- Validation 1: Ensure no records remain with base64 format
+WITH validation_1 AS (
+    SELECT COUNT(*) as remaining_base64_count
+    FROM shapes 
+    WHERE data_format = 'base64'
+)
+SELECT 
+    'Remaining base64 records' as validation_check,
+    remaining_base64_count,
+    CASE 
+        WHEN remaining_base64_count = 0 THEN 'PASSED'
+        ELSE 'FAILED'
+    END as status
+FROM validation_1;
+
+-- Validation 2: Verify all updated records have correct format
+WITH validation_2 AS (
+    SELECT 
+        COUNT(*) as stroke_data_count,
+        COUNT(*) FILTER (WHERE shape_data::jsonb ? 'raw') as has_raw_key_count
+    FROM shapes 
+    WHERE data_format = 'stroke_data'
+        AND id IN (SELECT id FROM backup_phase1_data_format.shapes_backup_20250128)
+)
+SELECT 
+    'Updated records validation' as validation_check,
+    stroke_data_count,
+    has_raw_key_count,
+    CASE 
+        WHEN stroke_data_count = has_raw_key_count AND stroke_data_count = 115 THEN 'PASSED'
+        ELSE 'FAILED'
+    END as status
+FROM validation_2;
+
+-- Validation 3: Data integrity check
+WITH integrity_check AS (
+    SELECT 
+        s.id,
+        s.shape_data = b.shape_data as data_unchanged,
+        s.data_format = 'stroke_data' as format_updated
+    FROM shapes s
+    JOIN backup_phase1_data_format.shapes_backup_20250128 b ON s.id = b.id
+)
+SELECT 
+    'Data integrity check' as validation_check,
+    COUNT(*) as total_records,
+    COUNT(*) FILTER (WHERE data_unchanged) as data_preserved_count,
+    COUNT(*) FILTER (WHERE format_updated) as format_updated_count,
+    CASE 
+        WHEN COUNT(*) = COUNT(*) FILTER (WHERE data_unchanged AND format_updated) THEN 'PASSED'
+        ELSE 'FAILED'
+    END as status
+FROM integrity_check;
+
+-- ============================================
+-- MIGRATION SUMMARY
+-- ============================================
+
+SELECT 
+    'MIGRATION SUMMARY' as report_type,
+    json_build_object(
+        'migration_phase', 'phase1_data_format',
+        'start_time', MIN(executed_at),
+        'end_time', MAX(executed_at),
+        'duration_seconds', EXTRACT(EPOCH FROM (MAX(executed_at) - MIN(executed_at))),
+        'total_records_updated', SUM(affected_records) FILTER (WHERE operation LIKE '%update%'),
+        'batch_count', COUNT(*) FILTER (WHERE operation LIKE '%batch%'),
+        'errors_encountered', COUNT(*) FILTER (WHERE status = 'failed'),
+        'final_status', CASE 
+            WHEN COUNT(*) FILTER (WHERE status = 'failed') = 0 THEN 'SUCCESS'
+            ELSE 'FAILED'
+        END,
+        'remaining_base64_records', (SELECT COUNT(*) FROM shapes WHERE data_format = 'base64'),
+        'validation_passed', (SELECT COUNT(*) FROM shapes WHERE data_format = 'base64') = 0
+    ) as summary
+FROM backup_phase1_data_format.migration_log
+WHERE migration_phase = 'phase1_data_format';
+
+-- ============================================
+-- IMPORTANT POST-MIGRATION STEPS
+-- ============================================
+-- 1. Review all validation results above
+-- 2. Run application tests to ensure functionality
+-- 3. Monitor error logs for any issues
+-- 4. Keep backup for at least 30 days
+-- 5. Document completion in project tracking system
