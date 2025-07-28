@@ -81,7 +81,9 @@ DECLARE
     v_batch_size INTEGER := 1000;
     v_start_time TIMESTAMP;
     v_batch_start_time TIMESTAMP;
-    v_record RECORD;
+    v_batch_ids INTEGER[];
+    v_affected_count INTEGER;
+    v_batch_updated INTEGER;
 BEGIN
     v_start_time := clock_timestamp();
     
@@ -90,52 +92,63 @@ BEGIN
     (migration_phase, operation, status)
     VALUES ('phase1_data_format', 'migration_start', 'started');
     
-    -- Process in batches to minimize lock time
-    FOR v_record IN 
-        SELECT id 
-        FROM shapes 
-        WHERE data_format = 'base64' 
-            AND shape_data::jsonb ? 'raw'
-        ORDER BY id
+    -- Get all affected IDs in batches
     LOOP
-        v_batch_start_time := clock_timestamp();
+        -- Collect batch of IDs
+        SELECT ARRAY_AGG(id) INTO v_batch_ids
+        FROM (
+            SELECT id 
+            FROM shapes 
+            WHERE data_format = 'base64' 
+                AND shape_data::jsonb ? 'raw'
+                AND id > COALESCE((SELECT MAX(id) FROM backup_phase1_data_format.migration_log 
+                                  WHERE operation = 'batch_update' AND status = 'completed'), 0)
+            ORDER BY id
+            LIMIT v_batch_size
+        ) batch_ids;
         
-        -- Start transaction for each batch
+        -- Exit if no more records to process
+        IF v_batch_ids IS NULL OR array_length(v_batch_ids, 1) = 0 THEN
+            EXIT;
+        END IF;
+        
+        v_batch_start_time := clock_timestamp();
+        v_batch_count := v_batch_count + 1;
+        
+        -- Process batch in transaction
         BEGIN
-            -- Update the record with safety checks
-            UPDATE shapes 
-            SET 
-                data_format = 'stroke_data',
-                updated_at = NOW()
-            WHERE id = v_record.id
-                AND data_format = 'base64'  -- Double-check condition
-                AND shape_data::jsonb ? 'raw'  -- Ensure it has stroke data
-                AND shape_data IS NOT NULL;  -- Null safety
+            -- Update all records in the batch with safety checks
+            WITH batch_update AS (
+                UPDATE shapes 
+                SET 
+                    data_format = 'stroke_data',
+                    updated_at = NOW()
+                WHERE id = ANY(v_batch_ids)
+                    AND data_format = 'base64'  -- Double-check condition
+                    AND shape_data::jsonb ? 'raw'  -- Ensure it has stroke data
+                    AND shape_data IS NOT NULL  -- Null safety
+                RETURNING id
+            )
+            SELECT COUNT(*) INTO v_batch_updated FROM batch_update;
             
-            v_batch_count := v_batch_count + 1;
-            v_total_updated := v_total_updated + 1;
+            -- Update counters based on actual results
+            v_total_updated := v_total_updated + v_batch_updated;
             
-            -- Commit batch when reaching batch size
-            IF v_batch_count >= v_batch_size THEN
-                -- Log batch completion
-                INSERT INTO backup_phase1_data_format.migration_log 
-                (migration_phase, operation, affected_records, status)
-                VALUES (
-                    'phase1_data_format', 
-                    'batch_update', 
-                    v_batch_count, 
-                    'completed'
-                );
-                
-                RAISE NOTICE 'Batch completed: % records updated (Total: %)', 
-                    v_batch_count, v_total_updated;
-                
-                -- Reset batch counter
-                v_batch_count := 0;
-                
-                -- Brief pause to prevent overwhelming the database
-                PERFORM pg_sleep(0.1);
-            END IF;
+            -- Log batch completion
+            INSERT INTO backup_phase1_data_format.migration_log 
+            (migration_phase, operation, affected_records, status)
+            VALUES (
+                'phase1_data_format', 
+                'batch_update', 
+                v_batch_updated, 
+                'completed'
+            );
+            
+            RAISE NOTICE 'Batch % completed: % records updated (Total: %)', 
+                v_batch_count, v_batch_updated, v_total_updated;
+            
+            -- Brief pause to prevent overwhelming the database
+            PERFORM pg_sleep(0.1);
             
         EXCEPTION
             WHEN OTHERS THEN
@@ -144,7 +157,7 @@ BEGIN
                 (migration_phase, operation, status, error_message)
                 VALUES (
                     'phase1_data_format', 
-                    'update_error', 
+                    'batch_update_error', 
                     'failed',
                     SQLERRM
                 );
@@ -152,17 +165,7 @@ BEGIN
         END;
     END LOOP;
     
-    -- Process final batch if any remaining
-    IF v_batch_count > 0 THEN
-        INSERT INTO backup_phase1_data_format.migration_log 
-        (migration_phase, operation, affected_records, status)
-        VALUES (
-            'phase1_data_format', 
-            'final_batch_update', 
-            v_batch_count, 
-            'completed'
-        );
-    END IF;
+    -- No final batch processing needed - all batches are processed in the main loop
     
     -- Log migration completion
     INSERT INTO backup_phase1_data_format.migration_log 
@@ -249,8 +252,8 @@ SELECT
         'start_time', MIN(executed_at),
         'end_time', MAX(executed_at),
         'duration_seconds', EXTRACT(EPOCH FROM (MAX(executed_at) - MIN(executed_at))),
-        'total_records_updated', SUM(affected_records) FILTER (WHERE operation LIKE '%update%'),
-        'batch_count', COUNT(*) FILTER (WHERE operation LIKE '%batch%'),
+        'total_records_updated', SUM(affected_records) FILTER (WHERE operation = 'batch_update' AND status = 'completed'),
+        'batch_count', COUNT(*) FILTER (WHERE operation = 'batch_update' AND status = 'completed'),
         'errors_encountered', COUNT(*) FILTER (WHERE status = 'failed'),
         'final_status', CASE 
             WHEN COUNT(*) FILTER (WHERE status = 'failed') = 0 THEN 'SUCCESS'
