@@ -42,7 +42,7 @@ async function runBackup() {
       SELECT 
         aa.*,
         NOW() as backup_timestamp
-      FROM authentication_attempts aa
+      FROM auth_attempts aa
       WHERE aa.shape_id IN (
         SELECT id FROM shapes WHERE data_format = 'base64'
       )
