@@ -153,7 +153,7 @@ async function runMigration() {
     
     console.log(`\nVerification: ${verifyMigrated.rows[0].count} shapes successfully migrated`);
     
-    if (postCheck.rows[0].base64_with_raw === '0' && postCheck.rows[0].base64_images === '30') {
+    if (parseInt(postCheck.rows[0].base64_with_raw) === 0 && parseInt(postCheck.rows[0].base64_images) === 30) {
       console.log('\n✅ Migration completed successfully!');
       console.log(`✅ ${totalUpdated} shapes migrated from base64 to stroke_data`);
       console.log(`✅ 30 base64 image shapes preserved`);
