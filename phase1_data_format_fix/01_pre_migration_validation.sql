@@ -86,7 +86,7 @@ WITH affected_shapes AS (
 )
 SELECT 
     '9. Checksum for affected records' as check_name,
-    MD5(string_agg(id::text || shape_data::text, ',' ORDER BY id)) as checksum,
+    MD5(string_agg(id::text || COALESCE(shape_data::text, 'null'), ',' ORDER BY id)) as checksum,
     COUNT(*) as record_count
 FROM affected_shapes;
 

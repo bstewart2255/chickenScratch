@@ -179,9 +179,9 @@ SELECT
         'backup_user', current_user,
         'checksum_match', (
             SELECT 
-                (SELECT MD5(string_agg(id::text || shape_data::text, ',' ORDER BY id)) 
+                (SELECT MD5(string_agg(id::text || COALESCE(shape_data::text, 'null'), ',' ORDER BY id)) 
                  FROM shapes WHERE data_format = 'base64') = 
-                (SELECT MD5(string_agg(id::text || shape_data::text, ',' ORDER BY id)) 
+                (SELECT MD5(string_agg(id::text || COALESCE(shape_data::text, 'null'), ',' ORDER BY id)) 
                  FROM backup_phase1_data_format.shapes_backup_20250128)
         )
     ) as backup_summary;

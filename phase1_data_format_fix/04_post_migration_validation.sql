@@ -64,8 +64,8 @@ FROM data_integrity;
 -- 2.2 Checksum comparison
 WITH checksum_validation AS (
     SELECT 
-        MD5(string_agg(id::text || shape_data::text || data_format, ',' ORDER BY id)) as current_checksum,
-        (SELECT MD5(string_agg(id::text || shape_data::text || 'stroke_data', ',' ORDER BY id)) 
+        MD5(string_agg(id::text || COALESCE(shape_data::text, 'null') || data_format, ',' ORDER BY id)) as current_checksum,
+        (SELECT MD5(string_agg(id::text || COALESCE(shape_data::text, 'null') || 'stroke_data', ',' ORDER BY id)) 
          FROM backup_phase1_data_format.shapes_backup_20250128) as expected_checksum
     FROM shapes
     WHERE id IN (SELECT id FROM backup_phase1_data_format.shapes_backup_20250128)
