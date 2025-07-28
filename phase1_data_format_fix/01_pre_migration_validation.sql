@@ -65,7 +65,7 @@ SELECT
     COUNT(DISTINCT aa.id) as auth_attempts_count,
     COUNT(DISTINCT s.id) as affected_shapes_count
 FROM shapes s
-JOIN auth_attempts aa ON aa.shape_id = s.id
+JOIN authentication_attempts aa ON aa.shape_id = s.id
 WHERE s.data_format = 'base64';
 
 -- 8. Check for any shapes with metrics that would be affected
