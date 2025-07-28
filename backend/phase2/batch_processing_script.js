@@ -187,8 +187,7 @@ async function updateShapeMetrics(client, shapeId, metrics) {
     const query = `
         UPDATE shapes 
         SET 
-            metrics = $1,
-            updated_at = CURRENT_TIMESTAMP
+            metrics = $1
         WHERE id = $2
         RETURNING id
     `;
