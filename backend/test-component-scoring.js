@@ -1,8 +1,10 @@
 // Test script to add component scores to existing auth attempts for testing
 const { Pool } = require('pg');
+require('dotenv').config();
 
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL || 'postgresql://localhost/signature_auth'
+    connectionString: process.env.DATABASE_URL || 
+      `postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`
 });
 
 async function addTestComponentScores() {
