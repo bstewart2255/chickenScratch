@@ -4,6 +4,8 @@
 -- 
 -- FIXED: Batch processing resume functionality now properly tracks last processed shape ID
 --        instead of incorrectly querying migration_log.id (which doesn't exist)
+-- FIXED: Resume functionality now correctly tracks the maximum ID of records actually updated
+--        rather than the maximum ID from the selected batch, preventing skipped records
 
 -- ============================================
 -- CONFIGURATION
@@ -130,6 +132,10 @@ BEGIN
         
         -- Process batch in transaction
         BEGIN
+            -- Create temporary table to store IDs of records that were actually updated
+            CREATE TEMP TABLE IF NOT EXISTS temp_updated_ids (id INTEGER);
+            DELETE FROM temp_updated_ids;
+            
             -- Update all records in the batch with safety checks
             WITH batch_update AS (
                 UPDATE shapes 
@@ -142,13 +148,19 @@ BEGIN
                     AND shape_data IS NOT NULL  -- Null safety
                 RETURNING id
             )
-            SELECT COUNT(*) INTO v_batch_updated FROM batch_update;
+            INSERT INTO temp_updated_ids (id)
+            SELECT id FROM batch_update;
+            
+            -- Get count of actually updated records
+            SELECT COUNT(*) INTO v_batch_updated FROM temp_updated_ids;
             
             -- Update counters based on actual results
             v_total_updated := v_total_updated + v_batch_updated;
             
-            -- Update the last processed ID to the maximum ID in this batch
-            SELECT MAX(id) INTO v_last_processed_id FROM shapes WHERE id = ANY(v_batch_ids);
+            -- FIXED: Update the last processed ID to the maximum ID of records actually updated
+            -- This ensures resume functionality works correctly even if some records in a batch fail
+            SELECT COALESCE(MAX(id), v_last_processed_id) INTO v_last_processed_id 
+            FROM temp_updated_ids;
             
             -- Log batch completion
             INSERT INTO backup_phase1_data_format.migration_log 
