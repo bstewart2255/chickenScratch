@@ -80,8 +80,7 @@ async function runMigration() {
       const updateResult = await client.query(`
         UPDATE shapes 
         SET 
-          data_format = 'stroke_data',
-          updated_at = NOW()
+          data_format = 'stroke_data'
         WHERE id = ANY($1::integer[])
           AND data_format = 'base64'
           AND shape_data::jsonb ? 'raw'
