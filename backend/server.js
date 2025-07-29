@@ -390,6 +390,44 @@ async function compareSignatures(signature1, signature2, metrics1, metrics2, use
     return compareSignaturesLegacy(signature1, signature2);
 }
 
+// Helper function to insert signatures with fallback for is_enrollment column
+async function insertSignatureWithFallback(pool, signatureData) {
+    const { userId, strokeData, signature, mlFeatures, isEnrollment } = signatureData;
+    
+    try {
+        // Try with is_enrollment column first
+        const result = await pool.query(`
+            INSERT INTO signatures (user_id, stroke_data, signature_data, metrics, data_format, is_enrollment, created_at)
+            VALUES ($1, $2, $3, $4, 'stroke_data', $5, NOW())
+            RETURNING id
+        `, [userId, JSON.stringify(strokeData), JSON.stringify(signature), JSON.stringify(mlFeatures), isEnrollment]);
+        
+        console.log(`✅ Signature saved with is_enrollment column (ID: ${result.rows[0].id})`);
+        return result;
+        
+    } catch (columnError) {
+        // Check if the error is due to missing is_enrollment column
+        if (columnError.code === '42703' && columnError.message.includes('is_enrollment')) {
+            console.log('⚠️ is_enrollment column not found, using fallback INSERT');
+            
+            // Fallback: INSERT without is_enrollment column
+            const result = await pool.query(`
+                INSERT INTO signatures (user_id, stroke_data, signature_data, metrics, data_format, created_at)
+                VALUES ($1, $2, $3, $4, 'stroke_data', NOW())
+                RETURNING id
+            `, [userId, JSON.stringify(strokeData), JSON.stringify(signature), JSON.stringify(mlFeatures)]);
+            
+            console.log(`✅ Signature saved without is_enrollment column (ID: ${result.rows[0].id})`);
+            return result;
+        } else {
+            // Re-throw if it's a different error
+            throw columnError;
+        }
+    }
+}
+
+
+
 // Updated Register endpoint to match enhanced frontend
 app.post('/register', async (req, res) => {
     // Log raw request body first
@@ -517,11 +555,7 @@ app.post('/register', async (req, res) => {
                 // Include both stroke_data and signature_data for backward compatibility
                 // Mark the first 3 signatures as enrollment signatures for baseline calculation
                 const isEnrollment = i < 3; // First 3 signatures are enrollment signatures
-                const sigResult = await pool.query(`
-                    INSERT INTO signatures (user_id, stroke_data, signature_data, metrics, data_format, is_enrollment, created_at)
-                    VALUES ($1, $2, $3, $4, 'stroke_data', $5, NOW())
-                    RETURNING id
-                `, [userId, JSON.stringify(strokeData), JSON.stringify(signature), JSON.stringify(mlFeatures), isEnrollment]);
+                const sigResult = await insertSignatureWithFallback(pool, { userId, strokeData, signature, mlFeatures, isEnrollment });
                 
                 console.log(`✅ Saved signature ${i + 1}/${signatures.length} with stroke data (ID: ${sigResult.rows[0].id}, size: ${JSON.stringify(strokeData).length} bytes)`);
             } catch (sigError) {
@@ -1117,11 +1151,7 @@ app.post('/login', async (req, res) => {
             
             if (strokeData) {
                 // Save the authentication signature (not marked as enrollment)
-                const sigResult = await pool.query(`
-                    INSERT INTO signatures (user_id, stroke_data, signature_data, metrics, data_format, is_enrollment, created_at)
-                    VALUES ($1, $2, $3, $4, 'stroke_data', false, NOW())
-                    RETURNING id
-                `, [userId, JSON.stringify(strokeData), JSON.stringify(signature), JSON.stringify(mlFeatures)]);
+                const sigResult = await insertSignatureWithFallback(pool, { userId, strokeData, signature, mlFeatures, isEnrollment: false });
                 
                 authSignatureId = sigResult.rows[0].id;
                 console.log('Saved auth signature with stroke data - ID:', authSignatureId, 'size:', JSON.stringify(strokeData).length, 'format: stroke_data');
