@@ -1468,6 +1468,7 @@ function calculateUserBaseline(signatures) {
                 Object.keys(sig.metrics).forEach(key => {
                     if (!key.startsWith('_') && !excludedFeatures.has(key)) {
                         allFeatures.add(key);
+                        supportedFeatures.add(key); // Add discovered features to supported features
                     }
                 });
             }
