@@ -180,7 +180,12 @@ const ComponentSpecificFeatures = {
   analyzeCurveSmoothnessPattern(strokeData) {
     if (!strokeData || strokeData.length === 0) return 0;
     
-    const points = strokeData[0].points;
+    const firstStroke = strokeData[0];
+    if (!firstStroke || !firstStroke.points || !Array.isArray(firstStroke.points)) return 0;
+    
+    const points = firstStroke.points;
+    if (points.length < 3) return 0; // Need at least 3 points for angle analysis
+    
     let totalVariation = 0;
     
     // Analyze angle changes between consecutive segments
@@ -201,14 +206,18 @@ const ComponentSpecificFeatures = {
     }
     
     // Normalize by number of segments
-    return totalVariation / (points.length - 2);
+    const segmentCount = points.length - 2;
+    return segmentCount > 0 ? totalVariation / segmentCount : 0;
   },
   
   analyzeRadialDeviation(strokeData) {
     if (!strokeData || strokeData.length === 0) return 0;
     
     const firstStroke = strokeData[0];
+    if (!firstStroke || !firstStroke.points || !Array.isArray(firstStroke.points)) return 0;
+    
     const points = firstStroke.points;
+    if (points.length === 0) return 0;
     
     // Calculate center
     const bounds = this.calculateStrokeBounds(firstStroke);
@@ -220,6 +229,9 @@ const ComponentSpecificFeatures = {
       Math.sqrt(Math.pow(p.x - centerX, 2) + Math.pow(p.y - centerY, 2))
     );
     const avgRadius = radii.reduce((a, b) => a + b, 0) / radii.length;
+    
+    // Prevent division by zero if all points are co-located
+    if (avgRadius === 0) return 0;
     
     // Calculate standard deviation
     const variance = radii.reduce((sum, r) => sum + Math.pow(r - avgRadius, 2), 0) / radii.length;
