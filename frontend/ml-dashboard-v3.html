@@ -686,17 +686,17 @@
                 
                 currentData = await response.json();
                 
-                // Render all tabs
-                renderDataTab();
-                renderImagesTab();
-                renderRawTab();
-                
                 // Display enhanced features
                 try {
                     displayEnhancedFeatures(currentData);
                 } catch (error) {
                     handleEnhancedFeatureError(error, currentData);
                 }
+                
+                // Render all tabs
+                renderDataTab();
+                renderImagesTab();
+                renderRawTab();
             } catch (error) {
                 console.error('Error loading user data:', error);
                 document.getElementById('dataTab').innerHTML = `
