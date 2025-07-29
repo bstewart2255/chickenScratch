@@ -139,7 +139,15 @@ const ComponentSpecificFeatures = {
     if (!strokeData || strokeData.length === 0) return 0;
     
     const firstStroke = strokeData[0];
+    if (!firstStroke || !firstStroke.points || !Array.isArray(firstStroke.points) || firstStroke.points.length === 0) {
+      return 0;
+    }
+    
     const firstPoint = firstStroke.points[0];
+    if (!firstPoint || typeof firstPoint.x !== 'number' || typeof firstPoint.y !== 'number') {
+      return 0;
+    }
+    
     const bounds = this.calculateStrokeBounds(firstStroke);
     const centerX = (bounds.minX + bounds.maxX) / 2;
     const centerY = (bounds.minY + bounds.maxY) / 2;
