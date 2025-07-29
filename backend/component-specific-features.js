@@ -164,9 +164,20 @@ const ComponentSpecificFeatures = {
     if (!strokeData || strokeData.length === 0) return 0;
     
     const firstStroke = strokeData[0];
+    if (!firstStroke || !firstStroke.points || !Array.isArray(firstStroke.points) || firstStroke.points.length === 0) {
+      return 0;
+    }
+    
     const points = firstStroke.points;
     const firstPoint = points[0];
     const lastPoint = points[points.length - 1];
+    
+    // Validate that first and last points exist and have valid coordinates
+    if (!firstPoint || !lastPoint || 
+        typeof firstPoint.x !== 'number' || typeof firstPoint.y !== 'number' ||
+        typeof lastPoint.x !== 'number' || typeof lastPoint.y !== 'number') {
+      return 0;
+    }
     
     // Calculate closure gap
     const gap = Math.sqrt(
@@ -180,6 +191,9 @@ const ComponentSpecificFeatures = {
       bounds.maxX - bounds.minX,
       bounds.maxY - bounds.minY
     );
+    
+    // Prevent division by zero
+    if (size === 0) return 0;
     
     // Return closure quality (1 = perfect closure, 0 = large gap)
     return Math.max(0, 1 - (gap / size));
