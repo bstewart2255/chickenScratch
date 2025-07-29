@@ -350,11 +350,22 @@ async function compareSignatures(signature1, signature2, metrics1, metrics2, use
             if (userResult.rows.length > 0) {
                 const userId = userResult.rows[0].id;
                 
-                // Get enrollment signatures
-                const signaturesResult = await pool.query(
-                    'SELECT metrics FROM signatures WHERE user_id = $1 AND is_enrollment = true',
-                    [userId]
-                );
+                // Try to get enrollment signatures with fallback logic
+                let signaturesResult;
+                try {
+                    // First try with is_enrollment column
+                    signaturesResult = await pool.query(
+                        'SELECT metrics FROM signatures WHERE user_id = $1 AND is_enrollment = true ORDER BY created_at ASC LIMIT 3',
+                        [userId]
+                    );
+                } catch (columnError) {
+                    // If is_enrollment column doesn't exist, fall back to getting the first 3 signatures
+                    console.log('is_enrollment column not found, using fallback method');
+                    signaturesResult = await pool.query(
+                        'SELECT metrics FROM signatures WHERE user_id = $1 ORDER BY created_at ASC LIMIT 3',
+                        [userId]
+                    );
+                }
                 
                 if (signaturesResult.rows.length >= 3) {
                     // Calculate baseline from enrollment signatures
@@ -363,6 +374,8 @@ async function compareSignatures(signature1, signature2, metrics1, metrics2, use
                     
                     // Use enhanced comparison with baseline
                     return await compareSignaturesEnhanced(metrics1, metrics2, baseline, username);
+                } else {
+                    console.log(`Insufficient enrollment signatures for ${username}: ${signaturesResult.rows.length}/3`);
                 }
             }
         } catch (error) {
@@ -502,11 +515,13 @@ app.post('/register', async (req, res) => {
                 
                 // Store signature directly in the transaction
                 // Include both stroke_data and signature_data for backward compatibility
+                // Mark the first 3 signatures as enrollment signatures for baseline calculation
+                const isEnrollment = i < 3; // First 3 signatures are enrollment signatures
                 const sigResult = await pool.query(`
-                    INSERT INTO signatures (user_id, stroke_data, signature_data, metrics, data_format, created_at)
-                    VALUES ($1, $2, $3, $4, 'stroke_data', NOW())
+                    INSERT INTO signatures (user_id, stroke_data, signature_data, metrics, data_format, is_enrollment, created_at)
+                    VALUES ($1, $2, $3, $4, 'stroke_data', $5, NOW())
                     RETURNING id
-                `, [userId, JSON.stringify(strokeData), JSON.stringify(signature), JSON.stringify(mlFeatures)]);
+                `, [userId, JSON.stringify(strokeData), JSON.stringify(signature), JSON.stringify(mlFeatures), isEnrollment]);
                 
                 console.log(`✅ Saved signature ${i + 1}/${signatures.length} with stroke data (ID: ${sigResult.rows[0].id}, size: ${JSON.stringify(strokeData).length} bytes)`);
             } catch (sigError) {
@@ -1101,10 +1116,10 @@ app.post('/login', async (req, res) => {
             const strokeData = extractStrokeData(signature);
             
             if (strokeData) {
-                // Save the authentication signature
+                // Save the authentication signature (not marked as enrollment)
                 const sigResult = await pool.query(`
-                    INSERT INTO signatures (user_id, stroke_data, signature_data, metrics, data_format, created_at)
-                    VALUES ($1, $2, $3, $4, 'stroke_data', NOW())
+                    INSERT INTO signatures (user_id, stroke_data, signature_data, metrics, data_format, is_enrollment, created_at)
+                    VALUES ($1, $2, $3, $4, 'stroke_data', false, NOW())
                     RETURNING id
                 `, [userId, JSON.stringify(strokeData), JSON.stringify(signature), JSON.stringify(mlFeatures)]);
                 
