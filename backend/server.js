@@ -1172,7 +1172,7 @@ app.post('/login', async (req, res) => {
             });
             
             const storedShapesResult = await pool.query(
-                'SELECT shape_type, shape_data, metrics FROM shapes WHERE user_id = $1 AND shape_type = ANY($2::text[])',
+                'SELECT shape_type, shape_data, metrics, enhanced_features FROM shapes WHERE user_id = $1 AND shape_type = ANY($2::text[])',
                 [userId, ['circle', 'square', 'triangle']]
             );
             
@@ -1182,7 +1182,8 @@ app.post('/login', async (req, res) => {
             storedShapesResult.rows.forEach(row => {
                 storedShapes[row.shape_type] = {
                     data: row.shape_data,
-                    metrics: row.metrics || {}
+                    metrics: row.metrics || {},
+                    enhanced_features: row.enhanced_features
                 };
             });
             
@@ -1200,11 +1201,22 @@ app.post('/login', async (req, res) => {
                     : shapes.circle.metrics || {};
                 
                 // Get stored enhanced features or calculate from stored data
-                const storedFeatures = storedShapes.circle.enhanced_features 
-                    ? JSON.parse(storedShapes.circle.enhanced_features)
-                    : (ENABLE_ENHANCED_FEATURES 
-                        ? extractBiometricFeatures(extractStrokeData(JSON.parse(storedShapes.circle.shape_data)), 'circle', deviceCapabilities)
-                        : JSON.parse(storedShapes.circle.metrics || '{}'));
+                let storedFeatures;
+                try {
+                    if (storedShapes.circle.enhanced_features) {
+                        // enhanced_features is already parsed from JSONB column
+                        storedFeatures = storedShapes.circle.enhanced_features;
+                    } else if (ENABLE_ENHANCED_FEATURES) {
+                        // Calculate from stored shape data (already parsed from JSONB)
+                        storedFeatures = extractBiometricFeatures(extractStrokeData(storedShapes.circle.data), 'circle', deviceCapabilities);
+                    } else {
+                        // Use metrics (already parsed from JSONB)
+                        storedFeatures = storedShapes.circle.metrics || {};
+                    }
+                } catch (error) {
+                    console.error('Error processing stored circle features:', error);
+                    storedFeatures = {};
+                }
                 
                 // Calculate enhanced score
                 const scoreResult = calculateEnhancedComponentScore(storedFeatures, attemptFeatures, 'circle');
@@ -1232,11 +1244,22 @@ app.post('/login', async (req, res) => {
                     : shapes.square.metrics || {};
                 
                 // Get stored enhanced features or calculate from stored data
-                const storedFeatures = storedShapes.square.enhanced_features 
-                    ? JSON.parse(storedShapes.square.enhanced_features)
-                    : (ENABLE_ENHANCED_FEATURES 
-                        ? extractBiometricFeatures(extractStrokeData(JSON.parse(storedShapes.square.shape_data)), 'square', deviceCapabilities)
-                        : JSON.parse(storedShapes.square.metrics || '{}'));
+                let storedFeatures;
+                try {
+                    if (storedShapes.square.enhanced_features) {
+                        // enhanced_features is already parsed from JSONB column
+                        storedFeatures = storedShapes.square.enhanced_features;
+                    } else if (ENABLE_ENHANCED_FEATURES) {
+                        // Calculate from stored shape data (already parsed from JSONB)
+                        storedFeatures = extractBiometricFeatures(extractStrokeData(storedShapes.square.data), 'square', deviceCapabilities);
+                    } else {
+                        // Use metrics (already parsed from JSONB)
+                        storedFeatures = storedShapes.square.metrics || {};
+                    }
+                } catch (error) {
+                    console.error('Error processing stored square features:', error);
+                    storedFeatures = {};
+                }
                 
                 // Calculate enhanced score
                 const scoreResult = calculateEnhancedComponentScore(storedFeatures, attemptFeatures, 'square');
@@ -1264,11 +1287,22 @@ app.post('/login', async (req, res) => {
                     : shapes.triangle.metrics || {};
                 
                 // Get stored enhanced features or calculate from stored data
-                const storedFeatures = storedShapes.triangle.enhanced_features 
-                    ? JSON.parse(storedShapes.triangle.enhanced_features)
-                    : (ENABLE_ENHANCED_FEATURES 
-                        ? extractBiometricFeatures(extractStrokeData(JSON.parse(storedShapes.triangle.shape_data)), 'triangle', deviceCapabilities)
-                        : JSON.parse(storedShapes.triangle.metrics || '{}'));
+                let storedFeatures;
+                try {
+                    if (storedShapes.triangle.enhanced_features) {
+                        // enhanced_features is already parsed from JSONB column
+                        storedFeatures = storedShapes.triangle.enhanced_features;
+                    } else if (ENABLE_ENHANCED_FEATURES) {
+                        // Calculate from stored shape data (already parsed from JSONB)
+                        storedFeatures = extractBiometricFeatures(extractStrokeData(storedShapes.triangle.data), 'triangle', deviceCapabilities);
+                    } else {
+                        // Use metrics (already parsed from JSONB)
+                        storedFeatures = storedShapes.triangle.metrics || {};
+                    }
+                } catch (error) {
+                    console.error('Error processing stored triangle features:', error);
+                    storedFeatures = {};
+                }
                 
                 // Calculate enhanced score
                 const scoreResult = calculateEnhancedComponentScore(storedFeatures, attemptFeatures, 'triangle');
@@ -1306,7 +1340,7 @@ app.post('/login', async (req, res) => {
             const { compareDrawings } = require('./drawingVerification');
             
             const storedDrawingsResult = await pool.query(
-                'SELECT drawing_type, drawing_data, metrics FROM drawings WHERE user_id = $1 AND drawing_type = ANY($2::text[])',
+                'SELECT drawing_type, drawing_data, metrics, enhanced_features FROM drawings WHERE user_id = $1 AND drawing_type = ANY($2::text[])',
                 [userId, ['face', 'star', 'house', 'connect_dots']]
             );
             
@@ -1316,7 +1350,8 @@ app.post('/login', async (req, res) => {
             storedDrawingsResult.rows.forEach(row => {
                 storedDrawings[row.drawing_type] = {
                     data: row.drawing_data,
-                    metrics: row.metrics || {}
+                    metrics: row.metrics || {},
+                    enhanced_features: row.enhanced_features
                 };
             });
             
@@ -1335,11 +1370,22 @@ app.post('/login', async (req, res) => {
                         : { strokeCount: strokeData?.length || 0, pointCount: strokeData?.reduce((sum, s) => sum + s.length, 0) || 0 };
                     
                     // Get stored enhanced features or calculate from stored data
-                    const storedFeatures = storedDrawings.face.enhanced_features 
-                        ? JSON.parse(storedDrawings.face.enhanced_features)
-                        : (ENABLE_ENHANCED_FEATURES 
-                            ? extractBiometricFeatures(extractStrokeDataFromSignaturePad(JSON.parse(storedDrawings.face.data)), 'face', deviceCapabilities)
-                            : JSON.parse(storedDrawings.face.metrics || '{}'));
+                    let storedFeatures;
+                    try {
+                        if (storedDrawings.face.enhanced_features) {
+                            // enhanced_features is already parsed from JSONB column
+                            storedFeatures = storedDrawings.face.enhanced_features;
+                        } else if (ENABLE_ENHANCED_FEATURES) {
+                            // Calculate from stored drawing data (already parsed from JSONB)
+                            storedFeatures = extractBiometricFeatures(extractStrokeDataFromSignaturePad(storedDrawings.face.data), 'face', deviceCapabilities);
+                        } else {
+                            // Use metrics (already parsed from JSONB)
+                            storedFeatures = storedDrawings.face.metrics || {};
+                        }
+                    } catch (error) {
+                        console.error('Error processing stored face features:', error);
+                        storedFeatures = {};
+                    }
                     
                     // Calculate enhanced score
                     const scoreResult = calculateEnhancedComponentScore(storedFeatures, attemptFeatures, 'face');
@@ -1372,11 +1418,22 @@ app.post('/login', async (req, res) => {
                         : { strokeCount: strokeData?.length || 0, pointCount: strokeData?.reduce((sum, s) => sum + s.length, 0) || 0 };
                     
                     // Get stored enhanced features or calculate from stored data
-                    const storedFeatures = storedDrawings.star.enhanced_features 
-                        ? JSON.parse(storedDrawings.star.enhanced_features)
-                        : (ENABLE_ENHANCED_FEATURES 
-                            ? extractBiometricFeatures(extractStrokeDataFromSignaturePad(JSON.parse(storedDrawings.star.data)), 'star', deviceCapabilities)
-                            : JSON.parse(storedDrawings.star.metrics || '{}'));
+                    let storedFeatures;
+                    try {
+                        if (storedDrawings.star.enhanced_features) {
+                            // enhanced_features is already parsed from JSONB column
+                            storedFeatures = storedDrawings.star.enhanced_features;
+                        } else if (ENABLE_ENHANCED_FEATURES) {
+                            // Calculate from stored drawing data (already parsed from JSONB)
+                            storedFeatures = extractBiometricFeatures(extractStrokeDataFromSignaturePad(storedDrawings.star.data), 'star', deviceCapabilities);
+                        } else {
+                            // Use metrics (already parsed from JSONB)
+                            storedFeatures = storedDrawings.star.metrics || {};
+                        }
+                    } catch (error) {
+                        console.error('Error processing stored star features:', error);
+                        storedFeatures = {};
+                    }
                     
                     // Calculate enhanced score
                     const scoreResult = calculateEnhancedComponentScore(storedFeatures, attemptFeatures, 'star');
@@ -1409,11 +1466,22 @@ app.post('/login', async (req, res) => {
                         : { strokeCount: strokeData?.length || 0, pointCount: strokeData?.reduce((sum, s) => sum + s.length, 0) || 0 };
                     
                     // Get stored enhanced features or calculate from stored data
-                    const storedFeatures = storedDrawings.house.enhanced_features 
-                        ? JSON.parse(storedDrawings.house.enhanced_features)
-                        : (ENABLE_ENHANCED_FEATURES 
-                            ? extractBiometricFeatures(extractStrokeDataFromSignaturePad(JSON.parse(storedDrawings.house.data)), 'house', deviceCapabilities)
-                            : JSON.parse(storedDrawings.house.metrics || '{}'));
+                    let storedFeatures;
+                    try {
+                        if (storedDrawings.house.enhanced_features) {
+                            // enhanced_features is already parsed from JSONB column
+                            storedFeatures = storedDrawings.house.enhanced_features;
+                        } else if (ENABLE_ENHANCED_FEATURES) {
+                            // Calculate from stored drawing data (already parsed from JSONB)
+                            storedFeatures = extractBiometricFeatures(extractStrokeDataFromSignaturePad(storedDrawings.house.data), 'house', deviceCapabilities);
+                        } else {
+                            // Use metrics (already parsed from JSONB)
+                            storedFeatures = storedDrawings.house.metrics || {};
+                        }
+                    } catch (error) {
+                        console.error('Error processing stored house features:', error);
+                        storedFeatures = {};
+                    }
                     
                     // Calculate enhanced score
                     const scoreResult = calculateEnhancedComponentScore(storedFeatures, attemptFeatures, 'house');
@@ -1444,11 +1512,22 @@ app.post('/login', async (req, res) => {
                         : { strokeCount: strokeData?.length || 0, pointCount: strokeData?.reduce((sum, s) => sum + s.length, 0) || 0 };
                     
                     // Get stored enhanced features or calculate from stored data
-                    const storedFeatures = storedDrawings.connect_dots.enhanced_features 
-                        ? JSON.parse(storedDrawings.connect_dots.enhanced_features)
-                        : (ENABLE_ENHANCED_FEATURES 
-                            ? extractBiometricFeatures(extractStrokeDataFromSignaturePad(JSON.parse(storedDrawings.connect_dots.data)), 'connect_dots', deviceCapabilities)
-                            : JSON.parse(storedDrawings.connect_dots.metrics || '{}'));
+                    let storedFeatures;
+                    try {
+                        if (storedDrawings.connect_dots.enhanced_features) {
+                            // enhanced_features is already parsed from JSONB column
+                            storedFeatures = storedDrawings.connect_dots.enhanced_features;
+                        } else if (ENABLE_ENHANCED_FEATURES) {
+                            // Calculate from stored drawing data (already parsed from JSONB)
+                            storedFeatures = extractBiometricFeatures(extractStrokeDataFromSignaturePad(storedDrawings.connect_dots.data), 'connect_dots', deviceCapabilities);
+                        } else {
+                            // Use metrics (already parsed from JSONB)
+                            storedFeatures = storedDrawings.connect_dots.metrics || {};
+                        }
+                    } catch (error) {
+                        console.error('Error processing stored connect_dots features:', error);
+                        storedFeatures = {};
+                    }
                     
                     // Calculate enhanced score
                     const scoreResult = calculateEnhancedComponentScore(storedFeatures, attemptFeatures, 'connect_dots');
