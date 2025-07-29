@@ -309,6 +309,39 @@
             border-radius: 6px;
             margin: 20px 0;
         }
+
+        /* Raw Tab Styles */
+        .raw-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .raw-section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .raw-json {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            overflow-x: auto;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .raw-json pre {
+            margin: 0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #333;
+        }
     </style>
 </head>
 <body>
@@ -326,6 +359,7 @@
         <div class="tab-buttons">
             <button class="tab-button active" onclick="switchTab('data')">Data</button>
             <button class="tab-button" onclick="switchTab('images')">Images</button>
+            <button class="tab-button" onclick="switchTab('raw')">Raw</button>
         </div>
     </div>
 
@@ -338,6 +372,11 @@
         <!-- Images Tab -->
         <div id="imagesTab" class="tab-content">
             <div class="loading">Loading images...</div>
+        </div>
+
+        <!-- Raw Tab -->
+        <div id="rawTab" class="tab-content">
+            <div class="loading">Loading raw data...</div>
         </div>
     </div>
 
@@ -399,6 +438,7 @@
             // Show loading state
             document.getElementById('dataTab').innerHTML = '<div class="loading">Loading data...</div>';
             document.getElementById('imagesTab').innerHTML = '<div class="loading">Loading images...</div>';
+            document.getElementById('rawTab').innerHTML = '<div class="loading">Loading raw data...</div>';
             
             try {
                 const response = await fetch(`${API_URL}/api/user/${username}/detailed-analysis`);
@@ -408,9 +448,10 @@
                 
                 currentData = await response.json();
                 
-                // Render both tabs
+                // Render all tabs
                 renderDataTab();
                 renderImagesTab();
+                renderRawTab();
             } catch (error) {
                 console.error('Error loading user data:', error);
                 document.getElementById('dataTab').innerHTML = `
@@ -419,6 +460,11 @@
                     </div>
                 `;
                 document.getElementById('imagesTab').innerHTML = `
+                    <div class="error">
+                        Error loading data for user "${username}": ${error.message}
+                    </div>
+                `;
+                document.getElementById('rawTab').innerHTML = `
                     <div class="error">
                         Error loading data for user "${username}": ${error.message}
                     </div>
@@ -991,6 +1037,40 @@
                     }
                 }
             }, 100);
+        }
+
+        // Render the Raw tab
+        function renderRawTab() {
+            if (!currentData) return;
+            
+            // Create sections for enrollment data and authentication attempts
+            const enrollmentData = {
+                baseline: currentData.baseline,
+                enrollment: currentData.enrollment
+            };
+            
+            const authAttemptsData = {
+                attempts: currentData.authAttempts,
+                attemptCount: currentData.authAttempts ? currentData.authAttempts.length : 0
+            };
+            
+            const html = `
+                <div class="raw-section">
+                    <h2 class="raw-section-title">📋 Enrollment Data</h2>
+                    <div class="raw-json">
+                        <pre>${JSON.stringify(enrollmentData, null, 2)}</pre>
+                    </div>
+                </div>
+                
+                <div class="raw-section">
+                    <h2 class="raw-section-title">🔐 Authentication Attempts</h2>
+                    <div class="raw-json">
+                        <pre>${JSON.stringify(authAttemptsData, null, 2)}</pre>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('rawTab').innerHTML = html;
         }
 
         // Tab switching
