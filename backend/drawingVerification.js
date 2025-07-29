@@ -54,27 +54,9 @@ async function compareFaceDrawings(storedFace, attemptFace) {
             return { score: 0, error: 'Missing face drawing data' };
         }
 
-        // Handle different data structures
-        let storedStrokes = storedFace.strokes || storedFace.raw || storedFace.data || [];
-        let attemptStrokes = attemptFace.strokes || attemptFace.raw || attemptFace.data || [];
-        
-        // If the data is stored as a string, try to parse it
-        if (typeof storedStrokes === 'string') {
-            try {
-                storedStrokes = JSON.parse(storedStrokes);
-            } catch (e) {
-                console.warn('Failed to parse stored strokes:', e);
-                storedStrokes = [];
-            }
-        }
-        if (typeof attemptStrokes === 'string') {
-            try {
-                attemptStrokes = JSON.parse(attemptStrokes);
-            } catch (e) {
-                console.warn('Failed to parse attempt strokes:', e);
-                attemptStrokes = [];
-            }
-        }
+        // Handle different data structures using the new extraction function
+        let storedStrokes = extractStrokeDataFromSignaturePad(storedFace) || [];
+        let attemptStrokes = extractStrokeDataFromSignaturePad(attemptFace) || [];
         
         // Handle case where strokes might be stored as a JSON string in the database
         if (Array.isArray(storedStrokes) && storedStrokes.length > 0 && typeof storedStrokes[0] === 'string') {
@@ -156,27 +138,9 @@ async function compareStarDrawings(storedStar, attemptStar) {
             return { score: 0, error: 'Missing star drawing data' };
         }
 
-        // Handle different data structures
-        let storedStrokes = storedStar.strokes || storedStar.raw || storedStar.data || [];
-        let attemptStrokes = attemptStar.strokes || attemptStar.raw || attemptStar.data || [];
-        
-        // If the data is stored as a string, try to parse it
-        if (typeof storedStrokes === 'string') {
-            try {
-                storedStrokes = JSON.parse(storedStrokes);
-            } catch (e) {
-                console.warn('Failed to parse stored star strokes:', e);
-                storedStrokes = [];
-            }
-        }
-        if (typeof attemptStrokes === 'string') {
-            try {
-                attemptStrokes = JSON.parse(attemptStrokes);
-            } catch (e) {
-                console.warn('Failed to parse attempt star strokes:', e);
-                attemptStrokes = [];
-            }
-        }
+        // Handle different data structures using the new extraction function
+        let storedStrokes = extractStrokeDataFromSignaturePad(storedStar) || [];
+        let attemptStrokes = extractStrokeDataFromSignaturePad(attemptStar) || [];
         
         // Handle case where strokes might be stored as a JSON string in the database
         if (Array.isArray(storedStrokes) && storedStrokes.length > 0 && typeof storedStrokes[0] === 'string') {
@@ -250,27 +214,9 @@ async function compareStarDrawings(storedStar, attemptStar) {
 // Compare house drawings
 async function compareHouseDrawings(storedHouse, attemptHouse) {
     try {
-        // Handle different data structures
-        let storedStrokes = storedHouse.strokes || storedHouse.raw || storedHouse.data || [];
-        let attemptStrokes = attemptHouse.strokes || attemptHouse.raw || attemptHouse.data || [];
-        
-        // If the data is stored as a string, try to parse it
-        if (typeof storedStrokes === 'string') {
-            try {
-                storedStrokes = JSON.parse(storedStrokes);
-            } catch (e) {
-                console.warn('Failed to parse stored house strokes:', e);
-                storedStrokes = [];
-            }
-        }
-        if (typeof attemptStrokes === 'string') {
-            try {
-                attemptStrokes = JSON.parse(attemptStrokes);
-            } catch (e) {
-                console.warn('Failed to parse attempt house strokes:', e);
-                attemptStrokes = [];
-            }
-        }
+        // Handle different data structures using the new extraction function
+        let storedStrokes = extractStrokeDataFromSignaturePad(storedHouse) || [];
+        let attemptStrokes = extractStrokeDataFromSignaturePad(attemptHouse) || [];
         
         // Handle case where strokes might be stored as a JSON string in the database
         if (Array.isArray(storedStrokes) && storedStrokes.length > 0 && typeof storedStrokes[0] === 'string') {
@@ -327,27 +273,9 @@ async function compareHouseDrawings(storedHouse, attemptHouse) {
 // Compare connect-dots drawings
 async function compareConnectDotsDrawings(storedDots, attemptDots) {
     try {
-        // Handle different data structures
-        let storedStrokes = storedDots.strokes || storedDots.raw || storedDots.data || [];
-        let attemptStrokes = attemptDots.strokes || attemptDots.raw || attemptDots.data || [];
-        
-        // If the data is stored as a string, try to parse it
-        if (typeof storedStrokes === 'string') {
-            try {
-                storedStrokes = JSON.parse(storedStrokes);
-            } catch (e) {
-                console.warn('Failed to parse stored dots strokes:', e);
-                storedStrokes = [];
-            }
-        }
-        if (typeof attemptStrokes === 'string') {
-            try {
-                attemptStrokes = JSON.parse(attemptStrokes);
-            } catch (e) {
-                console.warn('Failed to parse attempt dots strokes:', e);
-                attemptStrokes = [];
-            }
-        }
+        // Handle different data structures using the new extraction function
+        let storedStrokes = extractStrokeDataFromSignaturePad(storedDots) || [];
+        let attemptStrokes = extractStrokeDataFromSignaturePad(attemptDots) || [];
         
         // Handle case where strokes might be stored as a JSON string in the database
         if (Array.isArray(storedStrokes) && storedStrokes.length > 0 && typeof storedStrokes[0] === 'string') {
@@ -428,6 +356,47 @@ function normalizeStrokeData(strokes) {
             return [];
         }
     });
+}
+
+// Enhanced stroke data extraction for SignaturePad v4 format
+function extractStrokeDataFromSignaturePad(signatureData) {
+    if (!signatureData) return null;
+    
+    try {
+        let parsed = signatureData;
+        if (typeof signatureData === 'string') {
+            parsed = JSON.parse(signatureData);
+        }
+        
+        // Handle SignaturePad v4 format: {raw: [{points: [...], ...}]}
+        if (parsed.raw && Array.isArray(parsed.raw)) {
+            return parsed.raw.map(stroke => {
+                if (stroke.points && Array.isArray(stroke.points)) {
+                    return stroke.points;
+                }
+                if (Array.isArray(stroke)) {
+                    return stroke;
+                }
+                return [];
+            });
+        }
+        
+        // Handle legacy format: {strokes: [[...], [...]]}
+        if (parsed.strokes && Array.isArray(parsed.strokes)) {
+            return parsed.strokes;
+        }
+        
+        // Handle direct array format: [[...], [...]]
+        if (Array.isArray(parsed)) {
+            return parsed;
+        }
+        
+        console.warn('No stroke data found in signature data');
+        return null;
+    } catch (error) {
+        console.error('Error extracting stroke data from SignaturePad format:', error);
+        return null;
+    }
 }
 
 function calculateBoundingBox(points) {
