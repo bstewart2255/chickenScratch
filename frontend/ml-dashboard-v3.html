@@ -773,6 +773,135 @@
             });
         }
 
+        // Render enhanced component features for shapes and drawings
+        function renderEnhancedComponentFeatures(attempt, baseline) {
+            // Check if we have enhanced features data
+            const hasEnhancedShapes = attempt.shape_enhanced_features || attempt.shape_biometric_scores;
+            const hasEnhancedDrawings = attempt.drawing_enhanced_features || attempt.drawing_biometric_scores;
+            
+            if (!hasEnhancedShapes && !hasEnhancedDrawings) {
+                return '';
+            }
+            
+            let html = '';
+            
+            // Enhanced Shape Features
+            if (hasEnhancedShapes) {
+                html += `
+                    <div class="data-group">
+                        <div class="data-group-title">Shape Biometric Analysis</div>`;
+                
+                // Show biometric vs geometric breakdown if available
+                if (attempt.shape_biometric_scores) {
+                    ['circle', 'square', 'triangle'].forEach(shape => {
+                        if (attempt.shape_biometric_scores[shape]) {
+                            const scores = attempt.shape_biometric_scores[shape];
+                            html += `
+                                <div class="data-metric">
+                                    <span class="metric-name">${shape.charAt(0).toUpperCase() + shape.slice(1)} Biometric:</span>
+                                    <span class="metric-value">B: ${formatPercentage(scores.biometric)}, G: ${formatPercentage(scores.geometric)}</span>
+                                </div>`;
+                        }
+                    });
+                }
+                
+                // Show specific enhanced features if available
+                if (attempt.shape_enhanced_features) {
+                    const features = attempt.shape_enhanced_features;
+                    if (features.avg_pressure !== undefined) {
+                        html += `
+                            <div class="data-metric">
+                                <span class="metric-name">Shape Pressure:</span>
+                                <span class="metric-value">${formatMetricValue(features.avg_pressure?.toFixed(3), baseline.shape_avg_pressure?.toFixed(3))}</span>
+                            </div>`;
+                    }
+                    if (features.tremor_index !== undefined) {
+                        html += `
+                            <div class="data-metric">
+                                <span class="metric-name">Shape Tremor:</span>
+                                <span class="metric-value">${formatMetricValue(features.tremor_index?.toFixed(3), baseline.shape_tremor_index?.toFixed(3))}</span>
+                            </div>`;
+                    }
+                }
+                
+                html += `</div>`;
+            }
+            
+            // Enhanced Drawing Features
+            if (hasEnhancedDrawings) {
+                html += `
+                    <div class="data-group">
+                        <div class="data-group-title">Drawing Biometric Analysis</div>`;
+                
+                // Show biometric vs geometric breakdown if available
+                if (attempt.drawing_biometric_scores) {
+                    ['face', 'star', 'house', 'connect_dots'].forEach(drawing => {
+                        if (attempt.drawing_biometric_scores[drawing]) {
+                            const scores = attempt.drawing_biometric_scores[drawing];
+                            const drawingName = drawing === 'connect_dots' ? 'Connect Dots' : drawing.charAt(0).toUpperCase() + drawing.slice(1);
+                            html += `
+                                <div class="data-metric">
+                                    <span class="metric-name">${drawingName} Biometric:</span>
+                                    <span class="metric-value">B: ${formatPercentage(scores.biometric)}, G: ${formatPercentage(scores.geometric)}</span>
+                                </div>`;
+                        }
+                    });
+                }
+                
+                // Show specific enhanced features if available
+                if (attempt.drawing_enhanced_features) {
+                    const features = attempt.drawing_enhanced_features;
+                    if (features.stroke_sequence_pattern !== undefined) {
+                        html += `
+                            <div class="data-metric">
+                                <span class="metric-name">Stroke Pattern:</span>
+                                <span class="metric-value">${formatMetricValue(features.stroke_sequence_pattern?.toFixed(3), baseline.drawing_stroke_pattern?.toFixed(3))}</span>
+                            </div>`;
+                    }
+                    if (features.spatial_consistency !== undefined) {
+                        html += `
+                            <div class="data-metric">
+                                <span class="metric-name">Spatial Consistency:</span>
+                                <span class="metric-value">${formatMetricValue(features.spatial_consistency?.toFixed(3), baseline.drawing_spatial_consistency?.toFixed(3))}</span>
+                            </div>`;
+                    }
+                }
+                
+                html += `</div>`;
+            }
+            
+            // Enhanced Features Overview (if present)
+            if (attempt._enhanced_features_enabled) {
+                html += `
+                    <div class="data-group">
+                        <div class="data-group-title">Enhanced Feature Status</div>
+                        <div class="data-metric">
+                            <span class="metric-name">Enhanced Features:</span>
+                            <span class="metric-value" style="color: #4caf50;">✓ Enabled</span>
+                        </div>`;
+                
+                if (attempt._excluded_features && attempt._excluded_features.length > 0) {
+                    html += `
+                        <div class="data-metric">
+                            <span class="metric-name">Excluded Features:</span>
+                            <span class="metric-value">${attempt._excluded_features.join(', ')}</span>
+                        </div>`;
+                }
+                
+                if (attempt._feature_extraction_version) {
+                    html += `
+                        <div class="data-metric">
+                            <span class="metric-name">Feature Version:</span>
+                            <span class="metric-value">${attempt._feature_extraction_version}</span>
+                        </div>`;
+                }
+                
+                html += `</div>`;
+            }
+            
+            return html;
+        }
+
         // Render the Data tab
         function renderDataTab() {
             if (!currentData) return;
@@ -1023,6 +1152,8 @@
                                     <span class="metric-value">${attempt.drawing_scores?.connect_dots !== null && attempt.drawing_scores?.connect_dots !== undefined ? formatPercentage(attempt.drawing_scores.connect_dots) : 'N/A'}</span>
                                 </div>
                             </div>
+                            
+                            ${renderEnhancedComponentFeatures(attempt, baseline)}
 
                             <div class="data-group">
                                 <div class="data-group-title">Additional Metrics</div>
