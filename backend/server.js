@@ -144,69 +144,115 @@ setInterval(() => {
     }
 }, 60 * 60 * 1000);
 
-// Helper function to calculate all 19 ML features from signature data
+// Import enhanced feature extraction module
+const EnhancedFeatureExtractor = require('./enhanced-feature-extraction');
+
+// Feature flag for enhanced features (can be controlled via environment variable)
+const ENABLE_ENHANCED_FEATURES = process.env.ENABLE_ENHANCED_FEATURES !== 'false'; // Default to true
+
+// Helper function to calculate all ML features from signature data
 function calculateMLFeatures(signatureData) {
+    // First, calculate basic 19 features
+    let basicFeatures;
+    
     // If the frontend already calculated metrics, use them
     if (signatureData.metrics && Object.keys(signatureData.metrics).length > 15) {
-        return signatureData.metrics;
+        basicFeatures = signatureData.metrics;
+    } else {
+        // Otherwise, calculate from raw data if available
+        const rawData = signatureData.raw || [];
+        if (rawData.length === 0) {
+            // Return default values if no raw data
+            basicFeatures = {
+                stroke_count: 0,
+                total_points: 0,
+                total_duration_ms: 0,
+                avg_points_per_stroke: 0,
+                avg_velocity: 0,
+                max_velocity: 0,
+                min_velocity: 0,
+                velocity_std: 0,
+                width: 0,
+                height: 0,
+                area: 0,
+                aspect_ratio: 0,
+                center_x: 0,
+                center_y: 0,
+                avg_stroke_length: 0,
+                total_length: 0,
+                length_variation: 0,
+                avg_stroke_duration: 0,
+                duration_variation: 0
+            };
+        } else {
+            // Extract basic metrics from frontend if available
+            const basicMetrics = signatureData.metrics?.basic || {};
+            const boundingBox = basicMetrics.bounding_box || {};
+            
+            // Use frontend-calculated values where available, calculate missing ones
+            basicFeatures = {
+                stroke_count: basicMetrics.stroke_count || rawData.length || 0,
+                total_points: basicMetrics.total_points || 0,
+                total_duration_ms: basicMetrics.duration_ms || signatureData.metrics?.total_duration_ms || 0,
+                avg_points_per_stroke: basicMetrics.stroke_count > 0 ? 
+                    (basicMetrics.total_points / basicMetrics.stroke_count) : 0,
+                avg_velocity: parseFloat(basicMetrics.avg_speed) || 0,
+                max_velocity: 0, // Would need point-by-point data
+                min_velocity: 0, // Would need point-by-point data
+                velocity_std: 0, // Would need point-by-point data
+                width: boundingBox.width || 0,
+                height: boundingBox.height || 0,
+                area: (boundingBox.width || 0) * (boundingBox.height || 0),
+                aspect_ratio: boundingBox.height > 0 ? (boundingBox.width / boundingBox.height) : 0,
+                center_x: boundingBox.center_x || 0,
+                center_y: boundingBox.center_y || 0,
+                avg_stroke_length: basicMetrics.stroke_count > 0 ? 
+                    (basicMetrics.total_distance / basicMetrics.stroke_count) : 0,
+                total_length: basicMetrics.total_distance || 0,
+                length_variation: 0, // Would need per-stroke data
+                avg_stroke_duration: basicMetrics.stroke_count > 0 && basicMetrics.duration_ms > 0 ? 
+                    (basicMetrics.duration_ms / basicMetrics.stroke_count) : 0,
+                duration_variation: 0 // Would need per-stroke data
+            };
+        }
     }
     
-    // Otherwise, calculate from raw data if available
-    const rawData = signatureData.raw || [];
-    if (rawData.length === 0) {
-        // Return default values if no raw data
-        return {
-            stroke_count: 0,
-            total_points: 0,
-            total_duration_ms: 0,
-            avg_points_per_stroke: 0,
-            avg_velocity: 0,
-            max_velocity: 0,
-            min_velocity: 0,
-            velocity_std: 0,
-            width: 0,
-            height: 0,
-            area: 0,
-            aspect_ratio: 0,
-            center_x: 0,
-            center_y: 0,
-            avg_stroke_length: 0,
-            total_length: 0,
-            length_variation: 0,
-            avg_stroke_duration: 0,
-            duration_variation: 0
-        };
+    // Add enhanced features if enabled
+    if (ENABLE_ENHANCED_FEATURES) {
+        try {
+            // Extract stroke data for enhanced feature extraction
+            const strokeData = signatureData.raw || signatureData.strokes || signatureData.data || [];
+            
+            // Only extract enhanced features if we have stroke data
+            if (strokeData && (Array.isArray(strokeData) ? strokeData.length > 0 : strokeData.strokes?.length > 0)) {
+                console.log('Extracting enhanced biometric features...');
+                const enhancedFeatures = EnhancedFeatureExtractor.extractAllFeatures(strokeData);
+                
+                // Combine basic and enhanced features
+                return {
+                    ...basicFeatures,
+                    ...enhancedFeatures,
+                    _enhanced_features_enabled: true
+                };
+            } else {
+                console.log('No stroke data available for enhanced feature extraction');
+                return {
+                    ...basicFeatures,
+                    _enhanced_features_enabled: false,
+                    _enhanced_features_reason: 'no_stroke_data'
+                };
+            }
+        } catch (error) {
+            console.error('Enhanced feature extraction failed, using basic features:', error);
+            return {
+                ...basicFeatures,
+                _enhanced_features_enabled: false,
+                _enhanced_features_error: error.message
+            };
+        }
     }
     
-    // Extract basic metrics from frontend if available
-    const basicMetrics = signatureData.metrics?.basic || {};
-    const boundingBox = basicMetrics.bounding_box || {};
-    
-    // Use frontend-calculated values where available, calculate missing ones
-    return {
-        stroke_count: basicMetrics.stroke_count || rawData.length || 0,
-        total_points: basicMetrics.total_points || 0,
-        total_duration_ms: basicMetrics.duration_ms || signatureData.metrics?.total_duration_ms || 0,
-        avg_points_per_stroke: basicMetrics.stroke_count > 0 ? 
-            (basicMetrics.total_points / basicMetrics.stroke_count) : 0,
-        avg_velocity: parseFloat(basicMetrics.avg_speed) || 0,
-        max_velocity: 0, // Would need point-by-point data
-        min_velocity: 0, // Would need point-by-point data
-        velocity_std: 0, // Would need point-by-point data
-        width: boundingBox.width || 0,
-        height: boundingBox.height || 0,
-        area: (boundingBox.width || 0) * (boundingBox.height || 0),
-        aspect_ratio: boundingBox.height > 0 ? (boundingBox.width / boundingBox.height) : 0,
-        center_x: boundingBox.center_x || 0,
-        center_y: boundingBox.center_y || 0,
-        avg_stroke_length: basicMetrics.stroke_count > 0 ? 
-            (basicMetrics.total_distance / basicMetrics.stroke_count) : 0,
-        total_length: basicMetrics.total_distance || 0,
-        length_variation: 0, // Would need per-stroke data
-        avg_stroke_duration: basicMetrics.stroke_count > 0 && basicMetrics.duration_ms > 0 ? 
-            (basicMetrics.duration_ms / basicMetrics.stroke_count) : 0,
-        duration_variation: 0 // Would need per-stroke data
-    };
+    return basicFeatures;
 }
 
 // Helper function to extract displayable signature data
