@@ -460,12 +460,16 @@ app.post('/register', async (req, res) => {
         for (const [drawingType, drawingData] of Object.entries(drawings)) {
             try {
                 console.log(`Processing drawing: ${drawingType}`);
+                
+                // Extract stroke data using the new handler
+                const strokes = extractStrokeDataFromSignaturePad(drawingData);
+                
                 // Calculate drawing metrics
                 const drawingMetrics = {
-                    strokeCount: drawingData.strokes ? drawingData.strokes.length : 0,
-                    pointCount: drawingData.strokes ? drawingData.strokes.reduce((sum, stroke) => sum + stroke.length, 0) : 0,
-                    duration: drawingData.metrics?.duration || 0,
-                    boundingBox: drawingData.metrics?.boundingBox || null
+                    strokeCount: strokes ? strokes.length : 0,
+                    pointCount: strokes ? strokes.reduce((sum, stroke) => sum + (Array.isArray(stroke) ? stroke.length : 0), 0) : 0,
+                    duration: drawingData.metrics?.duration || drawingData.metrics?.total_duration_ms || 0,
+                    boundingBox: drawingData.metrics?.boundingBox || drawingData.metrics?.bounding_box || null
                 };
                 
                 await pool.query(
@@ -1790,10 +1794,10 @@ function calculateShapeBaseline(shapes) {
 function calculateDrawingBaseline(drawings) {
     if (!drawings || drawings.length === 0) {
         return {
-            face_features: null,
-            star_points: null,
-            house_structure: null,
-            connect_dots: null
+            face_score: null,
+            star_score: null,
+            house_score: null,
+            connect_dots_score: null
         };
     }
     
@@ -1808,16 +1812,16 @@ function calculateDrawingBaseline(drawings) {
         
         switch(drawingType) {
             case 'face':
-                baseline.face_features = hasData ? calculateFaceScore(metrics) : null;
+                baseline.face_score = hasData ? calculateFaceScore(metrics) : null;
                 break;
             case 'star':
-                baseline.star_points = hasData ? calculateStarScore(metrics) : null;
+                baseline.star_score = hasData ? calculateStarScore(metrics) : null;
                 break;
             case 'house':
-                baseline.house_structure = hasData ? calculateHouseScore(metrics) : null;
+                baseline.house_score = hasData ? calculateHouseScore(metrics) : null;
                 break;
             case 'connect_dots':
-                baseline.connect_dots = hasData ? calculateConnectDotsScore(metrics) : null;
+                baseline.connect_dots_score = hasData ? calculateConnectDotsScore(metrics) : null;
                 break;
         }
     });
@@ -2451,3 +2455,46 @@ app.listen(PORT, () => {
     console.log('Connected to PostgreSQL database');
     console.log('Body size limit: 10MB');
 });
+
+// Helper function to extract stroke data from SignaturePad v4 format
+function extractStrokeDataFromSignaturePad(signatureData) {
+    if (!signatureData) return null;
+    
+    try {
+        let parsed = signatureData;
+        if (typeof signatureData === 'string') {
+            parsed = JSON.parse(signatureData);
+        }
+        
+        // Handle SignaturePad v4 format: {raw: [{points: [...], ...}]}
+        if (parsed.raw && Array.isArray(parsed.raw)) {
+            return parsed.raw.map(stroke => {
+                // Convert stroke object to points array
+                if (stroke.points && Array.isArray(stroke.points)) {
+                    return stroke.points;
+                }
+                // If stroke is already a points array, return as is
+                if (Array.isArray(stroke)) {
+                    return stroke;
+                }
+                return [];
+            });
+        }
+        
+        // Handle legacy format: {strokes: [[...], [...]]}
+        if (parsed.strokes && Array.isArray(parsed.strokes)) {
+            return parsed.strokes;
+        }
+        
+        // Handle direct array format: [[...], [...]]
+        if (Array.isArray(parsed)) {
+            return parsed;
+        }
+        
+        console.warn('No stroke data found in signature data');
+        return null;
+    } catch (error) {
+        console.error('Error extracting stroke data from SignaturePad format:', error);
+        return null;
+    }
+}
