@@ -7,6 +7,13 @@
  * Phase 4: Security & Context (6 features)
  */
 
+// Feature name constants for consistent exclusion handling
+const PRESSURE_FEATURES = [
+  'avg_pressure', 'max_pressure', 'min_pressure', 
+  'pressure_std', 'pressure_range', 'contact_time_ratio',
+  'pressure_buildup_rate', 'pressure_release_rate'
+];
+
 // Performance monitoring utility
 const PerformanceMonitor = {
   startTime: null,
@@ -111,7 +118,7 @@ const EnhancedFeatureExtractor = {
       // Check if device supports pressure
       if (deviceCapabilities && !deviceCapabilities.supportsPressure) {
         const features = this.getDefaultPressureFeatures();
-        features._excluded_features = Object.keys(features).filter(k => !k.startsWith('_') && k !== 'has_pressure_data');
+        features._excluded_features = [...PRESSURE_FEATURES];
         features._exclusion_reason = 'device_does_not_support_pressure';
         return features;
       }
@@ -137,11 +144,7 @@ const EnhancedFeatureExtractor = {
       if (pressureValues.length === 0) {
         console.log('No pressure data collected - excluding pressure features');
         const features = this.getDefaultPressureFeatures();
-        features._excluded_features = [
-          'avg_pressure', 'max_pressure', 'min_pressure', 
-          'pressure_std', 'pressure_range', 'contact_time_ratio',
-          'pressure_buildup_rate', 'pressure_release_rate'
-        ];
+        features._excluded_features = [...PRESSURE_FEATURES];
         features._exclusion_reason = 'no_pressure_data_collected';
         features.has_pressure_data = false;
         PerformanceMonitor.endExtraction(Object.keys(features).length, 'Pressure (excluded)');
