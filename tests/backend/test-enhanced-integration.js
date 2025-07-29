@@ -5,12 +5,12 @@
 
 require('dotenv').config();
 
-// Mock the enhanced feature extractor to verify it's being called
-const originalModule = require('./enhanced-feature-extraction');
+require('dotenv').config({ path: '../../.env' });
+const originalModule = require('../../backend/enhanced-feature-extraction');
 let extractAllFeaturesCalled = false;
 
 // Override the module with our mock
-require.cache[require.resolve('./enhanced-feature-extraction')].exports = {
+require.cache[require.resolve('../../backend/enhanced-feature-extraction')].exports = {
   ...originalModule,
   extractAllFeatures: function(strokeData) {
     extractAllFeaturesCalled = true;
@@ -19,7 +19,7 @@ require.cache[require.resolve('./enhanced-feature-extraction')].exports = {
 };
 
 // Now require server.js which will use our mocked module
-const { calculateMLFeatures } = require('./server');
+const { calculateMLFeatures } = require('../../backend/server');
 
 // Test data
 const testSignatureData = {
@@ -87,8 +87,8 @@ async function runIntegrationTest() {
   extractAllFeaturesCalled = false;
   
   // Need to clear the require cache and reload server.js to pick up the env change
-  delete require.cache[require.resolve('./server')];
-  const { calculateMLFeatures: calculateMLFeaturesDisabled } = require('./server');
+  delete require.cache[require.resolve('../../backend/server')];
+  const { calculateMLFeatures: calculateMLFeaturesDisabled } = require('../../backend/server');
   
   const featuresWithoutEnhanced = calculateMLFeaturesDisabled(testSignatureData);
   
@@ -104,8 +104,8 @@ async function runIntegrationTest() {
   // Test 3: Test with missing stroke data
   console.log('Test 3: Graceful handling of missing stroke data');
   process.env.ENABLE_ENHANCED_FEATURES = 'true';
-  delete require.cache[require.resolve('./server')];
-  const { calculateMLFeatures: calculateMLFeaturesReloaded } = require('./server');
+  delete require.cache[require.resolve('../../backend/server')];
+  const { calculateMLFeatures: calculateMLFeaturesReloaded } = require('../../backend/server');
   
   const noStrokeData = {
     metrics: {

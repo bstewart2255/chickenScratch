@@ -1,5 +1,5 @@
 // Test script to validate drawing format fix
-require('dotenv').config();
+require('dotenv').config({ path: '../../.env' });
 
 // Import the extraction function from server.js
 function extractStrokeDataFromSignaturePad(signatureData) {

@@ -3,7 +3,7 @@
  * Tests that the module works with stroke data without pre-calculated bounds
  */
 
-const ComponentSpecificFeatures = require('./component-specific-features');
+const ComponentSpecificFeatures = require('../../backend/component-specific-features');
 
 // Test data - stroke data without bounds property
 const testStrokeData = [

@@ -4,7 +4,8 @@
  */
 
 require('dotenv').config();
-const EnhancedFeatureExtractor = require('./enhanced-feature-extraction');
+const EnhancedFeatureExtractor = require('../../backend/enhanced-feature-extraction');
+require('dotenv').config({ path: '../../.env' });
 
 // Test data generators
 function createTestStrokeWithPressure() {

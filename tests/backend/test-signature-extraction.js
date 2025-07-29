@@ -1,6 +1,6 @@
 // Test script to verify signature data extraction
 require('dotenv').config();
-const { Pool } = require('pg');
+require('dotenv').config({ path: '../../.env' });
 
 // Helper function (copy from server.js for testing)
 function extractDisplayableSignatureData(signatureData) {

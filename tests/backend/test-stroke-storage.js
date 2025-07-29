@@ -1,5 +1,5 @@
-const { extractStrokeData } = require('./update_to_stroke_storage');
-const { generateImageFromStrokes, extractStrokeMetrics } = require('./stroke-to-image');
+const { extractStrokeData } = require('../../backend/update_to_stroke_storage');
+const { generateImageFromStrokes, extractStrokeMetrics } = require('../../backend/stroke-to-image');
 
 // Sample signature data (similar to what your system collects)
 const sampleSignatureData = {

@@ -6,7 +6,7 @@ const { spawn } = require('child_process');
 
 class AutoTestRunner {
     constructor() {
-        this.testDirectory = './';
+        this.testDirectory = './tests/backend/';
         this.testPatterns = [
             /^test-.*\.js$/,           // test-*.js
             /^.*-test\.js$/,           // *-test.js  

@@ -1,5 +1,6 @@
 require('dotenv').config();
 const { Pool } = require('pg');
+require('dotenv').config({ path: '../../.env' });
 const axios = require('axios');
 const assert = require('assert');
 const { performance } = require('perf_hooks');

@@ -1,5 +1,5 @@
-const { extractStrokeData } = require('./update_to_stroke_storage');
-const { extractStrokeMetrics } = require('./stroke-to-image');
+const { extractStrokeData } = require('../../backend/update_to_stroke_storage');
+const { extractStrokeMetrics } = require('../../backend/stroke-to-image');
 
 // Realistic signature data with actual base64 image (this is a real signature image)
 const realisticSignatureData = {

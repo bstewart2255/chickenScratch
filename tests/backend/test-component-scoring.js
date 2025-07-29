@@ -1,4 +1,5 @@
 // Test script to add component scores to existing auth attempts for testing
+require('dotenv').config({ path: '../../.env' });
 const { Pool } = require('pg');
 require('dotenv').config();
 
