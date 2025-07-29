@@ -686,17 +686,17 @@
                 
                 currentData = await response.json();
                 
-                // Display enhanced features
+                // Render all tabs first
+                renderDataTab();
+                renderImagesTab();
+                renderRawTab();
+                
+                // Display enhanced features after DOM elements are created
                 try {
                     displayEnhancedFeatures(currentData);
                 } catch (error) {
                     handleEnhancedFeatureError(error, currentData);
                 }
-                
-                // Render all tabs
-                renderDataTab();
-                renderImagesTab();
-                renderRawTab();
             } catch (error) {
                 console.error('Error loading user data:', error);
                 document.getElementById('dataTab').innerHTML = `
