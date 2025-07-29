@@ -7,6 +7,13 @@
  * Phase 4: Security & Context (6 features)
  */
 
+// Feature name constants for consistent exclusion handling
+const PRESSURE_FEATURES = [
+  'avg_pressure', 'max_pressure', 'min_pressure', 
+  'pressure_std', 'pressure_range', 'contact_time_ratio',
+  'pressure_buildup_rate', 'pressure_release_rate'
+];
+
 // Performance monitoring utility
 const PerformanceMonitor = {
   startTime: null,
@@ -99,13 +106,21 @@ const EnhancedFeatureExtractor = {
   },
 
   // Phase 1: Pressure Analysis Features
-  extractPressureFeatures(strokeData) {
+  extractPressureFeatures(strokeData, deviceCapabilities = null) {
     PerformanceMonitor.startExtraction();
     
     try {
       // Validate input data first
       if (!this.validateStrokeData(strokeData)) {
         return this.getDefaultPressureFeatures();
+      }
+      
+      // Check if device supports pressure
+      if (deviceCapabilities && !deviceCapabilities.supportsPressure) {
+        const features = this.getDefaultPressureFeatures();
+        features._excluded_features = [...PRESSURE_FEATURES];
+        features._exclusion_reason = 'device_does_not_support_pressure';
+        return features;
       }
       
       const strokes = this.extractStrokes(strokeData);
@@ -127,19 +142,12 @@ const EnhancedFeatureExtractor = {
       
       // Handle case where device doesn't support pressure
       if (pressureValues.length === 0) {
-        console.log('No pressure data available, using fallback values');
-        const features = {
-          avg_pressure: 0.5,      // Default pressure
-          max_pressure: 0.5,
-          min_pressure: 0.5,
-          pressure_std: 0,
-          pressure_range: 0,
-          contact_time_ratio: 1.0, // Assume full contact
-          pressure_buildup_rate: 0,
-          pressure_release_rate: 0,
-          has_pressure_data: false  // Flag for ML model
-        };
-        PerformanceMonitor.endExtraction(Object.keys(features).length, 'Pressure (fallback)');
+        console.log('No pressure data collected - excluding pressure features');
+        const features = this.getDefaultPressureFeatures();
+        features._excluded_features = [...PRESSURE_FEATURES];
+        features._exclusion_reason = 'no_pressure_data_collected';
+        features.has_pressure_data = false;
+        PerformanceMonitor.endExtraction(Object.keys(features).length, 'Pressure (excluded)');
         return features;
       }
       
@@ -680,22 +688,67 @@ const EnhancedFeatureExtractor = {
   },
 
   // Extract all features from all phases
-  extractAllFeatures(strokeData) {
+  extractAllFeatures(strokeData, deviceCapabilities = null) {
     PerformanceMonitor.startExtraction();
     
     try {
+      // Extract features with device capability awareness
+      const pressureFeatures = this.extractPressureFeatures(strokeData, deviceCapabilities);
+      const timingFeatures = this.extractTimingFeatures(strokeData);
+      const geometricFeatures = this.extractGeometricFeatures(strokeData);
+      const securityFeatures = this.extractSecurityFeatures(strokeData);
+      
+      // Combine all features
       const allFeatures = {
-        ...this.extractPressureFeatures(strokeData),
-        ...this.extractTimingFeatures(strokeData),
-        ...this.extractGeometricFeatures(strokeData),
-        ...this.extractSecurityFeatures(strokeData)
+        ...pressureFeatures,
+        ...timingFeatures,
+        ...geometricFeatures,
+        ...securityFeatures
       };
+      
+      // Aggregate excluded features from all categories
+      const excludedFeatures = [];
+      const exclusionReasons = [];
+      
+      [pressureFeatures, timingFeatures, geometricFeatures, securityFeatures].forEach(category => {
+        if (category._excluded_features) {
+          excludedFeatures.push(...category._excluded_features);
+        }
+        if (category._exclusion_reason) {
+          exclusionReasons.push(category._exclusion_reason);
+        }
+      });
+      
+      // Clean up temporary exclusion data from individual categories
+      Object.keys(allFeatures).forEach(key => {
+        if (key === '_excluded_features' || key === '_exclusion_reason') {
+          delete allFeatures[key];
+        }
+      });
       
       const totalTime = PerformanceMonitor.endExtraction(Object.keys(allFeatures).length, 'All Features');
       
       // Add metadata
       allFeatures._extraction_time_ms = totalTime;
       allFeatures._feature_version = '1.0';
+      
+      // Add aggregated exclusion data if any features were excluded
+      if (excludedFeatures.length > 0) {
+        allFeatures._excluded_features = [...new Set(excludedFeatures)];
+        allFeatures._exclusion_reasons = [...new Set(exclusionReasons)];
+      }
+      
+      // Add list of actually supported features
+      const supportedFeatures = Object.keys(allFeatures).filter(k => 
+        !k.startsWith('_') && 
+        !excludedFeatures.includes(k)
+      );
+      allFeatures._supported_features = supportedFeatures;
+      
+      // Add device capabilities if provided
+      if (deviceCapabilities) {
+        allFeatures._device_capabilities = deviceCapabilities;
+      }
       
       return allFeatures;
       
@@ -714,14 +767,8 @@ const EnhancedFeatureExtractor = {
   // Default feature values for fallback
   getDefaultPressureFeatures() {
     return {
-      avg_pressure: 0.5,
-      max_pressure: 0.5,
-      min_pressure: 0.5,
-      pressure_std: 0,
-      pressure_range: 0,
-      contact_time_ratio: 1.0,
-      pressure_buildup_rate: 0,
-      pressure_release_rate: 0,
+      // Don't provide fallback values - these will be excluded
+      // Only has_pressure_data is always included as metadata
       has_pressure_data: false
     };
   },

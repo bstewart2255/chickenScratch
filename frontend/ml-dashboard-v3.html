@@ -509,18 +509,17 @@
 
         // Safe value retrieval with enhanced feature support
         function safeGetValue(obj, property, defaultValue = 'N/A') {
-            // Check in enhanced features first
-            if (obj && obj.enhanced_features && obj.enhanced_features[property] !== undefined) {
-                const value = obj.enhanced_features[property];
-                if (typeof value === 'number') {
-                    return isNaN(value) ? 'N/A' : value.toFixed(2);
-                }
-                return value;
+            // Get metrics object which contains all features
+            const metrics = obj.metrics || obj || {};
+            
+            // Check if this feature is excluded
+            if (metrics._excluded_features && metrics._excluded_features.includes(property)) {
+                return 'Not supported';
             }
             
-            // Fall back to root level properties (basic features)
-            if (obj && obj[property] !== undefined) {
-                const value = obj[property];
+            // Check for the property in metrics
+            if (metrics[property] !== undefined) {
+                const value = metrics[property];
                 if (typeof value === 'number') {
                     return isNaN(value) ? 'N/A' : value.toFixed(2);
                 }
@@ -558,9 +557,11 @@
             
             // Get signature data (latest signature or baseline)
             const signatureData = userData.enrollment?.signatures?.[0] || userData.baseline || {};
+            const metrics = signatureData.metrics || signatureData || {};
             
-            // Check if we have any enhanced features
-            const hasEnhancedFeatures = signatureData.enhanced_features && Object.keys(signatureData.enhanced_features).length > 0;
+            // Check if we have enhanced features enabled
+            const hasEnhancedFeatures = metrics._enhanced_features_enabled === true || 
+                                      (metrics._supported_features && metrics._supported_features.length > 0);
             
             if (!hasEnhancedFeatures) {
                 // Show informative message when enhanced features aren't available
@@ -574,6 +575,25 @@
                 `;
                 enhancedSection.appendChild(messageDiv);
                 return;
+            }
+            
+            // Display device capabilities if available
+            if (metrics._device_capabilities) {
+                const deviceDiv = document.createElement('div');
+                deviceDiv.style.marginBottom = '20px';
+                deviceDiv.style.padding = '15px';
+                deviceDiv.style.backgroundColor = 'rgba(255,255,255,0.05)';
+                deviceDiv.style.borderRadius = '8px';
+                deviceDiv.innerHTML = `
+                    <h4 style="color: #aaa; margin-bottom: 10px;">📱 Device Capabilities</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+                        <div><strong>Pressure Support:</strong> ${metrics._device_capabilities.supportsPressure ? '✅ Yes' : '❌ No'}</div>
+                        <div><strong>Input Method:</strong> ${metrics._device_capabilities.inputMethod || 'Unknown'}</div>
+                        <div><strong>Browser:</strong> ${metrics._device_capabilities.browser || 'Unknown'}</div>
+                        <div><strong>OS:</strong> ${metrics._device_capabilities.os || 'Unknown'}</div>
+                    </div>
+                `;
+                enhancedSection.appendChild(deviceDiv);
             }
             
             Object.entries(enhancedFeatureGroups).forEach(([groupName, config]) => {
@@ -591,11 +611,14 @@
                     <div class="feature-grid">
                         ${config.features.map(feature => {
                             const value = safeGetValue(signatureData, feature);
-                            const isAvailable = value !== 'N/A';
+                            const isExcluded = metrics._excluded_features && metrics._excluded_features.includes(feature);
+                            const isSupported = !isExcluded && value !== 'Not supported';
+                            const displayValue = isExcluded ? 'Not supported' : value;
                             return `
-                                <div class="feature-item ${isAvailable ? '' : 'feature-unavailable'}">
-                                    <div class="feature-value" style="color: ${config.color}">
-                                        ${value}
+                                <div class="feature-item ${isSupported ? '' : 'feature-unavailable'}" 
+                                     title="${isExcluded ? 'This feature is not supported on your device' : ''}">
+                                    <div class="feature-value" style="color: ${isSupported ? config.color : '#666'}">
+                                        ${displayValue}
                                     </div>
                                     <div class="feature-label">${formatFeatureName(feature)}</div>
                                 </div>
