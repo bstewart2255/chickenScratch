@@ -253,7 +253,12 @@ const ComponentSpecificFeatures = {
   analyzeCornerTechnique(strokeData) {
     if (!strokeData || strokeData.length === 0) return 0;
     
-    const points = strokeData[0].points;
+    const firstStroke = strokeData[0];
+    if (!firstStroke || !firstStroke.points || !Array.isArray(firstStroke.points) || firstStroke.points.length === 0) {
+      return 0;
+    }
+    
+    const points = firstStroke.points;
     const corners = [];
     
     // Detect corners based on angle changes
@@ -282,7 +287,12 @@ const ComponentSpecificFeatures = {
   analyzeLineConsistency(strokeData) {
     if (!strokeData || strokeData.length === 0) return 0;
     
-    const points = strokeData[0].points;
+    const firstStroke = strokeData[0];
+    if (!firstStroke || !firstStroke.points || !Array.isArray(firstStroke.points) || firstStroke.points.length === 0) {
+      return 0;
+    }
+    
+    const points = firstStroke.points;
     let totalDeviation = 0;
     let segmentCount = 0;
     
