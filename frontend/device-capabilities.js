@@ -32,12 +32,12 @@ const DeviceCapabilityDetector = {
     }
     
     // Check for webkit Force Touch (older Safari)
-    if ('webkitForce' in Touch.prototype) {
+    if ('Touch' in window && 'webkitForce' in Touch.prototype) {
       return true;
     }
     
     // Check for Force Touch on iOS devices
-    if (this.isIOS() && 'force' in Touch.prototype) {
+    if (this.isIOS() && 'Touch' in window && 'force' in Touch.prototype) {
       return true;
     }
     
