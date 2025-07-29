@@ -1,5 +1,91 @@
 const axios = require('axios');
 
+// Enhanced ML-based signature comparison that respects excluded features
+async function compareSignaturesEnhanced(storedMetrics, currentMetrics, baseline, username) {
+    try {
+        // Ensure we have valid metrics
+        if (!storedMetrics || !currentMetrics || !baseline) {
+            console.error('Missing metrics or baseline for enhanced ML comparison');
+            return compareSignaturesML(storedMetrics, currentMetrics, username); // Fallback
+        }
+        
+        // Get list of supported features from baseline
+        const supportedFeatures = baseline._supported_features || [];
+        const excludedFeatures = baseline._excluded_features || [];
+        
+        console.log(`Enhanced comparison for ${username}:`, {
+            supportedFeatures: supportedFeatures.length,
+            excludedFeatures: excludedFeatures.length
+        });
+        
+        // Calculate differences only for supported features
+        let totalDifference = 0;
+        let featureCount = 0;
+        
+        // Process each supported feature
+        supportedFeatures.forEach(feature => {
+            // Skip metadata fields
+            if (feature.startsWith('_') || feature.endsWith('_std')) return;
+            
+            const baselineValue = baseline[feature];
+            const currentValue = currentMetrics[feature];
+            
+            // Skip if either value is missing
+            if (baselineValue === undefined || currentValue === undefined) return;
+            
+            // Calculate normalized difference
+            const diff = Math.abs(currentValue - baselineValue);
+            const normalizedDiff = baselineValue > 0 ? diff / baselineValue : diff;
+            
+            // Weight different features differently
+            let weight = 1.0;
+            if (feature.includes('velocity')) weight = 1.5;
+            else if (feature.includes('pressure') && !excludedFeatures.includes(feature)) weight = 2.0;
+            else if (feature.includes('duration')) weight = 1.2;
+            else if (feature.includes('stroke')) weight = 1.3;
+            
+            totalDifference += normalizedDiff * weight;
+            featureCount++;
+        });
+        
+        // Calculate score based on average difference
+        const avgDifference = featureCount > 0 ? totalDifference / featureCount : 1.0;
+        let score = Math.max(0, 100 - (avgDifference * 50));
+        
+        // Ensure minimum score of 5%
+        score = Math.max(5, Math.min(100, score));
+        
+        console.log(`Enhanced ML score for ${username}: ${score.toFixed(1)}% (${featureCount} features)`);
+        
+        // Try ML API with enhanced features if available
+        try {
+            const defaultMLUrl = process.env.NODE_ENV === 'production' 
+                ? 'https://chickenscratch-ml.onrender.com'
+                : 'http://localhost:5002';
+            const ML_API_URL = process.env.ML_API_URL || defaultMLUrl;
+            
+            const response = await axios.post(`${ML_API_URL}/api/predict_enhanced`, {
+                username: username,
+                baseline: baseline,
+                current_features: currentMetrics,
+                supported_features: supportedFeatures,
+                excluded_features: excludedFeatures
+            });
+            
+            console.log(`Enhanced ML API Response:`, response.data);
+            return response.data.confidence_score;
+        } catch (mlError) {
+            console.warn('Enhanced ML API not available, using calculated score:', mlError.message);
+            return score;
+        }
+        
+    } catch (error) {
+        console.error('Enhanced ML comparison error:', error);
+        // Fallback to standard comparison
+        return compareSignaturesML(storedMetrics, currentMetrics, username);
+    }
+}
+
 // ML-based signature comparison using the trained model
 async function compareSignaturesML(storedMetrics, currentMetrics, username) {
     try {
@@ -117,5 +203,6 @@ async function compareMultipleSignaturesML(storedSignatures, currentMetrics, use
 
 module.exports = {
     compareSignaturesML,
-    compareMultipleSignaturesML
+    compareMultipleSignaturesML,
+    compareSignaturesEnhanced
 };

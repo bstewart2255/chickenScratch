@@ -527,6 +527,9 @@
     <!-- Load signature_pad library -->
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
     
+    <!-- Load device capability detection -->
+    <script src="device-capabilities.js"></script>
+    
     <script>
         // API URL configuration - adjust based on environment
         const API_URL = window.location.hostname === 'localhost' 
@@ -543,6 +546,13 @@
         let currentSessionId = null; // Store session ID
         let drawingStartTime = null; // Track drawing duration
         let collectedData = []; // Store all drawings locally until submission
+        let deviceCapabilities = null; // Store device capabilities
+        
+        // Detect device capabilities on load
+        if (typeof DeviceCapabilityDetector !== 'undefined') {
+            deviceCapabilities = DeviceCapabilityDetector.detectCapabilities();
+            console.log('Device capabilities:', deviceCapabilities);
+        }
         
         // Flow definitions
         // Sign-up flow: 10 drawing steps total
@@ -1146,7 +1156,8 @@
                 timestamp: Date.now(),
                 username: currentUsername,
                 metrics: metrics,
-                sessionId: currentSessionId
+                sessionId: currentSessionId,
+                device_capabilities: deviceCapabilities
             };
             
             // Store drawing data locally (no server calls during flow)
@@ -1261,6 +1272,7 @@
                             shapes: shapesObject,
                             drawings: drawingsObject,
                             device_info: navigator.userAgent,
+                            device_capabilities: deviceCapabilities,
                             timestamp: new Date().toISOString()
                         })
                     });
@@ -1344,6 +1356,7 @@
                             shapes: shapesObject,
                             drawings: drawingsObject,
                             device_info: navigator.userAgent,
+                            device_capabilities: deviceCapabilities,
                             timestamp: new Date().toISOString()
                         })
                     });

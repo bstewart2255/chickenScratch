@@ -226,7 +226,11 @@ function calculateMLFeatures(signatureData) {
             // Only extract enhanced features if we have stroke data
             if (strokeData && (Array.isArray(strokeData) ? strokeData.length > 0 : strokeData.strokes?.length > 0)) {
                 console.log('Extracting enhanced biometric features...');
-                const enhancedFeatures = EnhancedFeatureExtractor.extractAllFeatures(strokeData);
+                
+                // Extract device capabilities if provided
+                const deviceCapabilities = signatureData.device_capabilities || null;
+                
+                const enhancedFeatures = EnhancedFeatureExtractor.extractAllFeatures(strokeData, deviceCapabilities);
                 
                 // Combine basic and enhanced features
                 return {
@@ -314,7 +318,7 @@ function extractSignatureFeatures(signatureDataUrl) {
 }
 
 // Import ML comparison functions
-const { compareSignaturesML, compareMultipleSignaturesML } = require('./mlComparison');
+const { compareSignaturesML, compareMultipleSignaturesML, compareSignaturesEnhanced } = require('./mlComparison');
 
 // Legacy comparison function (kept for fallback)
 function compareSignaturesLegacy(signature1, signature2) {
@@ -336,6 +340,36 @@ function compareSignaturesLegacy(signature1, signature2) {
 async function compareSignatures(signature1, signature2, metrics1, metrics2, username) {
     // If we have ML metrics, use ML comparison
     if (metrics1 && metrics2 && Object.keys(metrics1).length >= 15 && Object.keys(metrics2).length >= 15) {
+        // Try to get user baseline for enhanced comparison
+        try {
+            const userResult = await pool.query(
+                'SELECT id FROM users WHERE username = $1',
+                [username]
+            );
+            
+            if (userResult.rows.length > 0) {
+                const userId = userResult.rows[0].id;
+                
+                // Get enrollment signatures
+                const signaturesResult = await pool.query(
+                    'SELECT metrics FROM signatures WHERE user_id = $1 AND is_enrollment = true',
+                    [userId]
+                );
+                
+                if (signaturesResult.rows.length >= 3) {
+                    // Calculate baseline from enrollment signatures
+                    const enrollmentSigs = signaturesResult.rows.map(row => ({ metrics: row.metrics }));
+                    const baseline = calculateUserBaseline(enrollmentSigs);
+                    
+                    // Use enhanced comparison with baseline
+                    return await compareSignaturesEnhanced(metrics1, metrics2, baseline, username);
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching baseline for enhanced comparison:', error);
+        }
+        
+        // Fallback to standard ML comparison
         return await compareSignaturesML(metrics1, metrics2, username);
     }
     // Fallback to legacy comparison
@@ -1108,10 +1142,11 @@ app.post('/login', async (req, res) => {
                 }
             });
             
-            // Combine all component scores for storage
-            const componentScores = {
-                ...(Object.keys(shapeScores).length > 0 ? shapeScores : {}),
-                ...(Object.keys(drawingScores).length > 0 ? drawingScores : {})
+            // Create properly structured scores object with clear separation
+            const structuredScores = {
+                signature: scores.signature,
+                shape_scores: Object.keys(shapeScores).length > 0 ? shapeScores : {},
+                drawing_scores: Object.keys(drawingScores).length > 0 ? drawingScores : {}
             };
             
             console.log('Saving authentication attempt:', {
@@ -1119,15 +1154,14 @@ app.post('/login', async (req, res) => {
                 success: isSuccess,
                 confidence: averageScore,
                 signatureId: authSignatureId,
-                componentScores: Object.keys(componentScores),
-                shapeScores: Object.keys(shapeScores),
-                drawingScores: Object.keys(drawingScores)
+                scores: structuredScores
             });
             
+            // Store in database with properly structured JSON
             await pool.query(
                 'INSERT INTO auth_attempts (user_id, success, confidence, device_info, signature_id, drawing_scores) VALUES ($1, $2, $3, $4, $5, $6)',
                 [userId, isSuccess, averageScore, req.headers['user-agent'] || 'Unknown', authSignatureId, 
-                 Object.keys(componentScores).length > 0 ? JSON.stringify(componentScores) : null]
+                 JSON.stringify(structuredScores)]
             );
             
             console.log('✅ Authentication attempt saved successfully');
@@ -1356,7 +1390,8 @@ app.get('/api/recent-activity', async (req, res) => {
 
 // Helper function to calculate baseline metrics from enrollment signatures
 function calculateUserBaseline(signatures) {
-    const mlFeatures = [
+    // Start with basic ML features
+    const basicFeatures = [
         'stroke_count', 'total_points', 'total_duration_ms', 'avg_points_per_stroke',
         'avg_velocity', 'max_velocity', 'min_velocity', 'velocity_std',
         'width', 'height', 'area', 'aspect_ratio', 'center_x', 'center_y',
@@ -1364,17 +1399,55 @@ function calculateUserBaseline(signatures) {
         'avg_stroke_duration', 'duration_variation'
     ];
     
+    // Dynamically discover all features from signatures
+    const allFeatures = new Set(basicFeatures);
+    const excludedFeatures = new Set();
+    const supportedFeatures = new Set();
+    
+    // Scan all signatures to find all available features
+    signatures.forEach(sig => {
+        if (sig.metrics && typeof sig.metrics === 'object') {
+            // Add any excluded features to our tracking
+            if (sig.metrics._excluded_features) {
+                sig.metrics._excluded_features.forEach(f => excludedFeatures.add(f));
+            }
+            
+            // Add supported features
+            if (sig.metrics._supported_features) {
+                sig.metrics._supported_features.forEach(f => {
+                    allFeatures.add(f);
+                    supportedFeatures.add(f);
+                });
+            } else {
+                // Fallback: discover features from metrics object
+                Object.keys(sig.metrics).forEach(key => {
+                    if (!key.startsWith('_') && !excludedFeatures.has(key)) {
+                        allFeatures.add(key);
+                    }
+                });
+            }
+        }
+    });
+    
+    // Remove excluded features from calculation
+    excludedFeatures.forEach(f => allFeatures.delete(f));
+    
     const baseline = {};
     
     // Initialize sums for each feature
-    mlFeatures.forEach(feature => {
+    allFeatures.forEach(feature => {
         baseline[feature] = { sum: 0, count: 0, values: [] };
     });
     
     // Aggregate metrics from all enrollment signatures
     signatures.forEach(sig => {
         if (sig.metrics && typeof sig.metrics === 'object') {
-            mlFeatures.forEach(feature => {
+            allFeatures.forEach(feature => {
+                // Skip excluded features
+                if (sig.metrics._excluded_features && sig.metrics._excluded_features.includes(feature)) {
+                    return;
+                }
+                
                 if (sig.metrics[feature] !== undefined && sig.metrics[feature] !== null) {
                     const value = parseFloat(sig.metrics[feature]);
                     if (!isNaN(value)) {
@@ -1389,7 +1462,7 @@ function calculateUserBaseline(signatures) {
     
     // Calculate averages and standard deviations
     const result = {};
-    mlFeatures.forEach(feature => {
+    allFeatures.forEach(feature => {
         if (baseline[feature].count > 0) {
             const avg = baseline[feature].sum / baseline[feature].count;
             result[feature] = parseFloat(avg.toFixed(2));
@@ -1402,9 +1475,15 @@ function calculateUserBaseline(signatures) {
                 result[`${feature}_std`] = parseFloat(Math.sqrt(variance).toFixed(2));
             }
         } else {
-            result[feature] = 0;
+            // Don't include features with no valid data
+            console.log(`Feature ${feature} has no valid data across all signatures`);
         }
     });
+    
+    // Add metadata about supported and excluded features
+    result._supported_features = Array.from(supportedFeatures);
+    result._excluded_features = Array.from(excludedFeatures);
+    result._baseline_signature_count = signatures.length;
     
     return result;
 }
@@ -2013,7 +2092,7 @@ app.get('/api/user/:username/detailed-analysis', async (req, res) => {
                 confidence: attempt.confidence,
                 authentication_result: attempt.success ? 'success' : 'failed',
                 device_info: attempt.device_info,
-                drawing_scores: attempt.drawing_scores,
+                drawing_scores: extractDrawingScores(attempt),
                 signature_id: attempt.signature_id,
                 
                 // Include all ML features from signature metrics
@@ -2175,7 +2254,8 @@ app.get('/api/auth-attempt/:attemptId/breakdown', async (req, res) => {
                 confidence: attempt.confidence,
                 device_info: parseUserAgent(attempt.device_info),
                 created_at: attempt.created_at,
-                drawing_scores: attempt.drawing_scores
+                shape_scores: extractShapeScores(attempt),
+                drawing_scores: extractDrawingScores(attempt)
             },
             signature: {
                 data: extractDisplayableSignatureData(attempt.signature_data),
@@ -2407,17 +2487,74 @@ app.get('/api/signature/:id/image', async (req, res) => {
     }
 });
 
-// Helper function to extract shape scores (if stored separately)
+// Helper function to extract shape scores from structured data
 function extractShapeScores(attempt) {
     // If shape scores are stored in a separate field, return them
     if (attempt.shape_scores) {
         return attempt.shape_scores;
     }
     
-    // Otherwise, try to derive from drawing_scores or return null
+    // Try to parse from drawing_scores JSON if it contains structured data
     if (attempt.drawing_scores) {
-        const { face, star, house, connect_dots, ...shapes } = attempt.drawing_scores;
-        return Object.keys(shapes).length > 0 ? shapes : null;
+        try {
+            const scores = typeof attempt.drawing_scores === 'string' 
+                ? JSON.parse(attempt.drawing_scores) 
+                : attempt.drawing_scores;
+            
+            // Check if it's the new structured format
+            if (scores.shape_scores) {
+                return scores.shape_scores;
+            }
+            
+            // Otherwise, try to extract shape scores from mixed data
+            const shapeKeys = ['circle', 'square', 'triangle'];
+            const shapeScores = {};
+            
+            shapeKeys.forEach(shape => {
+                if (scores[shape] !== undefined) {
+                    shapeScores[shape] = scores[shape];
+                }
+            });
+            
+            return Object.keys(shapeScores).length > 0 ? shapeScores : null;
+        } catch (e) {
+            console.error('Error parsing drawing scores:', e);
+            return null;
+        }
+    }
+    
+    return null;
+}
+
+// Helper function to extract drawing scores from structured data
+function extractDrawingScores(attempt) {
+    // Try to parse from drawing_scores JSON if it contains structured data
+    if (attempt.drawing_scores) {
+        try {
+            const scores = typeof attempt.drawing_scores === 'string' 
+                ? JSON.parse(attempt.drawing_scores) 
+                : attempt.drawing_scores;
+            
+            // Check if it's the new structured format
+            if (scores.drawing_scores) {
+                return scores.drawing_scores;
+            }
+            
+            // Otherwise, try to extract drawing scores from mixed data
+            const drawingKeys = ['face', 'star', 'house', 'connect_dots'];
+            const drawingScores = {};
+            
+            drawingKeys.forEach(drawing => {
+                if (scores[drawing] !== undefined) {
+                    drawingScores[drawing] = scores[drawing];
+                }
+            });
+            
+            return Object.keys(drawingScores).length > 0 ? drawingScores : null;
+        } catch (e) {
+            console.error('Error parsing drawing scores:', e);
+            return null;
+        }
     }
     
     return null;
