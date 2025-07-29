@@ -1733,9 +1733,9 @@ app.get('/debug/metrics/:username', async (req, res) => {
             [userId]
         );
         
-        // Get shapes with metrics
+        // Get shapes with metrics and enhanced features
         const shapes = await pool.query(
-            'SELECT shape_type, metrics, created_at FROM shapes WHERE user_id = $1 ORDER BY created_at DESC',
+            'SELECT shape_type, metrics, enhanced_features, created_at FROM shapes WHERE user_id = $1 ORDER BY created_at DESC',
             [userId]
         );
         
@@ -1748,6 +1748,7 @@ app.get('/debug/metrics/:username', async (req, res) => {
             shapes: shapes.rows.map(row => ({
                 type: row.shape_type,
                 metrics: row.metrics,
+                enhanced_features: row.enhanced_features,
                 created_at: row.created_at
             }))
         });
