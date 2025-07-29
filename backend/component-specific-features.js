@@ -6,6 +6,66 @@
 
 const ComponentSpecificFeatures = {
   /**
+   * Utility function to calculate bounds from stroke points
+   * Handles cases where stroke data doesn't have pre-calculated bounds
+   */
+  calculateStrokeBounds(stroke) {
+    if (!stroke || !stroke.points || !Array.isArray(stroke.points) || stroke.points.length === 0) {
+      return { minX: 0, maxX: 0, minY: 0, maxY: 0 };
+    }
+    
+    // If bounds already exist, return them
+    if (stroke.bounds && typeof stroke.bounds === 'object') {
+      return stroke.bounds;
+    }
+    
+    // Calculate bounds from points
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    
+    stroke.points.forEach(point => {
+      if (point && typeof point.x === 'number' && typeof point.y === 'number') {
+        minX = Math.min(minX, point.x);
+        minY = Math.min(minY, point.y);
+        maxX = Math.max(maxX, point.x);
+        maxY = Math.max(maxY, point.y);
+      }
+    });
+    
+    // Handle edge case where no valid points were found
+    if (minX === Infinity) {
+      return { minX: 0, maxX: 0, minY: 0, maxY: 0 };
+    }
+    
+    return { minX, maxX, minY, maxY };
+  },
+
+  /**
+   * Utility function to calculate bounds for multiple strokes
+   */
+  calculateStrokeDataBounds(strokeData) {
+    if (!strokeData || !Array.isArray(strokeData) || strokeData.length === 0) {
+      return { minX: 0, maxX: 0, minY: 0, maxY: 0 };
+    }
+    
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    
+    strokeData.forEach(stroke => {
+      const bounds = this.calculateStrokeBounds(stroke);
+      minX = Math.min(minX, bounds.minX);
+      minY = Math.min(minY, bounds.minY);
+      maxX = Math.max(maxX, bounds.maxX);
+      maxY = Math.max(maxY, bounds.maxY);
+    });
+    
+    // Handle edge case where no valid strokes were found
+    if (minX === Infinity) {
+      return { minX: 0, maxX: 0, minY: 0, maxY: 0 };
+    }
+    
+    return { minX, maxX, minY, maxY };
+  },
+
+  /**
    * Extract features specific to shapes (circle, square, triangle)
    */
   extractShapeSpecificFeatures(strokeData, shapeType) {
@@ -80,8 +140,9 @@ const ComponentSpecificFeatures = {
     
     const firstStroke = strokeData[0];
     const firstPoint = firstStroke.points[0];
-    const centerX = (firstStroke.bounds.minX + firstStroke.bounds.maxX) / 2;
-    const centerY = (firstStroke.bounds.minY + firstStroke.bounds.maxY) / 2;
+    const bounds = this.calculateStrokeBounds(firstStroke);
+    const centerX = (bounds.minX + bounds.maxX) / 2;
+    const centerY = (bounds.minY + bounds.maxY) / 2;
     
     // Calculate angle from center to start point (0-360 degrees)
     const angle = Math.atan2(firstPoint.y - centerY, firstPoint.x - centerX) * (180 / Math.PI);
@@ -106,9 +167,10 @@ const ComponentSpecificFeatures = {
     );
     
     // Normalize by shape size
+    const bounds = this.calculateStrokeBounds(firstStroke);
     const size = Math.max(
-      firstStroke.bounds.maxX - firstStroke.bounds.minX,
-      firstStroke.bounds.maxY - firstStroke.bounds.minY
+      bounds.maxX - bounds.minX,
+      bounds.maxY - bounds.minY
     );
     
     // Return closure quality (1 = perfect closure, 0 = large gap)
@@ -149,8 +211,9 @@ const ComponentSpecificFeatures = {
     const points = firstStroke.points;
     
     // Calculate center
-    const centerX = (firstStroke.bounds.minX + firstStroke.bounds.maxX) / 2;
-    const centerY = (firstStroke.bounds.minY + firstStroke.bounds.maxY) / 2;
+    const bounds = this.calculateStrokeBounds(firstStroke);
+    const centerX = (bounds.minX + bounds.maxX) / 2;
+    const centerY = (bounds.minY + bounds.maxY) / 2;
     
     // Calculate average radius
     const radii = points.map(p => 
@@ -376,8 +439,9 @@ const ComponentSpecificFeatures = {
     
     // Create a stroke order signature based on relative positions
     const strokeSignature = strokeData.map((stroke, index) => {
-      const centerX = (stroke.bounds.minX + stroke.bounds.maxX) / 2;
-      const centerY = (stroke.bounds.minY + stroke.bounds.maxY) / 2;
+      const bounds = this.calculateStrokeBounds(stroke);
+      const centerX = (bounds.minX + bounds.maxX) / 2;
+      const centerY = (bounds.minY + bounds.maxY) / 2;
       
       return {
         index: index,
@@ -408,10 +472,12 @@ const ComponentSpecificFeatures = {
         const stroke1 = strokeData[i];
         const stroke2 = strokeData[j];
         
-        const center1X = (stroke1.bounds.minX + stroke1.bounds.maxX) / 2;
-        const center1Y = (stroke1.bounds.minY + stroke1.bounds.maxY) / 2;
-        const center2X = (stroke2.bounds.minX + stroke2.bounds.maxX) / 2;
-        const center2Y = (stroke2.bounds.minY + stroke2.bounds.maxY) / 2;
+        const bounds1 = this.calculateStrokeBounds(stroke1);
+        const bounds2 = this.calculateStrokeBounds(stroke2);
+        const center1X = (bounds1.minX + bounds1.maxX) / 2;
+        const center1Y = (bounds1.minY + bounds1.maxY) / 2;
+        const center2X = (bounds2.minX + bounds2.maxX) / 2;
+        const center2Y = (bounds2.minY + bounds2.maxY) / 2;
         
         const distance = Math.sqrt(
           Math.pow(center2X - center1X, 2) + 
@@ -489,13 +555,11 @@ const ComponentSpecificFeatures = {
     if (!strokeData || strokeData.length < 2) return 0;
     
     // Find the overall bounds
-    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-    strokeData.forEach(stroke => {
-      minX = Math.min(minX, stroke.bounds.minX);
-      maxX = Math.max(maxX, stroke.bounds.maxX);
-      minY = Math.min(minY, stroke.bounds.minY);
-      maxY = Math.max(maxY, stroke.bounds.maxY);
-    });
+    const overallBounds = this.calculateStrokeDataBounds(strokeData);
+    const minX = overallBounds.minX;
+    const maxX = overallBounds.maxX;
+    const minY = overallBounds.minY;
+    const maxY = overallBounds.maxY;
     
     const centerX = (minX + maxX) / 2;
     
@@ -519,11 +583,14 @@ const ComponentSpecificFeatures = {
     if (!strokeData || strokeData.length < 3) return 0;
     
     // Sort strokes by vertical position
-    const strokePositions = strokeData.map((stroke, index) => ({
-      index: index,
-      centerY: (stroke.bounds.minY + stroke.bounds.maxY) / 2,
-      centerX: (stroke.bounds.minX + stroke.bounds.maxX) / 2
-    })).sort((a, b) => a.centerY - b.centerY);
+    const strokePositions = strokeData.map((stroke, index) => {
+      const bounds = this.calculateStrokeBounds(stroke);
+      return {
+        index: index,
+        centerY: (bounds.minY + bounds.maxY) / 2,
+        centerX: (bounds.minX + bounds.maxX) / 2
+      };
+    }).sort((a, b) => a.centerY - b.centerY);
     
     // Calculate relative positions (expected: eyes at top, nose middle, mouth bottom)
     const positions = strokePositions.map(s => s.centerY);
@@ -617,8 +684,10 @@ const ComponentSpecificFeatures = {
     
     // Sort strokes by vertical position
     const sortedStrokes = [...strokeData].sort((a, b) => {
-      const centerYA = (a.bounds.minY + a.bounds.maxY) / 2;
-      const centerYB = (b.bounds.minY + b.bounds.maxY) / 2;
+      const boundsA = this.calculateStrokeBounds(a);
+      const boundsB = this.calculateStrokeBounds(b);
+      const centerYA = (boundsA.minY + boundsA.maxY) / 2;
+      const centerYB = (boundsB.minY + boundsB.maxY) / 2;
       return centerYA - centerYB;
     });
     
@@ -636,13 +705,11 @@ const ComponentSpecificFeatures = {
     if (!strokeData || strokeData.length < 2) return 0;
     
     // Calculate overall bounds
-    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-    strokeData.forEach(stroke => {
-      minX = Math.min(minX, stroke.bounds.minX);
-      maxX = Math.max(maxX, stroke.bounds.maxX);
-      minY = Math.min(minY, stroke.bounds.minY);
-      maxY = Math.max(maxY, stroke.bounds.maxY);
-    });
+    const overallBounds = this.calculateStrokeDataBounds(strokeData);
+    const minX = overallBounds.minX;
+    const maxX = overallBounds.maxX;
+    const minY = overallBounds.minY;
+    const maxY = overallBounds.maxY;
     
     const width = maxX - minX;
     const height = maxY - minY;
@@ -969,8 +1036,9 @@ const ComponentSpecificFeatures = {
     // Calculate coverage
     let coveredArea = 0;
     strokeData.forEach(stroke => {
-      const strokeWidth = stroke.bounds.maxX - stroke.bounds.minX;
-      const strokeHeight = stroke.bounds.maxY - stroke.bounds.minY;
+      const bounds = this.calculateStrokeBounds(stroke);
+      const strokeWidth = bounds.maxX - bounds.minX;
+      const strokeHeight = bounds.maxY - bounds.minY;
       coveredArea += strokeWidth * strokeHeight;
     });
     
@@ -986,12 +1054,13 @@ const ComponentSpecificFeatures = {
     if (corners.length < 2 || corners.length > 3) return 0;
     
     // Check if highest point is in the middle
-    const midX = (stroke.bounds.minX + stroke.bounds.maxX) / 2;
+    const bounds = this.calculateStrokeBounds(stroke);
+    const midX = (bounds.minX + bounds.maxX) / 2;
     const highestPoint = points.reduce((prev, curr) => 
       prev.y < curr.y ? prev : curr
     );
     
-    const centeredness = 1 - Math.abs(highestPoint.x - midX) / (stroke.bounds.maxX - stroke.bounds.minX);
+    const centeredness = 1 - Math.abs(highestPoint.x - midX) / (bounds.maxX - bounds.minX);
     
     return centeredness;
   },
@@ -1002,8 +1071,9 @@ const ComponentSpecificFeatures = {
     let verticalCount = 0;
     
     strokeData.forEach(stroke => {
-      const width = stroke.bounds.maxX - stroke.bounds.minX;
-      const height = stroke.bounds.maxY - stroke.bounds.minY;
+      const bounds = this.calculateStrokeBounds(stroke);
+      const width = bounds.maxX - bounds.minX;
+      const height = bounds.maxY - bounds.minY;
       
       // Check if stroke is more vertical than horizontal
       if (height > width * 1.5) {
