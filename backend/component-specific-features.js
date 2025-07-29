@@ -348,6 +348,11 @@ const ComponentSpecificFeatures = {
   analyzeEdgeLengthRatios(strokeData) {
     if (!strokeData || strokeData.length === 0) return 0;
     
+    // Validate that strokeData[0] exists and has points
+    if (!strokeData[0] || !strokeData[0].points || !Array.isArray(strokeData[0].points) || strokeData[0].points.length === 0) {
+      return 0;
+    }
+    
     const corners = this.detectCorners(strokeData[0].points);
     if (corners.length < 4) return 0;
     
@@ -398,6 +403,11 @@ const ComponentSpecificFeatures = {
   analyzeVertexPressure(strokeData) {
     if (!strokeData || strokeData.length === 0) return 0;
     
+    // Validate that strokeData[0] exists and has points
+    if (!strokeData[0] || !strokeData[0].points || !Array.isArray(strokeData[0].points) || strokeData[0].points.length === 0) {
+      return 0;
+    }
+    
     const corners = this.detectCorners(strokeData[0].points);
     const points = strokeData[0].points;
     
@@ -411,7 +421,18 @@ const ComponentSpecificFeatures = {
           surroundingPressures.push(points[idx].pressure || 0.5);
         }
       }
+      
+      // Prevent division by zero
+      if (surroundingPressures.length === 0) {
+        return 1.0; // Default ratio when no surrounding pressures
+      }
+      
       const avgSurrounding = surroundingPressures.reduce((a, b) => a + b, 0) / surroundingPressures.length;
+      
+      // Prevent division by zero
+      if (avgSurrounding === 0) {
+        return 1.0; // Default ratio when average surrounding pressure is zero
+      }
       
       return pressure / avgSurrounding;
     });
