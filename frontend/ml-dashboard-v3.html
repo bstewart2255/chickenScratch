@@ -342,6 +342,100 @@
             line-height: 1.5;
             color: #333;
         }
+
+        /* Enhanced Features Main Section */
+        #enhancedFeaturesSection {
+            margin: 30px 0;
+            padding: 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Enhanced Feature Groups */
+        .enhanced-feature-group {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            color: #333;
+            backdrop-filter: blur(10px);
+        }
+
+        .enhanced-feature-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .enhanced-feature-group h4 {
+            margin-bottom: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Feature Grid Layout */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 15px;
+        }
+
+        /* Individual Feature Items */
+        .feature-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .feature-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+
+        .feature-item.feature-unavailable {
+            opacity: 0.6;
+            background: #f8f9fa;
+        }
+
+        .feature-value {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .feature-label {
+            font-size: 12px;
+            color: #666;
+            font-weight: 500;
+            text-transform: capitalize;
+            word-wrap: break-word;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .feature-grid {
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+                gap: 10px;
+            }
+            
+            #enhancedFeaturesSection {
+                margin: 20px 0;
+                padding: 20px;
+            }
+            
+            .enhanced-feature-group {
+                padding: 15px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -384,6 +478,150 @@
         const API_URL = 'https://chickenscratch.onrender.com';
         let currentData = null;
         let currentUser = null;
+
+        // Enhanced feature groups configuration
+        const enhancedFeatureGroups = {
+            'Pressure Analysis': {
+                features: ['avg_pressure', 'max_pressure', 'pressure_std', 'contact_time_ratio', 'pressure_range', 'pressure_buildup_rate', 'pressure_release_rate'],
+                color: '#FF6B6B',
+                icon: '👆',
+                description: 'Touch pressure and contact patterns'
+            },
+            'Behavioral Timing': {
+                features: ['pause_detection', 'rhythm_consistency', 'tempo_variation', 'dwell_time_patterns', 'inter_stroke_timing', 'drawing_duration_total'],
+                color: '#4ECDC4', 
+                icon: '⏱️',
+                description: 'Timing patterns and behavioral rhythm'
+            },
+            'Geometric Complexity': {
+                features: ['stroke_complexity', 'tremor_index', 'smoothness_index', 'direction_changes', 'curvature_analysis', 'spatial_efficiency', 'stroke_overlap_ratio'],
+                color: '#45B7D1',
+                icon: '📐',
+                description: 'Shape complexity and geometric patterns'
+            },
+            'Security Indicators': {
+                features: ['unnatural_pause_detection', 'speed_anomaly_score', 'pressure_anomaly_score', 'timing_regularity_score', 'device_consistency_score', 'behavioral_authenticity_score'],
+                color: '#F7B731',
+                icon: '🔒',
+                description: 'Fraud detection and security metrics'
+            }
+        };
+
+        // Safe value retrieval with enhanced feature support
+        function safeGetValue(obj, property, defaultValue = 'N/A') {
+            // Check in enhanced features first
+            if (obj && obj.enhanced_features && obj.enhanced_features[property] !== undefined) {
+                const value = obj.enhanced_features[property];
+                if (typeof value === 'number') {
+                    return isNaN(value) ? 'N/A' : value.toFixed(2);
+                }
+                return value;
+            }
+            
+            // Fall back to root level properties (basic features)
+            if (obj && obj[property] !== undefined) {
+                const value = obj[property];
+                if (typeof value === 'number') {
+                    return isNaN(value) ? 'N/A' : value.toFixed(2);
+                }
+                return value;
+            }
+            
+            return defaultValue;
+        }
+
+        // Format feature names for display
+        function formatFeatureName(featureName) {
+            return featureName
+                .replace(/_/g, ' ')
+                .replace(/\b\w/g, l => l.toUpperCase());
+        }
+
+        // Display enhanced features function
+        function displayEnhancedFeatures(userData) {
+            const enhancedSection = document.getElementById('enhancedFeaturesSection');
+            if (!enhancedSection) {
+                console.warn('Enhanced features section not found in DOM');
+                return;
+            }
+            
+            enhancedSection.innerHTML = '';
+            
+            // Add section header
+            const headerDiv = document.createElement('div');
+            headerDiv.innerHTML = `
+                <h3 style="text-align: center; margin-bottom: 25px; color: white;">
+                    🧬 Enhanced Biometric Features
+                </h3>
+            `;
+            enhancedSection.appendChild(headerDiv);
+            
+            // Get signature data (latest signature or baseline)
+            const signatureData = userData.enrollment?.signatures?.[0] || userData.baseline || {};
+            
+            // Check if we have any enhanced features
+            const hasEnhancedFeatures = signatureData.enhanced_features && Object.keys(signatureData.enhanced_features).length > 0;
+            
+            if (!hasEnhancedFeatures) {
+                // Show informative message when enhanced features aren't available
+                const messageDiv = document.createElement('div');
+                messageDiv.style.textAlign = 'center';
+                messageDiv.style.padding = '20px';
+                messageDiv.style.color = 'white';
+                messageDiv.innerHTML = `
+                    <p style="opacity: 0.8;">Enhanced features will appear here once signature data is collected with the new system.</p>
+                    <small>Current signatures: ${userData.enrollment?.signatures?.length || 0}</small>
+                `;
+                enhancedSection.appendChild(messageDiv);
+                return;
+            }
+            
+            Object.entries(enhancedFeatureGroups).forEach(([groupName, config]) => {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'enhanced-feature-group';
+                groupDiv.style.borderLeftColor = config.color;
+                
+                groupDiv.innerHTML = `
+                    <h4 style="color: ${config.color}; margin-bottom: 15px;">
+                        ${config.icon} ${groupName}
+                        <small style="font-weight: normal; opacity: 0.8; margin-left: 8px;">
+                            ${config.description}
+                        </small>
+                    </h4>
+                    <div class="feature-grid">
+                        ${config.features.map(feature => {
+                            const value = safeGetValue(signatureData, feature);
+                            const isAvailable = value !== 'N/A';
+                            return `
+                                <div class="feature-item ${isAvailable ? '' : 'feature-unavailable'}">
+                                    <div class="feature-value" style="color: ${config.color}">
+                                        ${value}
+                                    </div>
+                                    <div class="feature-label">${formatFeatureName(feature)}</div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+                enhancedSection.appendChild(groupDiv);
+            });
+        }
+
+        // Handle enhanced feature display errors
+        function handleEnhancedFeatureError(error, userData) {
+            console.error('Enhanced feature display error:', error);
+            
+            const enhancedSection = document.getElementById('enhancedFeaturesSection');
+            if (enhancedSection) {
+                enhancedSection.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: white;">
+                        <h3>🔬 Enhanced Features</h3>
+                        <p style="opacity: 0.8;">Enhanced features will appear here once signature data is collected with the new system.</p>
+                        <small>Current signatures: ${userData.enrollment?.signatures?.length || 0}</small>
+                    </div>
+                `;
+            }
+        }
 
         // Initialize the dashboard
         async function init() {
@@ -452,6 +690,13 @@
                 renderDataTab();
                 renderImagesTab();
                 renderRawTab();
+                
+                // Display enhanced features
+                try {
+                    displayEnhancedFeatures(currentData);
+                } catch (error) {
+                    handleEnhancedFeatureError(error, currentData);
+                }
             } catch (error) {
                 console.error('Error loading user data:', error);
                 document.getElementById('dataTab').innerHTML = `
@@ -633,6 +878,11 @@
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Enhanced Biometric Features Section -->
+                <div id="enhancedFeaturesSection" class="dashboard-section">
+                    <!-- Enhanced features will be populated by JavaScript -->
                 </div>
 
                 <!-- Authentication Attempts -->
