@@ -1402,7 +1402,7 @@ app.post('/login', async (req, res) => {
                 hasConnectDots: !!drawings.connect_dots
             });
             
-            const { compareDrawings } = require('./drawingVerification');
+            const { compareDrawings, extractStrokeDataFromSignaturePad: extractStrokeDataFromDrawingModule } = require('./drawingVerification');
             
             const storedDrawingsResult = await pool.query(
                 'SELECT drawing_type, drawing_data, metrics, enhanced_features FROM drawings WHERE user_id = $1 AND drawing_type = ANY($2::text[])',
@@ -1429,10 +1429,39 @@ app.post('/login', async (req, res) => {
                     const strokeData = extractStrokeDataFromSignaturePad(drawings.face);
                     const deviceCapabilities = drawings.face.device_capabilities || metadata?.device_capabilities || null;
                     
+                    // Debug logging for stroke data extraction
+                    console.log('🔍 Debug face drawing data:', {
+                        hasDrawingData: !!drawings.face,
+                        hasRawData: !!drawings.face?.raw,
+                        rawDataType: typeof drawings.face?.raw,
+                        rawDataLength: Array.isArray(drawings.face?.raw) ? drawings.face.raw.length : 'not array',
+                        strokeDataExtracted: !!strokeData,
+                        strokeCount: strokeData ? strokeData.length : 0
+                    });
+                    
                     // Extract enhanced features for attempt
-                    const attemptFeatures = ENABLE_ENHANCED_FEATURES 
-                        ? extractBiometricFeatures(strokeData, 'face', deviceCapabilities)
-                        : { strokeCount: strokeData?.length || 0, pointCount: strokeData?.reduce((sum, s) => sum + s.length, 0) || 0 };
+                    let attemptFeatures;
+                    if (ENABLE_ENHANCED_FEATURES && strokeData && strokeData.length > 0) {
+                        try {
+                            attemptFeatures = extractBiometricFeatures(strokeData, 'face', deviceCapabilities);
+                            console.log('✅ Successfully extracted face enhanced features');
+                        } catch (error) {
+                            console.error('❌ Enhanced features extraction failed for face:', error);
+                            attemptFeatures = {
+                                strokeCount: strokeData.length,
+                                pointCount: strokeData.reduce((sum, s) => sum + (Array.isArray(s) ? s.length : 0), 0),
+                                _enhanced_features_error: error.message,
+                                _enhanced_features_enabled: false
+                            };
+                        }
+                    } else {
+                        attemptFeatures = {
+                            strokeCount: strokeData?.length || 0,
+                            pointCount: strokeData?.reduce((sum, s) => sum + (Array.isArray(s) ? s.length : 0), 0) || 0,
+                            _enhanced_features_error: strokeData ? 'Enhanced features disabled' : 'No stroke data',
+                            _enhanced_features_enabled: false
+                        };
+                    }
                     
                     // Get stored enhanced features or calculate from stored data
                     let storedFeatures;
@@ -1442,7 +1471,12 @@ app.post('/login', async (req, res) => {
                             storedFeatures = storedDrawings.face.enhanced_features;
                         } else if (ENABLE_ENHANCED_FEATURES) {
                             // Calculate from stored drawing data (already parsed from JSONB)
-                            storedFeatures = extractBiometricFeatures(extractStrokeDataFromSignaturePad(storedDrawings.face.data), 'face', deviceCapabilities);
+                            const storedStrokeData = extractStrokeDataFromSignaturePad(storedDrawings.face.data);
+                            if (storedStrokeData && storedStrokeData.length > 0) {
+                                storedFeatures = extractBiometricFeatures(storedStrokeData, 'face', deviceCapabilities);
+                            } else {
+                                storedFeatures = storedDrawings.face.metrics || {};
+                            }
                         } else {
                             // Use metrics (already parsed from JSONB)
                             storedFeatures = storedDrawings.face.metrics || {};
@@ -1483,10 +1517,39 @@ app.post('/login', async (req, res) => {
                     const strokeData = extractStrokeDataFromSignaturePad(drawings.star);
                     const deviceCapabilities = drawings.star.device_capabilities || metadata?.device_capabilities || null;
                     
+                    // Debug logging for stroke data extraction
+                    console.log('🔍 Debug star drawing data:', {
+                        hasDrawingData: !!drawings.star,
+                        hasRawData: !!drawings.star?.raw,
+                        rawDataType: typeof drawings.star?.raw,
+                        rawDataLength: Array.isArray(drawings.star?.raw) ? drawings.star.raw.length : 'not array',
+                        strokeDataExtracted: !!strokeData,
+                        strokeCount: strokeData ? strokeData.length : 0
+                    });
+                    
                     // Extract enhanced features for attempt
-                    const attemptFeatures = ENABLE_ENHANCED_FEATURES 
-                        ? extractBiometricFeatures(strokeData, 'star', deviceCapabilities)
-                        : { strokeCount: strokeData?.length || 0, pointCount: strokeData?.reduce((sum, s) => sum + s.length, 0) || 0 };
+                    let attemptFeatures;
+                    if (ENABLE_ENHANCED_FEATURES && strokeData && strokeData.length > 0) {
+                        try {
+                            attemptFeatures = extractBiometricFeatures(strokeData, 'star', deviceCapabilities);
+                            console.log('✅ Successfully extracted star enhanced features');
+                        } catch (error) {
+                            console.error('❌ Enhanced features extraction failed for star:', error);
+                            attemptFeatures = {
+                                strokeCount: strokeData.length,
+                                pointCount: strokeData.reduce((sum, s) => sum + (Array.isArray(s) ? s.length : 0), 0),
+                                _enhanced_features_error: error.message,
+                                _enhanced_features_enabled: false
+                            };
+                        }
+                    } else {
+                        attemptFeatures = {
+                            strokeCount: strokeData?.length || 0,
+                            pointCount: strokeData?.reduce((sum, s) => sum + (Array.isArray(s) ? s.length : 0), 0) || 0,
+                            _enhanced_features_error: strokeData ? 'Enhanced features disabled' : 'No stroke data',
+                            _enhanced_features_enabled: false
+                        };
+                    }
                     
                     // Get stored enhanced features or calculate from stored data
                     let storedFeatures;
@@ -1496,7 +1559,12 @@ app.post('/login', async (req, res) => {
                             storedFeatures = storedDrawings.star.enhanced_features;
                         } else if (ENABLE_ENHANCED_FEATURES) {
                             // Calculate from stored drawing data (already parsed from JSONB)
-                            storedFeatures = extractBiometricFeatures(extractStrokeDataFromSignaturePad(storedDrawings.star.data), 'star', deviceCapabilities);
+                            const storedStrokeData = extractStrokeDataFromSignaturePad(storedDrawings.star.data);
+                            if (storedStrokeData && storedStrokeData.length > 0) {
+                                storedFeatures = extractBiometricFeatures(storedStrokeData, 'star', deviceCapabilities);
+                            } else {
+                                storedFeatures = storedDrawings.star.metrics || {};
+                            }
                         } else {
                             // Use metrics (already parsed from JSONB)
                             storedFeatures = storedDrawings.star.metrics || {};
@@ -1537,10 +1605,39 @@ app.post('/login', async (req, res) => {
                     const strokeData = extractStrokeDataFromSignaturePad(drawings.house);
                     const deviceCapabilities = drawings.house.device_capabilities || metadata?.device_capabilities || null;
                     
+                    // Debug logging for stroke data extraction
+                    console.log('🔍 Debug house drawing data:', {
+                        hasDrawingData: !!drawings.house,
+                        hasRawData: !!drawings.house?.raw,
+                        rawDataType: typeof drawings.house?.raw,
+                        rawDataLength: Array.isArray(drawings.house?.raw) ? drawings.house.raw.length : 'not array',
+                        strokeDataExtracted: !!strokeData,
+                        strokeCount: strokeData ? strokeData.length : 0
+                    });
+                    
                     // Extract enhanced features for attempt
-                    const attemptFeatures = ENABLE_ENHANCED_FEATURES 
-                        ? extractBiometricFeatures(strokeData, 'house', deviceCapabilities)
-                        : { strokeCount: strokeData?.length || 0, pointCount: strokeData?.reduce((sum, s) => sum + s.length, 0) || 0 };
+                    let attemptFeatures;
+                    if (ENABLE_ENHANCED_FEATURES && strokeData && strokeData.length > 0) {
+                        try {
+                            attemptFeatures = extractBiometricFeatures(strokeData, 'house', deviceCapabilities);
+                            console.log('✅ Successfully extracted house enhanced features');
+                        } catch (error) {
+                            console.error('❌ Enhanced features extraction failed for house:', error);
+                            attemptFeatures = {
+                                strokeCount: strokeData.length,
+                                pointCount: strokeData.reduce((sum, s) => sum + (Array.isArray(s) ? s.length : 0), 0),
+                                _enhanced_features_error: error.message,
+                                _enhanced_features_enabled: false
+                            };
+                        }
+                    } else {
+                        attemptFeatures = {
+                            strokeCount: strokeData?.length || 0,
+                            pointCount: strokeData?.reduce((sum, s) => sum + (Array.isArray(s) ? s.length : 0), 0) || 0,
+                            _enhanced_features_error: strokeData ? 'Enhanced features disabled' : 'No stroke data',
+                            _enhanced_features_enabled: false
+                        };
+                    }
                     
                     // Get stored enhanced features or calculate from stored data
                     let storedFeatures;
@@ -1550,7 +1647,12 @@ app.post('/login', async (req, res) => {
                             storedFeatures = storedDrawings.house.enhanced_features;
                         } else if (ENABLE_ENHANCED_FEATURES) {
                             // Calculate from stored drawing data (already parsed from JSONB)
-                            storedFeatures = extractBiometricFeatures(extractStrokeDataFromSignaturePad(storedDrawings.house.data), 'house', deviceCapabilities);
+                            const storedStrokeData = extractStrokeDataFromSignaturePad(storedDrawings.house.data);
+                            if (storedStrokeData && storedStrokeData.length > 0) {
+                                storedFeatures = extractBiometricFeatures(storedStrokeData, 'house', deviceCapabilities);
+                            } else {
+                                storedFeatures = storedDrawings.house.metrics || {};
+                            }
                         } else {
                             // Use metrics (already parsed from JSONB)
                             storedFeatures = storedDrawings.house.metrics || {};
@@ -1589,10 +1691,39 @@ app.post('/login', async (req, res) => {
                     const strokeData = extractStrokeDataFromSignaturePad(drawings.connect_dots);
                     const deviceCapabilities = drawings.connect_dots.device_capabilities || metadata?.device_capabilities || null;
                     
+                    // Debug logging for stroke data extraction
+                    console.log('🔍 Debug connect_dots drawing data:', {
+                        hasDrawingData: !!drawings.connect_dots,
+                        hasRawData: !!drawings.connect_dots?.raw,
+                        rawDataType: typeof drawings.connect_dots?.raw,
+                        rawDataLength: Array.isArray(drawings.connect_dots?.raw) ? drawings.connect_dots.raw.length : 'not array',
+                        strokeDataExtracted: !!strokeData,
+                        strokeCount: strokeData ? strokeData.length : 0
+                    });
+                    
                     // Extract enhanced features for attempt
-                    const attemptFeatures = ENABLE_ENHANCED_FEATURES 
-                        ? extractBiometricFeatures(strokeData, 'connect_dots', deviceCapabilities)
-                        : { strokeCount: strokeData?.length || 0, pointCount: strokeData?.reduce((sum, s) => sum + s.length, 0) || 0 };
+                    let attemptFeatures;
+                    if (ENABLE_ENHANCED_FEATURES && strokeData && strokeData.length > 0) {
+                        try {
+                            attemptFeatures = extractBiometricFeatures(strokeData, 'connect_dots', deviceCapabilities);
+                            console.log('✅ Successfully extracted connect_dots enhanced features');
+                        } catch (error) {
+                            console.error('❌ Enhanced features extraction failed for connect_dots:', error);
+                            attemptFeatures = {
+                                strokeCount: strokeData.length,
+                                pointCount: strokeData.reduce((sum, s) => sum + (Array.isArray(s) ? s.length : 0), 0),
+                                _enhanced_features_error: error.message,
+                                _enhanced_features_enabled: false
+                            };
+                        }
+                    } else {
+                        attemptFeatures = {
+                            strokeCount: strokeData?.length || 0,
+                            pointCount: strokeData?.reduce((sum, s) => sum + (Array.isArray(s) ? s.length : 0), 0) || 0,
+                            _enhanced_features_error: strokeData ? 'Enhanced features disabled' : 'No stroke data',
+                            _enhanced_features_enabled: false
+                        };
+                    }
                     
                     // Get stored enhanced features or calculate from stored data
                     let storedFeatures;
@@ -1602,7 +1733,12 @@ app.post('/login', async (req, res) => {
                             storedFeatures = storedDrawings.connect_dots.enhanced_features;
                         } else if (ENABLE_ENHANCED_FEATURES) {
                             // Calculate from stored drawing data (already parsed from JSONB)
-                            storedFeatures = extractBiometricFeatures(extractStrokeDataFromSignaturePad(storedDrawings.connect_dots.data), 'connect_dots', deviceCapabilities);
+                            const storedStrokeData = extractStrokeDataFromSignaturePad(storedDrawings.connect_dots.data);
+                            if (storedStrokeData && storedStrokeData.length > 0) {
+                                storedFeatures = extractBiometricFeatures(storedStrokeData, 'connect_dots', deviceCapabilities);
+                            } else {
+                                storedFeatures = storedDrawings.connect_dots.metrics || {};
+                            }
                         } else {
                             // Use metrics (already parsed from JSONB)
                             storedFeatures = storedDrawings.connect_dots.metrics || {};

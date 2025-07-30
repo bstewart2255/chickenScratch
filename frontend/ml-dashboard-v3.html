@@ -210,6 +210,8 @@
             background: #fafafa;
             padding: 15px;
             border-radius: 6px;
+            margin-bottom: 15px;
+            border-left: 4px solid #ddd;
         }
 
         .data-group-title {
@@ -218,6 +220,12 @@
             color: #333;
             border-bottom: 1px solid #ddd;
             padding-bottom: 5px;
+            font-size: 1.1em;
+        }
+        
+        .metric-value.error {
+            color: #d32f2f;
+            font-style: italic;
         }
 
         .data-metric {
@@ -1017,6 +1025,271 @@
         }
 
         // Render shape biometric analysis section
+        // Enhanced Features Display Functions
+        function getEnhancedFeatures(attempt) {
+            if (!attempt.enhanced_features) return null;
+            
+            return {
+                signature: attempt.enhanced_features.signature || null,
+                shapes: attempt.enhanced_features.shapes || {},
+                drawings: attempt.enhanced_features.drawings || {},
+                processing_summary: attempt.enhanced_features._processing_summary || null
+            };
+        }
+        
+        function renderEnhancedFeaturesSection(componentType, componentName, features) {
+            if (!features || typeof features !== 'object') {
+                return `<div class="data-group">
+                    <div class="data-group-title">${componentName} Enhanced Features</div>
+                    <div class="data-metric">
+                        <span class="metric-name">Status:</span>
+                        <span class="metric-value">No enhanced features available</span>
+                    </div>
+                </div>`;
+            }
+            
+            // Check for extraction errors
+            if (features._enhanced_features_error) {
+                return `<div class="data-group">
+                    <div class="data-group-title">${componentName} Enhanced Features</div>
+                    <div class="data-metric">
+                        <span class="metric-name">Status:</span>
+                        <span class="metric-value error">Extraction Error</span>
+                    </div>
+                    <div class="data-metric">
+                        <span class="metric-name">Error:</span>
+                        <span class="metric-value">${features._enhanced_features_error}</span>
+                    </div>
+                </div>`;
+            }
+            
+            // Group features by category
+            const pressureFeatures = [
+                'avg_pressure', 'max_pressure', 'min_pressure', 'pressure_std', 
+                'pressure_range', 'contact_time_ratio', 'pressure_buildup_rate', 'pressure_release_rate'
+            ];
+            
+            const behavioralFeatures = [
+                'pause_detection', 'rhythm_consistency', 'tempo_variation', 'dwell_time_patterns',
+                'inter_stroke_timing', 'drawing_duration_total', 'pause_time_ratio', 'avg_stroke_duration'
+            ];
+            
+            const geometricFeatures = [
+                'stroke_complexity', 'tremor_index', 'smoothness_index', 'direction_changes',
+                'curvature_analysis', 'spatial_efficiency', 'stroke_overlap_ratio'
+            ];
+            
+            const securityFeatures = [
+                'unnatural_pause_detection', 'speed_anomaly_score', 'pressure_anomaly_score',
+                'timing_regularity_score', 'device_consistency_score', 'behavioral_authenticity_score'
+            ];
+            
+            // Component-specific features
+            const componentSpecificFeatures = getComponentSpecificFeatures(componentType, features);
+            
+            let html = '';
+            
+            // Render Pressure Analysis (if supported)
+            if (!features._excluded_features || !features._excluded_features.includes('avg_pressure')) {
+                html += renderFeatureGroup(`${componentName} Pressure Analysis`, pressureFeatures, features);
+            }
+            
+            // Render Behavioral Timing
+            html += renderFeatureGroup(`${componentName} Behavioral Timing`, behavioralFeatures, features);
+            
+            // Render Geometric Complexity
+            html += renderFeatureGroup(`${componentName} Geometric Complexity`, geometricFeatures, features);
+            
+            // Render Security Indicators
+            html += renderFeatureGroup(`${componentName} Security Indicators`, securityFeatures, features);
+            
+            // Render Component-Specific Features
+            if (componentSpecificFeatures.length > 0) {
+                html += renderFeatureGroup(`${componentName} Specific Features`, componentSpecificFeatures, features);
+            }
+            
+            return html;
+        }
+        
+        function renderFeatureGroup(groupTitle, featureList, features) {
+            const availableFeatures = featureList.filter(feature => 
+                features.hasOwnProperty(feature) && features[feature] !== null && features[feature] !== undefined
+            );
+            
+            if (availableFeatures.length === 0) return '';
+            
+            let html = `<div class="data-group">
+                <div class="data-group-title">${groupTitle}</div>`;
+            
+            availableFeatures.forEach(feature => {
+                const value = features[feature];
+                const formattedValue = formatFeatureValue(feature, value);
+                const featureName = formatFeatureName(feature);
+                
+                html += `<div class="data-metric">
+                    <span class="metric-name">${featureName}:</span>
+                    <span class="metric-value">${formattedValue}</span>
+                </div>`;
+            });
+            
+            html += '</div>';
+            return html;
+        }
+        
+        function getComponentSpecificFeatures(componentType, features) {
+            const shapeSpecific = [
+                'radial_deviation', 'closure_technique', 'curve_consistency', 'start_position_analysis',
+                'corner_pressure_spikes', 'edge_length_consistency', 'corner_execution_pattern',
+                'line_straightness_signature', 'apex_sharpness', 'angle_consistency',
+                'side_length_ratios', 'vertex_pressure_pattern'
+            ];
+            
+            const drawingSpecific = [
+                'feature_completion', 'pattern_recognition', 'artistic_consistency',
+                'symmetry_analysis', 'proportion_accuracy'
+            ];
+            
+            if (componentType === 'shapes') {
+                return shapeSpecific.filter(feature => features.hasOwnProperty(feature));
+            } else if (componentType === 'drawings') {
+                return drawingSpecific.filter(feature => features.hasOwnProperty(feature));
+            }
+            
+            return [];
+        }
+        
+        function formatFeatureName(feature) {
+            return feature.replace(/_/g, ' ')
+                .replace(/\b\w/g, l => l.toUpperCase());
+        }
+        
+        function formatFeatureValue(feature, value) {
+            if (typeof value === 'boolean') {
+                return value ? 'Yes' : 'No';
+            }
+            
+            if (typeof value === 'number') {
+                // Percentage features
+                if (feature.includes('ratio') || feature.includes('score') || feature.includes('index')) {
+                    if (value <= 1) {
+                        return `${(value * 100).toFixed(1)}%`;
+                    }
+                }
+                
+                // Time features
+                if (feature.includes('duration') || feature.includes('timing')) {
+                    return `${value.toFixed(0)}ms`;
+                }
+                
+                // Default number formatting
+                return value.toFixed(3);
+            }
+            
+            return String(value);
+        }
+        
+        // Device Info Parsing Function
+        function parseDeviceInfo(deviceInfo) {
+            if (!deviceInfo) return {
+                device_type: 'Unknown',
+                browser: 'Unknown',
+                input_method: 'Unknown',
+                os_version: 'Unknown'
+            };
+            
+            const parser = {
+                device_type: 'Unknown',
+                browser: 'Unknown',
+                input_method: 'Unknown',
+                os_version: 'Unknown'
+            };
+            
+            // Device Type Detection
+            if (deviceInfo.includes('iPhone')) {
+                parser.device_type = 'iPhone';
+                parser.input_method = 'Touch';
+                const iosMatch = deviceInfo.match(/OS (\d+_\d+)/);
+                if (iosMatch) parser.os_version = `iOS ${iosMatch[1].replace('_', '.')}`;
+            } else if (deviceInfo.includes('iPad')) {
+                parser.device_type = 'iPad';
+                parser.input_method = 'Touch';
+                const iosMatch = deviceInfo.match(/OS (\d+_\d+)/);
+                if (iosMatch) parser.os_version = `iOS ${iosMatch[1].replace('_', '.')}`;
+            } else if (deviceInfo.includes('Android')) {
+                parser.device_type = 'Android Device';
+                parser.input_method = 'Touch';
+                const androidMatch = deviceInfo.match(/Android (\d+\.?\d*)/);
+                if (androidMatch) parser.os_version = `Android ${androidMatch[1]}`;
+            } else if (deviceInfo.includes('Windows')) {
+                parser.device_type = 'Windows PC';
+                parser.input_method = 'Mouse';
+                parser.os_version = 'Windows';
+            } else if (deviceInfo.includes('Macintosh') || deviceInfo.includes('Mac OS X')) {
+                parser.device_type = 'Mac';
+                parser.input_method = 'Mouse/Trackpad';
+                const macMatch = deviceInfo.match(/Mac OS X (\d+_\d+)/);
+                if (macMatch) parser.os_version = `macOS ${macMatch[1].replace('_', '.')}`;
+            }
+            
+            // Browser Detection
+            if (deviceInfo.includes('Safari') && !deviceInfo.includes('Chrome')) {
+                parser.browser = 'Safari';
+                const safariMatch = deviceInfo.match(/Version\/(\d+\.?\d*)/);
+                if (safariMatch) parser.browser += ` ${safariMatch[1]}`;
+            } else if (deviceInfo.includes('Chrome')) {
+                parser.browser = 'Chrome';
+                const chromeMatch = deviceInfo.match(/Chrome\/(\d+\.?\d*)/);
+                if (chromeMatch) parser.browser += ` ${chromeMatch[1]}`;
+            } else if (deviceInfo.includes('Firefox')) {
+                parser.browser = 'Firefox';
+                const firefoxMatch = deviceInfo.match(/Firefox\/(\d+\.?\d*)/);
+                if (firefoxMatch) parser.browser += ` ${firefoxMatch[1]}`;
+            } else if (deviceInfo.includes('Edge')) {
+                parser.browser = 'Edge';
+            }
+            
+            return parser;
+        }
+        
+        // Updated Shape Biometric Analysis with Enhanced Features
+        function renderShapeDataWithEnhanced(attempt, baseline) {
+            const enhancedFeatures = getEnhancedFeatures(attempt);
+            let html = '';
+            
+            // Enhanced Features for each shape
+            if (enhancedFeatures && enhancedFeatures.shapes && Object.keys(enhancedFeatures.shapes).length > 0) {
+                Object.keys(enhancedFeatures.shapes).forEach(shapeName => {
+                    const shapeFeatures = enhancedFeatures.shapes[shapeName];
+                    html += renderEnhancedFeaturesSection('shapes', shapeName.charAt(0).toUpperCase() + shapeName.slice(1), shapeFeatures);
+                });
+            } else {
+                // Fallback to basic biometric analysis
+                html += renderShapeBiometricAnalysis(attempt, baseline);
+            }
+            
+            return html;
+        }
+        
+        // Updated Drawing Data with Enhanced Features
+        function renderDrawingDataWithEnhanced(attempt, baseline) {
+            const enhancedFeatures = getEnhancedFeatures(attempt);
+            let html = '';
+            
+            // Enhanced Features for each drawing
+            if (enhancedFeatures && enhancedFeatures.drawings && Object.keys(enhancedFeatures.drawings).length > 0) {
+                Object.keys(enhancedFeatures.drawings).forEach(drawingName => {
+                    const drawingFeatures = enhancedFeatures.drawings[drawingName];
+                    const displayName = drawingName === 'connect_dots' ? 'Connect Dots' : drawingName.charAt(0).toUpperCase() + drawingName.slice(1);
+                    html += renderEnhancedFeaturesSection('drawings', displayName, drawingFeatures);
+                });
+            } else {
+                // Fallback to basic biometric analysis
+                html += renderDrawingBiometricAnalysis(attempt, baseline);
+            }
+            
+            return html;
+        }
+
         function renderShapeBiometricAnalysis(attempt, baseline) {
             // Check if we have shape enhanced features data
             const hasEnhancedShapes = attempt.shape_enhanced_features || attempt.shape_biometric_scores;
@@ -1463,7 +1736,7 @@
                         <div class="attempt-header">
                             <div class="attempt-info">
                                 <div class="attempt-title">🔍 Attempt #${attemptNumber}</div>
-                                <div class="attempt-meta">${formatTimestamp(attempt.timestamp)} • ${attempt.device_type || 'Unknown'} • ${attempt.browser || 'Unknown'}</div>
+                                <div class="attempt-meta">${formatTimestamp(attempt.timestamp)} • ${parseDeviceInfo(attempt.device_info).device_type} • ${parseDeviceInfo(attempt.device_info).browser}</div>
                             </div>
                             <div class="attempt-result">
                                 <span class="${statusClass}">${status}</span>
@@ -1566,7 +1839,7 @@
                                         <span class="metric-value">${formatPercentage(attempt.shape_scores?.triangle)} (Closure: ${formatMetricValue(attempt.triangle_closure, baseline.triangle_closure, false)}%)</span>
                                     </div>
                                 </div>
-                                ${renderShapeBiometricAnalysis(attempt, baseline)}
+                                ${renderShapeDataWithEnhanced(attempt, baseline)}
                             </div>
                         </div>
                         
@@ -1593,7 +1866,7 @@
                                         <span class="metric-value">${attempt.drawing_scores?.connect_dots !== null && attempt.drawing_scores?.connect_dots !== undefined ? formatPercentage(attempt.drawing_scores.connect_dots) : 'N/A'}</span>
                                     </div>
                                 </div>
-                                ${renderDrawingBiometricAnalysis(attempt, baseline)}
+                                ${renderDrawingDataWithEnhanced(attempt, baseline)}
                             </div>
                         </div>
                         
@@ -1624,19 +1897,27 @@
                                     <div class="data-group-title">Device & Context</div>
                                     <div class="data-metric">
                                         <span class="metric-name">Device Type:</span>
-                                        <span class="metric-value">${attempt.device_type || 'Unknown'}</span>
+                                        <span class="metric-value">${parseDeviceInfo(attempt.device_info).device_type}</span>
+                                    </div>
+                                    <div class="data-metric">
+                                        <span class="metric-name">Operating System:</span>
+                                        <span class="metric-value">${parseDeviceInfo(attempt.device_info).os_version}</span>
                                     </div>
                                     <div class="data-metric">
                                         <span class="metric-name">Browser:</span>
-                                        <span class="metric-value">${attempt.browser || 'Unknown'}</span>
+                                        <span class="metric-value">${parseDeviceInfo(attempt.device_info).browser}</span>
                                     </div>
                                     <div class="data-metric">
                                         <span class="metric-name">Input Method:</span>
-                                        <span class="metric-value">${attempt.input_method || 'Unknown'}</span>
+                                        <span class="metric-value">${parseDeviceInfo(attempt.device_info).input_method}</span>
                                     </div>
                                     <div class="data-metric">
                                         <span class="metric-name">Canvas Coverage:</span>
                                         <span class="metric-value">${formatPercentage(attempt.canvas_coverage)}</span>
+                                    </div>
+                                    <div class="data-metric">
+                                        <span class="metric-name">Screen Resolution:</span>
+                                        <span class="metric-value">${attempt.screen_width && attempt.screen_height ? `${attempt.screen_width}x${attempt.screen_height}` : 'Unknown'}</span>
                                     </div>
                                 </div>
                             </div>
