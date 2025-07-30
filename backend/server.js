@@ -3795,8 +3795,15 @@ app.listen(PORT, () => {
 });
 
 // Helper function to extract stroke data from SignaturePad v4 format
-function extractStrokeDataFromSignaturePad(signatureData) {
+function extractStrokeDataFromSignaturePad(signatureData, depth = 0) {
     if (!signatureData) return null;
+    
+    // Prevent infinite recursion by limiting depth
+    const MAX_DEPTH = 5;
+    if (depth > MAX_DEPTH) {
+        console.warn('Maximum recursion depth reached in extractStrokeDataFromSignaturePad');
+        return null;
+    }
     
     try {
         let parsed = signatureData;
@@ -3830,9 +3837,26 @@ function extractStrokeDataFromSignaturePad(signatureData) {
         }
         
         // Handle data property that might contain the actual stroke data
-        if (parsed.data) {
-            // Recursively try to extract from data property
-            return extractStrokeDataFromSignaturePad(parsed.data);
+        // Only recurse if data is different from the original signatureData to prevent circular references
+        if (parsed.data && parsed.data !== signatureData) {
+            // Check if data is a string that needs parsing
+            if (typeof parsed.data === 'string') {
+                try {
+                    const dataParsed = JSON.parse(parsed.data);
+                    // Only recurse if the parsed data is different from current parsed object
+                    if (JSON.stringify(dataParsed) !== JSON.stringify(parsed)) {
+                        return extractStrokeDataFromSignaturePad(parsed.data, depth + 1);
+                    }
+                } catch (parseError) {
+                    // If parsing fails, try with the raw string
+                    return extractStrokeDataFromSignaturePad(parsed.data, depth + 1);
+                }
+            } else {
+                // For non-string data, check if it's different from current parsed object
+                if (JSON.stringify(parsed.data) !== JSON.stringify(parsed)) {
+                    return extractStrokeDataFromSignaturePad(parsed.data, depth + 1);
+                }
+            }
         }
         
         console.warn('No stroke data found in signature data:', Object.keys(parsed || {}));
