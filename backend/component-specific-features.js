@@ -425,6 +425,8 @@ const ComponentSpecificFeatures = {
     const corners = this.detectCorners(strokeData[0].points);
     const points = strokeData[0].points;
     
+    if (corners.length === 0) return 0;
+    
     const vertexPressures = corners.map(corner => {
       const pressure = points[corner.index].pressure || 0.5;
       // Get average pressure around vertex
