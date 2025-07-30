@@ -3845,8 +3845,10 @@ function extractStrokeDataFromSignaturePad(signatureData, depth = 0) {
                     // Recursively process the parsed data object, not the original string
                     return extractStrokeDataFromSignaturePad(dataParsed, depth + 1);
                 } catch (parseError) {
-                    // If parsing fails, try with the raw string
-                    return extractStrokeDataFromSignaturePad(parsed.data, depth + 1);
+                    // If parsing fails, don't recursively call with the same unparseable string
+                    // Instead, log the error and return null to avoid infinite recursion
+                    console.warn('Failed to parse data string as JSON:', parseError.message);
+                    return null;
                 }
             } else {
                 // For non-string data, recursively process the data object
