@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ML Dashboard Fix Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #6c757d; cursor: not-allowed; }
+        .api-url-input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .user-input {
+            width: 200px;
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .json-display {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .dashboard-link {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .dashboard-link:hover { background: #218838; }
+    </style>
+</head>
+<body>
+    <h1>🧪 ML Dashboard Fix Test</h1>
+    
+    <div class="test-section">
+        <h2>🔧 Configuration</h2>
+        <label for="apiUrl">API URL:</label>
+        <input type="text" id="apiUrl" class="api-url-input" placeholder="https://your-render-app.onrender.com" value="https://your-render-app.onrender.com">
+        
+        <label for="testUser">Test Username:</label>
+        <input type="text" id="testUser" class="user-input" value="testuser">
+        
+        <button onclick="updateConfig()">Update Configuration</button>
+    </div>
+
+    <div class="test-section">
+        <h2>1️⃣ Test Authentication with Component Scores</h2>
+        <p>This test verifies that signature-only authentication now generates estimated component scores.</p>
+        <button onclick="testAuthentication()" id="authBtn">Test Authentication</button>
+        <div id="authResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2️⃣ Test Detailed Analysis API</h2>
+        <p>This test checks if the detailed analysis API returns component scores for authentication attempts.</p>
+        <button onclick="testDetailedAnalysis()" id="analysisBtn">Test Analysis API</button>
+        <div id="analysisResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3️⃣ Test Multiple Users</h2>
+        <p>This test checks component scores across multiple users to ensure the fix works broadly.</p>
+        <button onclick="testMultipleUsers()" id="usersBtn">Test Multiple Users</button>
+        <div id="usersResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4️⃣ Open ML Dashboard</h2>
+        <p>Open the ML Dashboard to visually verify the fixes are working.</p>
+        <a id="dashboardLink" class="dashboard-link" href="#" target="_blank">Open ML Dashboard</a>
+        <div id="dashboardInstructions">
+            <h3>What to check in the ML Dashboard:</h3>
+            <ul>
+                <li><strong>Data Tab:</strong> Component scores should appear (not "No component scores available")</li>
+                <li><strong>Images Tab:</strong> Enrollment images should display properly</li>
+                <li><strong>Score Trends:</strong> Charts should show data for all components</li>
+                <li><strong>Component Performance:</strong> Should show performance for shapes and drawings</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 Test Results Summary</h2>
+        <div id="summaryResult"></div>
+    </div>
+
+    <script>
+        let apiUrl = 'https://your-render-app.onrender.com';
+        let testUser = 'testuser';
+
+        function updateConfig() {
+            apiUrl = document.getElementById('apiUrl').value.trim();
+            testUser = document.getElementById('testUser').value.trim();
+            
+            // Update dashboard link
+            const dashboardUrl = `${apiUrl.replace('/api', '')}/ml-dashboard-v3.html?username=${testUser}`;
+            document.getElementById('dashboardLink').href = dashboardUrl;
+            
+            showResult('summaryResult', 'Configuration updated!', 'info');
+        }
+
+        function showResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="test-result ${type}">${message}</div>`;
+        }
+
+        function showJsonResult(elementId, title, data) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `
+                <div class="test-result info">${title}</div>
+                <div class="json-display">${JSON.stringify(data, null, 2)}</div>
+            `;
+        }
+
+        async function testAuthentication() {
+            const btn = document.getElementById('authBtn');
+            btn.disabled = true;
+            btn.textContent = 'Testing...';
+            
+            try {
+                const response = await fetch(`${apiUrl}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: testUser,
+                        signature: {
+                            data: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+                            raw: [[{x: 100, y: 100}, {x: 200, y: 200}]],
+                            metrics: {
+                                stroke_count: 1,
+                                total_points: 2,
+                                total_duration_ms: 1000,
+                                avg_velocity: 50
+                            }
+                        }
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.error) {
+                    showResult('authResult', `❌ Authentication failed: ${result.error}`, 'error');
+                } else {
+                    let message = '✅ Authentication successful\n';
+                    if (result.scores) {
+                        message += '📊 Component Scores:\n';
+                        Object.entries(result.scores).forEach(([component, score]) => {
+                            message += `   ${component}: ${score}%\n`;
+                        });
+                    }
+                    showResult('authResult', message, 'success');
+                }
+            } catch (error) {
+                showResult('authResult', `❌ Test failed: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Test Authentication';
+            }
+        }
+
+        async function testDetailedAnalysis() {
+            const btn = document.getElementById('analysisBtn');
+            btn.disabled = true;
+            btn.textContent = 'Testing...';
+            
+            try {
+                // Wait a bit for any pending DB writes
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                const response = await fetch(`${apiUrl}/api/user/${testUser}/detailed-analysis`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    showResult('analysisResult', `❌ Analysis failed: ${data.error}`, 'error');
+                } else {
+                    let hasComponentScores = false;
+                    if (data.authAttempts && data.authAttempts.length > 0) {
+                        const latestAttempt = data.authAttempts[0];
+                        hasComponentScores = latestAttempt.shape_scores || latestAttempt.drawing_scores;
+                    }
+                    
+                    const status = hasComponentScores ? 'success' : 'warning';
+                    const icon = hasComponentScores ? '✅' : '⚠️';
+                    const message = hasComponentScores ? 'Component scores are present!' : 'Component scores are missing';
+                    
+                    showResult('analysisResult', `${icon} ${message}`, status);
+                    showJsonResult('analysisResult', 'Full API Response:', data);
+                }
+            } catch (error) {
+                showResult('analysisResult', `❌ Test failed: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Test Analysis API';
+            }
+        }
+
+        async function testMultipleUsers() {
+            const btn = document.getElementById('usersBtn');
+            btn.disabled = true;
+            btn.textContent = 'Testing...';
+            
+            const testUsers = ['testuser', 'testuser2', 'testuser3'];
+            let results = [];
+            
+            for (const user of testUsers) {
+                try {
+                    const response = await fetch(`${apiUrl}/api/user/${user}/detailed-analysis`);
+                    const data = await response.json();
+                    
+                    if (data.authAttempts && data.authAttempts.length > 0) {
+                        const hasScores = data.authAttempts.some(a => a.shape_scores || a.drawing_scores);
+                        results.push(`${user}: ${hasScores ? '✅' : '❌'} Component scores ${hasScores ? 'present' : 'missing'}`);
+                    } else {
+                        results.push(`${user}: ⚠️ No auth attempts`);
+                    }
+                } catch (error) {
+                    results.push(`${user}: ❌ Error: ${error.message}`);
+                }
+            }
+            
+            showResult('usersResult', results.join('\n'), 'info');
+            
+            btn.disabled = false;
+            btn.textContent = 'Test Multiple Users';
+        }
+
+        // Initialize
+        updateConfig();
+    </script>
+</body>
+</html> 

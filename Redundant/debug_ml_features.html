@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug ML Features</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .error {
+            color: red;
+        }
+        .success {
+            color: green;
+        }
+        pre {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        input {
+            padding: 5px 10px;
+            margin: 5px;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Debug ML Features Display</h1>
+        
+        <div class="section">
+            <h2>Configuration</h2>
+            <label>API URL: <input type="text" id="apiUrl" value="https://chickenscratch.onrender.com"></label>
+            <label>Username: <input type="text" id="username" value="testuser"></label>
+            <button onclick="testEndpoint()">Test User Details Endpoint</button>
+            <button onclick="testAllUsers()">List All Users</button>
+        </div>
+        
+        <div class="section">
+            <h2>Response</h2>
+            <pre id="response">Click a button to test...</pre>
+        </div>
+        
+        <div class="section">
+            <h2>Console Log</h2>
+            <pre id="console"></pre>
+        </div>
+    </div>
+    
+    <script>
+        const log = (message, type = 'info') => {
+            const consoleEl = document.getElementById('console');
+            const timestamp = new Date().toISOString();
+            const color = type === 'error' ? 'red' : type === 'success' ? 'green' : 'black';
+            consoleEl.innerHTML += `<span style="color: ${color}">[${timestamp}] ${message}</span>\n`;
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        };
+        
+        async function testEndpoint() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const username = document.getElementById('username').value;
+            const responseEl = document.getElementById('response');
+            
+            log(`Testing endpoint: ${apiUrl}/api/user/${username}/details`);
+            
+            try {
+                const response = await fetch(`${apiUrl}/api/user/${username}/details`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    mode: 'cors',
+                    credentials: 'include'
+                });
+                
+                log(`Response status: ${response.status} ${response.statusText}`);
+                
+                const data = await response.json();
+                responseEl.textContent = JSON.stringify(data, null, 2);
+                
+                if (response.ok) {
+                    log('Success! Data received', 'success');
+                    
+                    // Check for ML features
+                    if (data.userBaseline && Object.keys(data.userBaseline).length > 0) {
+                        log(`User baseline has ${Object.keys(data.userBaseline).length} features`, 'success');
+                    } else {
+                        log('Warning: No user baseline found', 'error');
+                    }
+                    
+                    if (data.recentAttemptsWithFeatures && data.recentAttemptsWithFeatures.length > 0) {
+                        log(`Found ${data.recentAttemptsWithFeatures.length} attempts with features`, 'success');
+                        
+                        // Check first attempt
+                        const firstAttempt = data.recentAttemptsWithFeatures[0];
+                        if (firstAttempt.attempt_scores && Object.keys(firstAttempt.attempt_scores).length > 0) {
+                            log(`First attempt has ${Object.keys(firstAttempt.attempt_scores).length} ML features`, 'success');
+                        } else {
+                            log('Warning: First attempt has no ML features', 'error');
+                        }
+                    } else {
+                        log('Warning: No recent attempts with features found', 'error');
+                    }
+                } else {
+                    log(`Error: ${data.error || 'Unknown error'}`, 'error');
+                }
+                
+            } catch (error) {
+                log(`Network error: ${error.message}`, 'error');
+                responseEl.textContent = `Error: ${error.message}`;
+            }
+        }
+        
+        async function testAllUsers() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const responseEl = document.getElementById('response');
+            
+            log(`Testing endpoint: ${apiUrl}/api/users`);
+            
+            try {
+                const response = await fetch(`${apiUrl}/api/users`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    mode: 'cors'
+                });
+                
+                log(`Response status: ${response.status} ${response.statusText}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    responseEl.textContent = JSON.stringify(data, null, 2);
+                    log(`Found ${data.users ? data.users.length : 0} users`, 'success');
+                    
+                    // List usernames
+                    if (data.users && data.users.length > 0) {
+                        log('Available usernames: ' + data.users.map(u => u.username).join(', '), 'success');
+                    }
+                } else {
+                    const errorText = await response.text();
+                    responseEl.textContent = `Error: ${errorText}`;
+                    log(`Error: ${errorText}`, 'error');
+                }
+                
+            } catch (error) {
+                log(`Network error: ${error.message}`, 'error');
+                responseEl.textContent = `Error: ${error.message}`;
+            }
+        }
+        
+        // Auto-test on load
+        window.addEventListener('load', () => {
+            log('Debug page loaded');
+            // Don't auto-test to avoid CORS issues
+        });
+    </script>
+</body>
+</html>

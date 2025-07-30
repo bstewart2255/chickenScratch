@@ -1,0 +1,13 @@
+{
+  "environment": "local",
+  "startTime": "2025-07-26T18:58:06.840Z",
+  "endTime": "2025-07-26T18:58:07.205Z",
+  "duration": 0.365,
+  "summary": {
+    "total": 0,
+    "passed": 0,
+    "failed": 0,
+    "skipped": 0
+  },
+  "tests": []
+}
