@@ -1458,7 +1458,7 @@ app.post('/login', async (req, res) => {
                         attemptFeatures = {
                             strokeCount: strokeData?.length || 0,
                             pointCount: strokeData?.reduce((sum, s) => sum + (Array.isArray(s) ? s.length : 0), 0) || 0,
-                            _enhanced_features_error: strokeData ? 'No stroke data' : 'Stroke data extraction failed',
+                            _enhanced_features_error: strokeData ? 'Enhanced features disabled' : 'No stroke data',
                             _enhanced_features_enabled: false
                         };
                     }
@@ -1546,7 +1546,7 @@ app.post('/login', async (req, res) => {
                         attemptFeatures = {
                             strokeCount: strokeData?.length || 0,
                             pointCount: strokeData?.reduce((sum, s) => sum + (Array.isArray(s) ? s.length : 0), 0) || 0,
-                            _enhanced_features_error: strokeData ? 'No stroke data' : 'Stroke data extraction failed',
+                            _enhanced_features_error: strokeData ? 'Enhanced features disabled' : 'No stroke data',
                             _enhanced_features_enabled: false
                         };
                     }
@@ -1634,7 +1634,7 @@ app.post('/login', async (req, res) => {
                         attemptFeatures = {
                             strokeCount: strokeData?.length || 0,
                             pointCount: strokeData?.reduce((sum, s) => sum + (Array.isArray(s) ? s.length : 0), 0) || 0,
-                            _enhanced_features_error: strokeData ? 'No stroke data' : 'Stroke data extraction failed',
+                            _enhanced_features_error: strokeData ? 'Enhanced features disabled' : 'No stroke data',
                             _enhanced_features_enabled: false
                         };
                     }
@@ -1720,7 +1720,7 @@ app.post('/login', async (req, res) => {
                         attemptFeatures = {
                             strokeCount: strokeData?.length || 0,
                             pointCount: strokeData?.reduce((sum, s) => sum + (Array.isArray(s) ? s.length : 0), 0) || 0,
-                            _enhanced_features_error: strokeData ? 'No stroke data' : 'Stroke data extraction failed',
+                            _enhanced_features_error: strokeData ? 'Enhanced features disabled' : 'No stroke data',
                             _enhanced_features_enabled: false
                         };
                     }
