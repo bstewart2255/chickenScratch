@@ -62,10 +62,10 @@ const EnhancedFeatureExtractor = {
         return false;
       }
       
-      // Validate point structure
+      // Validate point structure (all points should now be in object format after normalization)
       for (let j = 0; j < stroke.points.length; j++) {
         const point = stroke.points[j];
-        if (typeof point.x !== 'number' || typeof point.y !== 'number') {
+        if (!point || typeof point.x !== 'number' || typeof point.y !== 'number') {
           console.warn(`Invalid point at stroke ${i}, point ${j}: missing x/y coordinates`);
           return false;
         }
@@ -75,27 +75,76 @@ const EnhancedFeatureExtractor = {
     return true;
   },
 
-  // Helper function to validate if an array contains point objects
+  // Helper function to validate if an array contains point objects or arrays
   isPointArray(arr) {
     if (!Array.isArray(arr) || arr.length === 0) {
       return false;
     }
     
-    // Check first few elements to validate they are point objects
+    // Check first few elements to validate they are point objects or arrays
     const sampleSize = Math.min(3, arr.length);
     for (let i = 0; i < sampleSize; i++) {
       const item = arr[i];
-      if (!item || typeof item !== 'object') {
-        return false;
-      }
       
-      // A point should have x and y coordinates
-      if (typeof item.x !== 'number' || typeof item.y !== 'number') {
+      // Handle array format [x, y]
+      if (Array.isArray(item)) {
+        if (item.length !== 2 || typeof item[0] !== 'number' || typeof item[1] !== 'number') {
+          return false;
+        }
+      }
+      // Handle object format {x: number, y: number}
+      else if (item && typeof item === 'object') {
+        if (typeof item.x !== 'number' || typeof item.y !== 'number') {
+          return false;
+        }
+      } else {
         return false;
       }
     }
     
     return true;
+  },
+
+  // Helper function to normalize a point to object format
+  normalizePoint(point) {
+    // If already in object format, return as is
+    if (point && typeof point === 'object' && !Array.isArray(point) && 
+        typeof point.x === 'number' && typeof point.y === 'number') {
+      return point;
+    }
+    
+    // If in array format [x, y], convert to object
+    if (Array.isArray(point) && point.length === 2 && 
+        typeof point[0] === 'number' && typeof point[1] === 'number') {
+      return { x: point[0], y: point[1] };
+    }
+    
+    // Invalid point format
+    console.warn('Invalid point format:', point);
+    return null;
+  },
+
+  // Helper function to normalize an array of points
+  normalizePoints(points) {
+    if (!Array.isArray(points)) return [];
+    
+    return points.map(point => this.normalizePoint(point)).filter(point => point !== null);
+  },
+
+  // Helper function to validate and normalize points (returns null if any point is invalid)
+  validateAndNormalizePoints(points) {
+    if (!Array.isArray(points)) return null;
+    
+    const normalizedPoints = [];
+    for (const point of points) {
+      const normalized = this.normalizePoint(point);
+      if (normalized === null) {
+        return null; // Return null if any point is invalid
+      }
+      normalizedPoints.push(normalized);
+    }
+    
+    return normalizedPoints;
   },
 
   // Utility function to extract strokes array from various data formats
@@ -109,23 +158,48 @@ const EnhancedFeatureExtractor = {
     } else if (strokeData.strokes && Array.isArray(strokeData.strokes)) {
       rawStrokes = strokeData.strokes;
     } else if (strokeData.raw && Array.isArray(strokeData.raw)) {
-      rawStrokes = strokeData.raw;
+      // Check if raw contains stroke objects or point objects
+      if (strokeData.raw.length > 0 && this.isPointArray(strokeData.raw)) {
+        // Raw contains point objects, wrap as single stroke
+        rawStrokes = [{ points: strokeData.raw }];
+      } else {
+        // Raw contains stroke objects
+        rawStrokes = strokeData.raw;
+      }
     } else if (strokeData.data && Array.isArray(strokeData.data)) {
-      rawStrokes = strokeData.data;
+      // Check if data contains stroke objects or point objects
+      if (strokeData.data.length > 0 && this.isPointArray(strokeData.data)) {
+        // Data contains point objects, wrap as single stroke
+        rawStrokes = [{ points: strokeData.data }];
+      } else {
+        // Data contains stroke objects
+        rawStrokes = strokeData.data;
+      }
     } else {
       return [];
     }
     
-    // Normalize stroke format - ensure each stroke has a points property
+    // Normalize stroke format - ensure each stroke has a points property with normalized points
     return rawStrokes.map((stroke, index) => {
       // If stroke already has the expected format with points property
       if (stroke && typeof stroke === 'object' && stroke.points && Array.isArray(stroke.points)) {
-        return stroke;
+        // Validate and normalize the points to ensure consistent format
+        const normalizedPoints = this.validateAndNormalizePoints(stroke.points);
+        if (normalizedPoints === null) {
+          console.warn(`Invalid points in stroke at index ${index}`);
+          return null;
+        }
+        return { ...stroke, points: normalizedPoints };
       }
       
-      // If stroke is an array of points, wrap it
+      // If stroke is an array of points, wrap it and normalize
       if (Array.isArray(stroke)) {
-        return { points: stroke };
+        const normalizedPoints = this.validateAndNormalizePoints(stroke);
+        if (normalizedPoints === null) {
+          console.warn(`Invalid points in stroke array at index ${index}`);
+          return null;
+        }
+        return { points: normalizedPoints };
       }
       
       // If stroke has other properties but no points array, try to extract
@@ -148,13 +222,18 @@ const EnhancedFeatureExtractor = {
         // Don't use stroke.strokes as it likely contains other stroke objects, not points
         
         if (points) {
-          return { ...stroke, points };
+          const normalizedPoints = this.validateAndNormalizePoints(points);
+          if (normalizedPoints === null) {
+            console.warn(`Invalid points in stroke at index ${index}`);
+            return null;
+          }
+          return { ...stroke, points: normalizedPoints };
         }
       }
       
       console.warn(`Invalid stroke format at index ${index}:`, stroke);
-      return { points: [] };
-    }).filter(stroke => stroke.points.length > 0);
+      return null;
+    }).filter(stroke => stroke !== null && stroke.points.length > 0);
   },
 
   // Phase 1: Pressure Analysis Features
