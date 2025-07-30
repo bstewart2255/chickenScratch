@@ -1,104 +1,87 @@
 const { Pool } = require('pg');
 const fs = require('fs');
 const path = require('path');
-
-// Database configuration - use the same as in server.js
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL ||
-        `postgresql://${process.env.DB_USER || 'postgres'}:${process.env.DB_PASSWORD}@${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || '5432'}/${process.env.DB_NAME || 'signatureauth'}`,
-    ssl: {
-        rejectUnauthorized: false
-    }
-});
+require('dotenv').config();
 
 async function runEnhancedFeaturesMigration() {
-    console.log('🚀 Running Enhanced Features Migration...\n');
-    
+    const pool = new Pool({
+        connectionString: process.env.DATABASE_URL || 
+          `postgresql://${process.env.DB_USER || 'postgres'}:${process.env.DB_PASSWORD}@${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || '5432'}/${process.env.DB_NAME || 'signatureauth'}`,
+        ssl: {
+            rejectUnauthorized: false
+        }
+    });
+
     try {
+        console.log('🚀 Starting enhanced features migration for auth_attempts table...\n');
+
         // Read the migration SQL file
-        const migrationPath = path.join(__dirname, 'migrations', 'add_enhanced_features_columns.sql');
+        const migrationPath = path.join(__dirname, 'migrations', 'add_enhanced_features_to_auth_attempts.sql');
         const migrationSQL = fs.readFileSync(migrationPath, 'utf8');
-        
-        console.log('📋 Executing migration SQL...');
+
+        console.log('📋 Executing migration...');
         
         // Execute the migration
         await pool.query(migrationSQL);
         
-        console.log('✅ Migration executed successfully!');
+        console.log('✅ Migration completed successfully!');
         
         // Verify the migration
         console.log('\n🔍 Verifying migration...');
         
-        // Check if enhanced_features columns exist
-        const shapesColumns = await pool.query(`
-            SELECT column_name, data_type 
+        const columnCheck = await pool.query(`
+            SELECT column_name, data_type, is_nullable
             FROM information_schema.columns 
-            WHERE table_name = 'shapes' AND column_name = 'enhanced_features'
+            WHERE table_name = 'auth_attempts' AND column_name = 'enhanced_features'
         `);
         
-        const drawingsColumns = await pool.query(`
-            SELECT column_name, data_type 
-            FROM information_schema.columns 
-            WHERE table_name = 'drawings' AND column_name = 'enhanced_features'
-        `);
+        if (columnCheck.rows.length > 0) {
+            console.log('✅ enhanced_features column exists:', columnCheck.rows[0]);
+        } else {
+            console.log('❌ enhanced_features column not found');
+        }
         
-        // Check if indexes exist
-        const shapesIndex = await pool.query(`
-            SELECT indexname 
+        const indexCheck = await pool.query(`
+            SELECT indexname, indexdef
             FROM pg_indexes 
-            WHERE tablename = 'shapes' AND indexname = 'idx_shapes_enhanced_features'
+            WHERE tablename = 'auth_attempts' AND indexname = 'idx_auth_attempts_enhanced_features'
         `);
         
-        const drawingsIndex = await pool.query(`
-            SELECT indexname 
-            FROM pg_indexes 
-            WHERE tablename = 'drawings' AND indexname = 'idx_drawings_enhanced_features'
-        `);
-        
-        // Report results
-        console.log('\n📊 Migration Verification Results:');
-        
-        if (shapesColumns.rows.length > 0) {
-            console.log('✅ Shapes table has enhanced_features column:', shapesColumns.rows[0].data_type);
+        if (indexCheck.rows.length > 0) {
+            console.log('✅ enhanced_features index exists:', indexCheck.rows[0].indexname);
         } else {
-            console.log('❌ Shapes table missing enhanced_features column');
+            console.log('❌ enhanced_features index not found');
         }
         
-        if (drawingsColumns.rows.length > 0) {
-            console.log('✅ Drawings table has enhanced_features column:', drawingsColumns.rows[0].data_type);
-        } else {
-            console.log('❌ Drawings table missing enhanced_features column');
+        // Test the fallback mechanism
+        console.log('\n🧪 Testing fallback mechanism...');
+        
+        // Test INSERT with enhanced_features column
+        try {
+            await pool.query(`
+                INSERT INTO auth_attempts (user_id, success, confidence, device_info, enhanced_features) 
+                VALUES (1, true, 85.5, 'test-device', '{"test": "data"}'::jsonb)
+                ON CONFLICT DO NOTHING
+            `);
+            console.log('✅ INSERT with enhanced_features column works');
+        } catch (error) {
+            console.log('❌ INSERT with enhanced_features column failed:', error.message);
         }
         
-        if (shapesIndex.rows.length > 0) {
-            console.log('✅ Shapes enhanced_features index created');
-        } else {
-            console.log('❌ Shapes enhanced_features index missing');
+        // Test SELECT with enhanced_features column
+        try {
+            const selectResult = await pool.query(`
+                SELECT id, enhanced_features FROM auth_attempts 
+                WHERE enhanced_features IS NOT NULL 
+                LIMIT 1
+            `);
+            console.log('✅ SELECT with enhanced_features column works');
+        } catch (error) {
+            console.log('❌ SELECT with enhanced_features column failed:', error.message);
         }
         
-        if (drawingsIndex.rows.length > 0) {
-            console.log('✅ Drawings enhanced_features index created');
-        } else {
-            console.log('❌ Drawings enhanced_features index missing');
-        }
-        
-        // Check existing data
-        const shapesCount = await pool.query('SELECT COUNT(*) as count FROM shapes');
-        const drawingsCount = await pool.query('SELECT COUNT(*) as count FROM drawings');
-        
-        console.log(`\n📈 Existing data: ${shapesCount.rows[0].count} shapes, ${drawingsCount.rows[0].count} drawings`);
-        
-        // Check how many records have enhanced_features
-        const shapesWithFeatures = await pool.query('SELECT COUNT(*) as count FROM shapes WHERE enhanced_features IS NOT NULL');
-        const drawingsWithFeatures = await pool.query('SELECT COUNT(*) as count FROM drawings WHERE enhanced_features IS NOT NULL');
-        
-        console.log(`📊 Records with enhanced_features: ${shapesWithFeatures.rows[0].count} shapes, ${drawingsWithFeatures.rows[0].count} drawings`);
-        
-        console.log('\n🎉 Enhanced Features Migration completed successfully!');
-        console.log('\n📋 Next steps:');
-        console.log('1. Restart the server to ensure all changes are loaded');
-        console.log('2. Run the biometric fixes test to verify everything works');
-        console.log('3. Monitor authentication logs for enhanced features usage');
+        console.log('\n🎉 Enhanced features migration verification complete!');
+        console.log('The system now supports enhanced features with fallback mechanisms.');
         
     } catch (error) {
         console.error('❌ Migration failed:', error);
@@ -109,8 +92,4 @@ async function runEnhancedFeaturesMigration() {
 }
 
 // Run the migration
-if (require.main === module) {
-    runEnhancedFeaturesMigration().catch(console.error);
-}
-
-module.exports = { runEnhancedFeaturesMigration }; 
+runEnhancedFeaturesMigration(); 

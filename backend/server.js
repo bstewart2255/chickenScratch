@@ -1770,13 +1770,30 @@ app.post('/login', async (req, res) => {
             });
             
             // Store in database with properly structured JSON including enhanced features
-            await pool.query(
-                'INSERT INTO auth_attempts (user_id, success, confidence, device_info, signature_id, drawing_scores, enhanced_features) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-                [userId, isSuccess, averageScore, req.headers['user-agent'] || 'Unknown', authSignatureId, 
-                 JSON.stringify(structuredScores), JSON.stringify(authAttemptEnhancedFeatures)]
-            );
-            
-            console.log('✅ Auth attempt stored with enhanced features from', authAttemptEnhancedFeatures._total_components_processed, 'components');
+            // Use fallback mechanism for enhanced_features column
+            try {
+                // First, try with enhanced_features column
+                await pool.query(
+                    'INSERT INTO auth_attempts (user_id, success, confidence, device_info, signature_id, drawing_scores, enhanced_features) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+                    [userId, isSuccess, averageScore, req.headers['user-agent'] || 'Unknown', authSignatureId, 
+                     JSON.stringify(structuredScores), JSON.stringify(authAttemptEnhancedFeatures)]
+                );
+                console.log('✅ Auth attempt stored with enhanced features from', authAttemptEnhancedFeatures._total_components_processed, 'components');
+            } catch (columnError) {
+                // If enhanced_features column doesn't exist, fall back to basic insert
+                if (columnError.code === '42703') { // PostgreSQL error code for undefined column
+                    console.log('⚠️ enhanced_features column not found, using fallback insert');
+                    await pool.query(
+                        'INSERT INTO auth_attempts (user_id, success, confidence, device_info, signature_id, drawing_scores) VALUES ($1, $2, $3, $4, $5, $6)',
+                        [userId, isSuccess, averageScore, req.headers['user-agent'] || 'Unknown', authSignatureId, 
+                         JSON.stringify(structuredScores)]
+                    );
+                    console.log('✅ Auth attempt stored with fallback (enhanced features not available)');
+                } else {
+                    // Re-throw if it's not a column error
+                    throw columnError;
+                }
+            }
             
             console.log('✅ Authentication attempt saved successfully');
         } catch (err) {
@@ -2941,23 +2958,52 @@ app.get('/api/user/:username/detailed-analysis', async (req, res) => {
         );
         
         // Get auth attempts with enhanced ML feature extraction
-        const authAttemptsResult = await pool.query(`
-            SELECT 
-                a.id,
-                a.created_at,
-                a.success,
-                a.confidence,
-                a.device_info,
-                a.drawing_scores,
-                a.enhanced_features,
-                a.signature_id,
-                s.metrics as signature_metrics
-            FROM auth_attempts a
-            LEFT JOIN signatures s ON a.signature_id = s.id
-            WHERE a.user_id = $1
-            ORDER BY a.created_at DESC
-            LIMIT 50
-        `, [user.id]);
+        // Use fallback mechanism for enhanced_features column
+        let authAttemptsResult;
+        try {
+            // First, try with enhanced_features column
+            authAttemptsResult = await pool.query(`
+                SELECT 
+                    a.id,
+                    a.created_at,
+                    a.success,
+                    a.confidence,
+                    a.device_info,
+                    a.drawing_scores,
+                    a.enhanced_features,
+                    a.signature_id,
+                    s.metrics as signature_metrics
+                FROM auth_attempts a
+                LEFT JOIN signatures s ON a.signature_id = s.id
+                WHERE a.user_id = $1
+                ORDER BY a.created_at DESC
+                LIMIT 50
+            `, [user.id]);
+        } catch (columnError) {
+            // If enhanced_features column doesn't exist, fall back to basic select
+            if (columnError.code === '42703') { // PostgreSQL error code for undefined column
+                console.log('⚠️ enhanced_features column not found in SELECT, using fallback query');
+                authAttemptsResult = await pool.query(`
+                    SELECT 
+                        a.id,
+                        a.created_at,
+                        a.success,
+                        a.confidence,
+                        a.device_info,
+                        a.drawing_scores,
+                        a.signature_id,
+                        s.metrics as signature_metrics
+                    FROM auth_attempts a
+                    LEFT JOIN signatures s ON a.signature_id = s.id
+                    WHERE a.user_id = $1
+                    ORDER BY a.created_at DESC
+                    LIMIT 50
+                `, [user.id]);
+            } else {
+                // Re-throw if it's not a column error
+                throw columnError;
+            }
+        }
         
         // Process auth attempts to include ML features
         const enhancedAuthAttempts = authAttemptsResult.rows.map(attempt => {
