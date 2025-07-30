@@ -1012,29 +1012,41 @@
                                 <span>Stroke Length Std:</span>
                                 <span>${baseline.length_variation?.toFixed(1) || 'N/A'} avg</span>
                             </div>
-                            <div class="metric-item">
-                                <span>Pressure Avg:</span>
-                                <span>${baseline.avg_pressure?.toFixed(3) || 'N/A'} avg</span>
-                            </div>
                         </div>
                         <!-- Enhanced Biometric Features as baseline groups -->
                         <div class="baseline-group">
                             <div class="group-title">Pressure Analysis</div>
                             <div class="metric-item">
                                 <span>Avg Pressure:</span>
-                                <span>${baseline._excluded_features?.includes('avg_pressure') ? 'Not supported' : (baseline.avg_pressure?.toFixed(2) || 'N/A') + ' avg'}</span>
+                                <span>${baseline._excluded_features?.includes('avg_pressure') ? 'Not supported' : (baseline.avg_pressure?.toFixed(3) || 'N/A') + ' avg'}</span>
                             </div>
                             <div class="metric-item">
                                 <span>Max Pressure:</span>
-                                <span>${baseline._excluded_features?.includes('max_pressure') ? 'Not supported' : (baseline.max_pressure?.toFixed(2) || 'N/A') + ' avg'}</span>
+                                <span>${baseline._excluded_features?.includes('max_pressure') ? 'Not supported' : (baseline.max_pressure?.toFixed(3) || 'N/A') + ' avg'}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Min Pressure:</span>
+                                <span>${baseline._excluded_features?.includes('min_pressure') ? 'Not supported' : (baseline.min_pressure?.toFixed(3) || 'N/A') + ' avg'}</span>
                             </div>
                             <div class="metric-item">
                                 <span>Pressure Std:</span>
-                                <span>${baseline._excluded_features?.includes('pressure_std') ? 'Not supported' : (baseline.pressure_std?.toFixed(2) || 'N/A') + ' avg'}</span>
+                                <span>${baseline._excluded_features?.includes('pressure_std') ? 'Not supported' : (baseline.pressure_std?.toFixed(3) || 'N/A') + ' avg'}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Pressure Range:</span>
+                                <span>${baseline._excluded_features?.includes('pressure_range') ? 'Not supported' : (baseline.pressure_range?.toFixed(3) || 'N/A') + ' avg'}</span>
                             </div>
                             <div class="metric-item">
                                 <span>Contact Time Ratio:</span>
-                                <span>${baseline._excluded_features?.includes('contact_time_ratio') ? 'Not supported' : (baseline.contact_time_ratio?.toFixed(2) || 'N/A') + ' avg'}</span>
+                                <span>${baseline._excluded_features?.includes('contact_time_ratio') ? 'Not supported' : (baseline.contact_time_ratio?.toFixed(3) || 'N/A') + ' avg'}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Pressure Buildup Rate:</span>
+                                <span>${baseline._excluded_features?.includes('pressure_buildup_rate') ? 'Not supported' : (baseline.pressure_buildup_rate?.toFixed(3) || 'N/A') + ' avg'}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Pressure Release Rate:</span>
+                                <span>${baseline._excluded_features?.includes('pressure_release_rate') ? 'Not supported' : (baseline.pressure_release_rate?.toFixed(3) || 'N/A') + ' avg'}</span>
                             </div>
                         </div>
 
@@ -1042,27 +1054,35 @@
                             <div class="group-title">Behavioral Timing</div>
                             <div class="metric-item">
                                 <span>Pause Count:</span>
-                                <span>${baseline.pause_count?.toFixed(1) || 'N/A'} avg</span>
+                                <span>${baseline._excluded_features?.includes('pause_count') ? 'Not supported' : (baseline.pause_count?.toFixed(1) || 'N/A') + ' avg'}</span>
                             </div>
                             <div class="metric-item">
                                 <span>Rhythm Consistency:</span>
-                                <span>${baseline.rhythm_consistency?.toFixed(1) || 'N/A'} avg</span>
+                                <span>${baseline._excluded_features?.includes('rhythm_consistency') ? 'Not supported' : (baseline.rhythm_consistency?.toFixed(3) || 'N/A') + ' avg'}</span>
                             </div>
                             <div class="metric-item">
                                 <span>Tempo Variation:</span>
-                                <span>${baseline.tempo_variation?.toFixed(1) || 'N/A'} avg</span>
+                                <span>${baseline._excluded_features?.includes('tempo_variation') ? 'Not supported' : (baseline.tempo_variation?.toFixed(3) || 'N/A') + ' avg'}</span>
                             </div>
                             <div class="metric-item">
                                 <span>Dwell Time Patterns:</span>
-                                <span>${baseline.dwell_time_patterns?.toFixed(1) || 'N/A'} avg</span>
+                                <span>${baseline._excluded_features?.includes('dwell_time_patterns') ? 'Not supported' : (baseline.dwell_time_patterns?.toFixed(3) || 'N/A') + ' avg'}</span>
                             </div>
                             <div class="metric-item">
                                 <span>Inter Stroke Timing:</span>
-                                <span>${baseline.inter_stroke_timing?.toFixed(1) || 'N/A'} ms avg</span>
+                                <span>${baseline._excluded_features?.includes('inter_stroke_timing') ? 'Not supported' : (baseline.inter_stroke_timing?.toFixed(1) || 'N/A') + ' ms avg'}</span>
                             </div>
                             <div class="metric-item">
                                 <span>Total Duration:</span>
                                 <span>${baseline.total_duration_ms ? Math.round(baseline.total_duration_ms).toLocaleString() + ' ms avg' : 'N/A'}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Pause Time Ratio:</span>
+                                <span>${baseline._excluded_features?.includes('pause_time_ratio') ? 'Not supported' : (baseline.pause_time_ratio?.toFixed(3) || 'N/A') + ' avg'}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Avg Stroke Duration:</span>
+                                <span>${baseline._excluded_features?.includes('avg_stroke_duration') ? 'Not supported' : (baseline.avg_stroke_duration?.toFixed(1) || 'N/A') + ' ms avg'}</span>
                             </div>
                         </div>
 
@@ -1070,55 +1090,59 @@
                             <div class="group-title">Geometric Complexity</div>
                             <div class="metric-item">
                                 <span>Stroke Complexity:</span>
-                                <span>${baseline.stroke_complexity?.toFixed(2) || 'N/A'} avg</span>
+                                <span>${baseline._excluded_features?.includes('stroke_complexity') ? 'Not supported' : (baseline.stroke_complexity?.toFixed(3) || 'N/A') + ' avg'}</span>
                             </div>
                             <div class="metric-item">
                                 <span>Tremor Index:</span>
-                                <span>${baseline.tremor_index?.toFixed(2) || 'N/A'} avg</span>
+                                <span>${baseline._excluded_features?.includes('tremor_index') ? 'Not supported' : (baseline.tremor_index?.toFixed(3) || 'N/A') + ' avg'}</span>
                             </div>
                             <div class="metric-item">
                                 <span>Smoothness Index:</span>
-                                <span>${baseline.smoothness_index?.toFixed(2) || 'N/A'} avg</span>
+                                <span>${baseline._excluded_features?.includes('smoothness_index') ? 'Not supported' : (baseline.smoothness_index?.toFixed(3) || 'N/A') + ' avg'}</span>
                             </div>
                             <div class="metric-item">
                                 <span>Direction Changes:</span>
-                                <span>${baseline.direction_changes?.toFixed(1) || 'N/A'} avg</span>
+                                <span>${baseline._excluded_features?.includes('direction_changes') ? 'Not supported' : (baseline.direction_changes?.toFixed(1) || 'N/A') + ' avg'}</span>
                             </div>
                             <div class="metric-item">
                                 <span>Curvature Analysis:</span>
-                                <span>${baseline.curvature_analysis?.toFixed(2) || 'N/A'} avg</span>
+                                <span>${baseline._excluded_features?.includes('curvature_analysis') ? 'Not supported' : (baseline.curvature_analysis?.toFixed(3) || 'N/A') + ' avg'}</span>
                             </div>
                             <div class="metric-item">
                                 <span>Spatial Efficiency:</span>
-                                <span>${baseline.spatial_efficiency?.toFixed(1) || 'N/A'} avg</span>
+                                <span>${baseline._excluded_features?.includes('spatial_efficiency') ? 'Not supported' : (baseline.spatial_efficiency?.toFixed(3) || 'N/A') + ' avg'}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Stroke Overlap Ratio:</span>
+                                <span>${baseline._excluded_features?.includes('stroke_overlap_ratio') ? 'Not supported' : (baseline.stroke_overlap_ratio?.toFixed(3) || 'N/A') + ' avg'}</span>
                             </div>
                         </div>
 
                         <div class="baseline-group">
                             <div class="group-title">Security Indicators</div>
                             <div class="metric-item">
+                                <span>Unnatural Pause Detection:</span>
+                                <span>${baseline._excluded_features?.includes('unnatural_pause_detection') ? 'Not supported' : (baseline.unnatural_pause_detection?.toFixed(3) || 'N/A') + ' avg'}</span>
+                            </div>
+                            <div class="metric-item">
                                 <span>Speed Anomaly Score:</span>
-                                <span>${baseline.speed_anomaly_score?.toFixed(2) || 'N/A'} avg</span>
+                                <span>${baseline._excluded_features?.includes('speed_anomaly_score') ? 'Not supported' : (baseline.speed_anomaly_score?.toFixed(3) || 'N/A') + ' avg'}</span>
                             </div>
                             <div class="metric-item">
-                                <span>Timing Regularity:</span>
-                                <span>${baseline.timing_regularity_score?.toFixed(2) || 'N/A'} avg</span>
+                                <span>Pressure Anomaly Score:</span>
+                                <span>${baseline._excluded_features?.includes('pressure_anomaly_score') ? 'Not supported' : (baseline.pressure_anomaly_score?.toFixed(3) || 'N/A') + ' avg'}</span>
                             </div>
                             <div class="metric-item">
-                                <span>Device Consistency:</span>
-                                <span>${baseline.device_consistency_score?.toFixed(2) || 'N/A'} avg</span>
+                                <span>Timing Regularity Score:</span>
+                                <span>${baseline._excluded_features?.includes('timing_regularity_score') ? 'Not supported' : (baseline.timing_regularity_score?.toFixed(3) || 'N/A') + ' avg'}</span>
                             </div>
                             <div class="metric-item">
-                                <span>Behavioral Authenticity:</span>
-                                <span>${baseline.behavioral_authenticity_score?.toFixed(2) || 'N/A'} avg</span>
+                                <span>Device Consistency Score:</span>
+                                <span>${baseline._excluded_features?.includes('device_consistency_score') ? 'Not supported' : (baseline.device_consistency_score?.toFixed(3) || 'N/A') + ' avg'}</span>
                             </div>
                             <div class="metric-item">
-                                <span>Unnatural Pauses:</span>
-                                <span>${baseline.unnatural_pause_detection?.toFixed(1) || 'N/A'} avg</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Pressure Anomalies:</span>
-                                <span>${baseline._excluded_features?.includes('pressure_anomaly_score') ? 'Not supported' : (baseline.pressure_anomaly_score?.toFixed(2) || 'N/A') + ' avg'}</span>
+                                <span>Behavioral Authenticity Score:</span>
+                                <span>${baseline._excluded_features?.includes('behavioral_authenticity_score') ? 'Not supported' : (baseline.behavioral_authenticity_score?.toFixed(3) || 'N/A') + ' avg'}</span>
                             </div>
                         </div>
                     </div>
@@ -1253,10 +1277,6 @@
                                 <div class="data-metric">
                                     <span class="metric-name">Stroke Length Std:</span>
                                     <span class="metric-value">${formatMetricValue(attempt.length_variation?.toFixed(1), baseline.length_variation?.toFixed(1))}</span>
-                                </div>
-                                <div class="data-metric">
-                                    <span class="metric-name">Pressure Avg:</span>
-                                    <span class="metric-value">${formatMetricValue(attempt.avg_pressure?.toFixed(3), baseline.avg_pressure?.toFixed(3))}</span>
                                 </div>
                             </div>
 
