@@ -1425,6 +1425,86 @@
             return html;
         }
 
+        // Render shape baseline enhanced features to match attempt structure
+        function renderShapeBaselineEnhanced(baseline) {
+            let html = '';
+            
+            // Add Shape Biometric Analysis section if we have shape_enhanced_features
+            if (baseline.shape_enhanced_features && Object.keys(baseline.shape_enhanced_features).length > 0) {
+                html += `
+                    <div class="baseline-group">
+                        <div class="group-title">Shape Biometric Analysis</div>`;
+                
+                // Show key enhanced features from baseline
+                const features = baseline.shape_enhanced_features;
+                
+                // Pressure features (if supported)
+                if (features.avg_pressure !== undefined && !baseline._excluded_features?.includes('avg_pressure')) {
+                    html += `
+                        <div class="metric-item">
+                            <span>Shape Pressure:</span>
+                            <span>${features.avg_pressure?.toFixed(3) || 'N/A'} avg</span>
+                        </div>`;
+                }
+                
+                // Tremor and smoothness
+                if (features.tremor_index !== undefined) {
+                    html += `
+                        <div class="metric-item">
+                            <span>Shape Tremor:</span>
+                            <span>${features.tremor_index?.toFixed(3) || 'N/A'} avg</span>
+                        </div>`;
+                }
+                if (features.smoothness_index !== undefined) {
+                    html += `
+                        <div class="metric-item">
+                            <span>Shape Smoothness:</span>
+                            <span>${features.smoothness_index?.toFixed(3) || 'N/A'} avg</span>
+                        </div>`;
+                }
+                if (features.stroke_complexity !== undefined) {
+                    html += `
+                        <div class="metric-item">
+                            <span>Shape Complexity:</span>
+                            <span>${features.stroke_complexity?.toFixed(3) || 'N/A'} avg</span>
+                        </div>`;
+                }
+                
+                // Behavioral timing features
+                if (features.rhythm_consistency !== undefined) {
+                    html += `
+                        <div class="metric-item">
+                            <span>Rhythm Consistency:</span>
+                            <span>${features.rhythm_consistency?.toFixed(3) || 'N/A'} avg</span>
+                        </div>`;
+                }
+                if (features.tempo_variation !== undefined) {
+                    html += `
+                        <div class="metric-item">
+                            <span>Tempo Variation:</span>
+                            <span>${features.tempo_variation?.toFixed(3) || 'N/A'} avg</span>
+                        </div>`;
+                }
+                
+                // Security indicators
+                if (features.behavioral_authenticity_score !== undefined) {
+                    html += `
+                        <div class="metric-item">
+                            <span>Behavioral Authenticity:</span>
+                            <span>${features.behavioral_authenticity_score?.toFixed(3) || 'N/A'} avg</span>
+                        </div>`;
+                }
+                
+                html += `</div>`;
+            }
+            
+            // Add individual shape enhanced features sections if detailed data exists
+            // This would require the baseline to include per-shape breakdowns
+            // For now, we'll show aggregated data only
+            
+            return html;
+        }
+        
         // Render the Data tab
         function renderDataTab() {
             if (!currentData) return;
@@ -1674,6 +1754,7 @@
                                     <span>${baseline.triangle_closure !== null && baseline.triangle_closure !== undefined ? formatPercentage(baseline.triangle_closure) + ' avg' : 'N/A'}</span>
                                 </div>
                             </div>
+                            ${renderShapeBaselineEnhanced(baseline)}
                         </div>
                     </div>
                     
