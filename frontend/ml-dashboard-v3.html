@@ -343,99 +343,7 @@
             color: #333;
                 }
 
-        /* Enhanced Features Main Section */
-        #enhancedFeaturesSection {
-            margin: 30px 0;
-            padding: 25px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 12px;
-            color: white;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
 
-        /* Enhanced Feature Groups */
-        .enhanced-feature-group {
-            margin-bottom: 25px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 12px;
-            border-left: 4px solid #667eea;
-            color: #333;
-            backdrop-filter: blur(10px);
-        }
-
-        .enhanced-feature-group:last-child {
-            margin-bottom: 0;
-        }
-
-        .enhanced-feature-group h4 {
-            margin-bottom: 15px;
-            font-size: 16px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        /* Feature Grid Layout */
-        .feature-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 15px;
-        }
-
-        /* Individual Feature Items */
-        .feature-item {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-        }
-
-        .feature-item:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-        }
-
-        .feature-item.feature-unavailable {
-            opacity: 0.6;
-            background: #f8f9fa;
-        }
-
-        .feature-value {
-            font-size: 22px;
-            font-weight: 700;
-            margin-bottom: 8px;
-            font-family: 'Courier New', monospace;
-        }
-
-        .feature-label {
-            font-size: 12px;
-            color: #666;
-            font-weight: 500;
-            text-transform: capitalize;
-            word-wrap: break-word;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .feature-grid {
-                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-                gap: 10px;
-            }
-            
-            #enhancedFeaturesSection {
-                margin: 20px 0;
-                padding: 20px;
-            }
-            
-            .enhanced-feature-group {
-                padding: 15px;
-            }
-        }
     </style>
 </head>
 <body>
@@ -479,33 +387,6 @@
         let currentData = null;
         let currentUser = null;
 
-        // Enhanced feature groups configuration
-        const enhancedFeatureGroups = {
-            'Pressure Analysis': {
-                features: ['avg_pressure', 'max_pressure', 'pressure_std', 'contact_time_ratio', 'pressure_range', 'pressure_buildup_rate', 'pressure_release_rate'],
-                color: '#FF6B6B',
-                icon: '👆',
-                description: 'Touch pressure and contact patterns'
-            },
-            'Behavioral Timing': {
-                features: ['pause_detection', 'rhythm_consistency', 'tempo_variation', 'dwell_time_patterns', 'inter_stroke_timing', 'drawing_duration_total'],
-                color: '#4ECDC4', 
-                icon: '⏱️',
-                description: 'Timing patterns and behavioral rhythm'
-            },
-            'Geometric Complexity': {
-                features: ['stroke_complexity', 'tremor_index', 'smoothness_index', 'direction_changes', 'curvature_analysis', 'spatial_efficiency', 'stroke_overlap_ratio'],
-                color: '#45B7D1',
-                icon: '📐',
-                description: 'Shape complexity and geometric patterns'
-            },
-            'Security Indicators': {
-                features: ['unnatural_pause_detection', 'speed_anomaly_score', 'pressure_anomaly_score', 'timing_regularity_score', 'device_consistency_score', 'behavioral_authenticity_score'],
-                color: '#F7B731',
-                icon: '🔒',
-                description: 'Fraud detection and security metrics'
-            }
-        };
 
         // Safe value retrieval with enhanced feature support
         function safeGetValue(obj, property, defaultValue = 'N/A') {
@@ -536,115 +417,6 @@
                 .replace(/\b\w/g, l => l.toUpperCase());
         }
 
-        // Display enhanced features function
-        function displayEnhancedFeatures(userData) {
-            const enhancedSection = document.getElementById('enhancedFeaturesSection');
-            if (!enhancedSection) {
-                console.warn('Enhanced features section not found in DOM');
-                return;
-            }
-            
-            enhancedSection.innerHTML = '';
-            
-            // Add section header
-            const headerDiv = document.createElement('div');
-            headerDiv.innerHTML = `
-                <h3 style="text-align: center; margin-bottom: 25px; color: white;">
-                    🧬 Enhanced Biometric Features
-                </h3>
-            `;
-            enhancedSection.appendChild(headerDiv);
-            
-            // Get signature data (latest signature or baseline)
-            const signatureData = userData.enrollment?.signatures?.[0] || userData.baseline || {};
-            const metrics = signatureData.metrics || signatureData || {};
-            
-            // Check if we have enhanced features enabled
-            const hasEnhancedFeatures = metrics._enhanced_features_enabled === true || 
-                                      (metrics._supported_features && metrics._supported_features.length > 0);
-            
-            if (!hasEnhancedFeatures) {
-                // Show informative message when enhanced features aren't available
-                const messageDiv = document.createElement('div');
-                messageDiv.style.textAlign = 'center';
-                messageDiv.style.padding = '20px';
-                messageDiv.style.color = 'white';
-                messageDiv.innerHTML = `
-                    <p style="opacity: 0.8;">Enhanced features will appear here once signature data is collected with the new system.</p>
-                    <small>Current signatures: ${userData.enrollment?.signatures?.length || 0}</small>
-                `;
-                enhancedSection.appendChild(messageDiv);
-                return;
-            }
-            
-            // Display device capabilities if available
-            if (metrics._device_capabilities) {
-                const deviceDiv = document.createElement('div');
-                deviceDiv.style.marginBottom = '20px';
-                deviceDiv.style.padding = '15px';
-                deviceDiv.style.backgroundColor = 'rgba(255,255,255,0.05)';
-                deviceDiv.style.borderRadius = '8px';
-                deviceDiv.innerHTML = `
-                    <h4 style="color: #aaa; margin-bottom: 10px;">📱 Device Capabilities</h4>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
-                        <div><strong>Pressure Support:</strong> ${metrics._device_capabilities.supportsPressure ? '✅ Yes' : '❌ No'}</div>
-                        <div><strong>Input Method:</strong> ${metrics._device_capabilities.inputMethod || 'Unknown'}</div>
-                        <div><strong>Browser:</strong> ${metrics._device_capabilities.browser || 'Unknown'}</div>
-                        <div><strong>OS:</strong> ${metrics._device_capabilities.os || 'Unknown'}</div>
-                    </div>
-                `;
-                enhancedSection.appendChild(deviceDiv);
-            }
-            
-            Object.entries(enhancedFeatureGroups).forEach(([groupName, config]) => {
-                const groupDiv = document.createElement('div');
-                groupDiv.className = 'enhanced-feature-group';
-                groupDiv.style.borderLeftColor = config.color;
-                
-                groupDiv.innerHTML = `
-                    <h4 style="color: ${config.color}; margin-bottom: 15px;">
-                        ${config.icon} ${groupName}
-                        <small style="font-weight: normal; opacity: 0.8; margin-left: 8px;">
-                            ${config.description}
-                        </small>
-                    </h4>
-                    <div class="feature-grid">
-                        ${config.features.map(feature => {
-                            const value = safeGetValue(signatureData, feature);
-                            const isExcluded = metrics._excluded_features && metrics._excluded_features.includes(feature);
-                            const isSupported = !isExcluded && value !== 'Not supported';
-                            const displayValue = isExcluded ? 'Not supported' : value;
-                            return `
-                                <div class="feature-item ${isSupported ? '' : 'feature-unavailable'}" 
-                                     title="${isExcluded ? 'This feature is not supported on your device' : ''}">
-                                    <div class="feature-value" style="color: ${isSupported ? config.color : '#666'}">
-                                        ${displayValue}
-                                    </div>
-                                    <div class="feature-label">${formatFeatureName(feature)}</div>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                `;
-                enhancedSection.appendChild(groupDiv);
-            });
-        }
-
-        // Handle enhanced feature display errors
-        function handleEnhancedFeatureError(error, userData) {
-            console.error('Enhanced feature display error:', error);
-            
-            const enhancedSection = document.getElementById('enhancedFeaturesSection');
-            if (enhancedSection) {
-                enhancedSection.innerHTML = `
-                    <div style="text-align: center; padding: 20px; color: white;">
-                        <h3>🔬 Enhanced Features</h3>
-                        <p style="opacity: 0.8;">Enhanced features will appear here once signature data is collected with the new system.</p>
-                        <small>Current signatures: ${userData.enrollment?.signatures?.length || 0}</small>
-                    </div>
-                `;
-            }
-        }
 
         // Initialize the dashboard
         async function init() {
@@ -709,17 +481,10 @@
                 
                 currentData = await response.json();
                 
-                // Render all tabs first
+                // Render all tabs
                 renderDataTab();
                 renderImagesTab();
                 renderRawTab();
-                
-                // Display enhanced features after DOM elements are created
-                try {
-                    displayEnhancedFeatures(currentData);
-                } catch (error) {
-                    handleEnhancedFeatureError(error, currentData);
-                }
             } catch (error) {
                 console.error('Error loading user data:', error);
                 document.getElementById('dataTab').innerHTML = `
@@ -1247,25 +1012,140 @@
                                 <span>Stroke Length Std:</span>
                                 <span>${baseline.length_variation?.toFixed(1) || 'N/A'} avg</span>
                             </div>
+                        </div>
+                        <!-- Enhanced Biometric Features as baseline groups -->
+                        <div class="baseline-group">
+                            <div class="group-title">Pressure Analysis</div>
                             <div class="metric-item">
-                                <span>Pressure Avg:</span>
-                                <span>${baseline.avg_pressure?.toFixed(3) || 'N/A'} avg</span>
+                                <span>Avg Pressure:</span>
+                                <span>${baseline._excluded_features?.includes('avg_pressure') ? 'Not supported' : (baseline.avg_pressure?.toFixed(3) || 'N/A') + ' avg'}</span>
                             </div>
                             <div class="metric-item">
+                                <span>Max Pressure:</span>
+                                <span>${baseline._excluded_features?.includes('max_pressure') ? 'Not supported' : (baseline.max_pressure?.toFixed(3) || 'N/A') + ' avg'}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Min Pressure:</span>
+                                <span>${baseline._excluded_features?.includes('min_pressure') ? 'Not supported' : (baseline.min_pressure?.toFixed(3) || 'N/A') + ' avg'}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Pressure Std:</span>
+                                <span>${baseline._excluded_features?.includes('pressure_std') ? 'Not supported' : (baseline.pressure_std?.toFixed(3) || 'N/A') + ' avg'}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Pressure Range:</span>
+                                <span>${baseline._excluded_features?.includes('pressure_range') ? 'Not supported' : (baseline.pressure_range?.toFixed(3) || 'N/A') + ' avg'}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Contact Time Ratio:</span>
+                                <span>${baseline._excluded_features?.includes('contact_time_ratio') ? 'Not supported' : (baseline.contact_time_ratio?.toFixed(3) || 'N/A') + ' avg'}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Pressure Buildup Rate:</span>
+                                <span>${baseline._excluded_features?.includes('pressure_buildup_rate') ? 'Not supported' : (baseline.pressure_buildup_rate?.toFixed(3) || 'N/A') + ' avg'}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Pressure Release Rate:</span>
+                                <span>${baseline._excluded_features?.includes('pressure_release_rate') ? 'Not supported' : (baseline.pressure_release_rate?.toFixed(3) || 'N/A') + ' avg'}</span>
+                            </div>
+                        </div>
+
+                        <div class="baseline-group">
+                            <div class="group-title">Behavioral Timing</div>
+                            <div class="metric-item">
                                 <span>Pause Count:</span>
-                                <span>${baseline.pause_count?.toFixed(1) || 'N/A'} avg</span>
+                                <span>${baseline._excluded_features?.includes('pause_count') ? 'Not supported' : (baseline.pause_count?.toFixed(1) || 'N/A') + ' avg'}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Rhythm Consistency:</span>
+                                <span>${baseline._excluded_features?.includes('rhythm_consistency') ? 'Not supported' : (baseline.rhythm_consistency?.toFixed(3) || 'N/A') + ' avg'}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Tempo Variation:</span>
+                                <span>${baseline._excluded_features?.includes('tempo_variation') ? 'Not supported' : (baseline.tempo_variation?.toFixed(3) || 'N/A') + ' avg'}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Dwell Time Patterns:</span>
+                                <span>${baseline._excluded_features?.includes('dwell_time_patterns') ? 'Not supported' : (baseline.dwell_time_patterns?.toFixed(3) || 'N/A') + ' avg'}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Inter Stroke Timing:</span>
+                                <span>${baseline._excluded_features?.includes('inter_stroke_timing') ? 'Not supported' : (baseline.inter_stroke_timing?.toFixed(1) || 'N/A') + ' ms avg'}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Total Duration:</span>
+                                <span>${baseline.total_duration_ms ? Math.round(baseline.total_duration_ms).toLocaleString() + ' ms avg' : 'N/A'}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Pause Time Ratio:</span>
+                                <span>${baseline._excluded_features?.includes('pause_time_ratio') ? 'Not supported' : (baseline.pause_time_ratio?.toFixed(3) || 'N/A') + ' avg'}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Avg Stroke Duration:</span>
+                                <span>${baseline._excluded_features?.includes('avg_stroke_duration') ? 'Not supported' : (baseline.avg_stroke_duration?.toFixed(1) || 'N/A') + ' ms avg'}</span>
+                            </div>
+                        </div>
+
+                        <div class="baseline-group">
+                            <div class="group-title">Geometric Complexity</div>
+                            <div class="metric-item">
+                                <span>Stroke Complexity:</span>
+                                <span>${baseline._excluded_features?.includes('stroke_complexity') ? 'Not supported' : (baseline.stroke_complexity?.toFixed(3) || 'N/A') + ' avg'}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Tremor Index:</span>
+                                <span>${baseline._excluded_features?.includes('tremor_index') ? 'Not supported' : (baseline.tremor_index?.toFixed(3) || 'N/A') + ' avg'}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Smoothness Index:</span>
+                                <span>${baseline._excluded_features?.includes('smoothness_index') ? 'Not supported' : (baseline.smoothness_index?.toFixed(3) || 'N/A') + ' avg'}</span>
                             </div>
                             <div class="metric-item">
                                 <span>Direction Changes:</span>
-                                <span>${baseline.direction_changes?.toFixed(1) || 'N/A'} avg</span>
+                                <span>${baseline._excluded_features?.includes('direction_changes') ? 'Not supported' : (baseline.direction_changes?.toFixed(1) || 'N/A') + ' avg'}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Curvature Analysis:</span>
+                                <span>${baseline._excluded_features?.includes('curvature_analysis') ? 'Not supported' : (baseline.curvature_analysis?.toFixed(3) || 'N/A') + ' avg'}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Spatial Efficiency:</span>
+                                <span>${baseline._excluded_features?.includes('spatial_efficiency') ? 'Not supported' : (baseline.spatial_efficiency?.toFixed(3) || 'N/A') + ' avg'}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Stroke Overlap Ratio:</span>
+                                <span>${baseline._excluded_features?.includes('stroke_overlap_ratio') ? 'Not supported' : (baseline.stroke_overlap_ratio?.toFixed(3) || 'N/A') + ' avg'}</span>
+                            </div>
+                        </div>
+
+                        <div class="baseline-group">
+                            <div class="group-title">Security Indicators</div>
+                            <div class="metric-item">
+                                <span>Unnatural Pause Detection:</span>
+                                <span>${baseline._excluded_features?.includes('unnatural_pause_detection') ? 'Not supported' : (baseline.unnatural_pause_detection?.toFixed(3) || 'N/A') + ' avg'}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Speed Anomaly Score:</span>
+                                <span>${baseline._excluded_features?.includes('speed_anomaly_score') ? 'Not supported' : (baseline.speed_anomaly_score?.toFixed(3) || 'N/A') + ' avg'}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Pressure Anomaly Score:</span>
+                                <span>${baseline._excluded_features?.includes('pressure_anomaly_score') ? 'Not supported' : (baseline.pressure_anomaly_score?.toFixed(3) || 'N/A') + ' avg'}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Timing Regularity Score:</span>
+                                <span>${baseline._excluded_features?.includes('timing_regularity_score') ? 'Not supported' : (baseline.timing_regularity_score?.toFixed(3) || 'N/A') + ' avg'}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Device Consistency Score:</span>
+                                <span>${baseline._excluded_features?.includes('device_consistency_score') ? 'Not supported' : (baseline.device_consistency_score?.toFixed(3) || 'N/A') + ' avg'}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span>Behavioral Authenticity Score:</span>
+                                <span>${baseline._excluded_features?.includes('behavioral_authenticity_score') ? 'Not supported' : (baseline.behavioral_authenticity_score?.toFixed(3) || 'N/A') + ' avg'}</span>
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Enhanced Biometric Features Section -->
-                <div id="enhancedFeaturesSection" class="dashboard-section">
-                    <!-- Enhanced features will be populated by JavaScript -->
                 </div>
 
                 <!-- Authentication Attempts -->
@@ -1397,18 +1277,6 @@
                                 <div class="data-metric">
                                     <span class="metric-name">Stroke Length Std:</span>
                                     <span class="metric-value">${formatMetricValue(attempt.length_variation?.toFixed(1), baseline.length_variation?.toFixed(1))}</span>
-                                </div>
-                                <div class="data-metric">
-                                    <span class="metric-name">Pressure Avg:</span>
-                                    <span class="metric-value">${formatMetricValue(attempt.avg_pressure?.toFixed(3), baseline.avg_pressure?.toFixed(3))}</span>
-                                </div>
-                                <div class="data-metric">
-                                    <span class="metric-name">Pause Count:</span>
-                                    <span class="metric-value">${formatMetricValue(attempt.pause_count, baseline.pause_count)}</span>
-                                </div>
-                                <div class="data-metric">
-                                    <span class="metric-name">Direction Changes:</span>
-                                    <span class="metric-value">${formatMetricValue(attempt.direction_changes, baseline.direction_changes)}</span>
                                 </div>
                             </div>
 
