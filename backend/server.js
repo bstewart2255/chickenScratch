@@ -2716,7 +2716,10 @@ function calculateEnhancedDrawingScore(drawingData, drawingType) {
     // Check if enhanced features exist
     if (drawingData.enhanced_features && drawingData._enhanced_features_enabled) {
         // Use enhanced biometric features for scoring
-        const enhancedFeatures = drawingData.enhanced_features;
+        const enhancedFeatures = {
+            ...drawingData.enhanced_features,
+            _enhanced_features_enabled: true
+        };
         
         // Combine biometric authenticity with structural accuracy
         const biometricScore = calculateBiometricAuthenticity(enhancedFeatures);
