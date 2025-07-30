@@ -1016,14 +1016,6 @@
                                 <span>Pressure Avg:</span>
                                 <span>${baseline.avg_pressure?.toFixed(3) || 'N/A'} avg</span>
                             </div>
-                            <div class="metric-item">
-                                <span>Pause Count:</span>
-                                <span>${baseline.pause_count?.toFixed(1) || 'N/A'} avg</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Direction Changes:</span>
-                                <span>${baseline.direction_changes?.toFixed(1) || 'N/A'} avg</span>
-                            </div>
                         </div>
                         <!-- Enhanced Biometric Features as baseline groups -->
                         <div class="baseline-group">
@@ -1265,14 +1257,6 @@
                                 <div class="data-metric">
                                     <span class="metric-name">Pressure Avg:</span>
                                     <span class="metric-value">${formatMetricValue(attempt.avg_pressure?.toFixed(3), baseline.avg_pressure?.toFixed(3))}</span>
-                                </div>
-                                <div class="data-metric">
-                                    <span class="metric-name">Pause Count:</span>
-                                    <span class="metric-value">${formatMetricValue(attempt.pause_count, baseline.pause_count)}</span>
-                                </div>
-                                <div class="data-metric">
-                                    <span class="metric-name">Direction Changes:</span>
-                                    <span class="metric-value">${formatMetricValue(attempt.direction_changes, baseline.direction_changes)}</span>
                                 </div>
                             </div>
 
