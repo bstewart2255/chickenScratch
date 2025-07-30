@@ -1663,15 +1663,15 @@
                                 <div class="group-title">Shapes Performance</div>
                                 <div class="metric-item">
                                     <span>Circle Roundness:</span>
-                                    <span>${baseline.circle_roundness ? formatPercentage(baseline.circle_roundness) + ' avg' : 'N/A'}</span>
+                                    <span>${baseline.circle_roundness !== null && baseline.circle_roundness !== undefined ? formatPercentage(baseline.circle_roundness) + ' avg' : 'N/A'}</span>
                                 </div>
                                 <div class="metric-item">
                                     <span>Square Corners:</span>
-                                    <span>${baseline.square_corner_accuracy ? formatPercentage(baseline.square_corner_accuracy) + ' avg' : 'N/A'}</span>
+                                    <span>${baseline.square_corner_accuracy !== null && baseline.square_corner_accuracy !== undefined ? formatPercentage(baseline.square_corner_accuracy) + ' avg' : 'N/A'}</span>
                                 </div>
                                 <div class="metric-item">
                                     <span>Triangle Closure:</span>
-                                    <span>${baseline.triangle_closure ? formatPercentage(baseline.triangle_closure) + ' avg' : 'N/A'}</span>
+                                    <span>${baseline.triangle_closure !== null && baseline.triangle_closure !== undefined ? formatPercentage(baseline.triangle_closure) + ' avg' : 'N/A'}</span>
                                 </div>
                             </div>
                         </div>
@@ -1685,19 +1685,19 @@
                                 <div class="group-title">Drawings Performance</div>
                                 <div class="metric-item">
                                     <span>Face Features:</span>
-                                    <span>${baseline.face_score ? formatPercentage(baseline.face_score) + ' avg' : 'N/A'}</span>
+                                    <span>${baseline.face_score !== null && baseline.face_score !== undefined ? formatPercentage(baseline.face_score) + ' avg' : 'N/A'}</span>
                                 </div>
                                 <div class="metric-item">
                                     <span>Star Points:</span>
-                                    <span>${baseline.star_score ? formatPercentage(baseline.star_score) + ' avg' : 'N/A'}</span>
+                                    <span>${baseline.star_score !== null && baseline.star_score !== undefined ? formatPercentage(baseline.star_score) + ' avg' : 'N/A'}</span>
                                 </div>
                                 <div class="metric-item">
                                     <span>House Structure:</span>
-                                    <span>${baseline.house_score ? formatPercentage(baseline.house_score) + ' avg' : 'N/A'}</span>
+                                    <span>${baseline.house_score !== null && baseline.house_score !== undefined ? formatPercentage(baseline.house_score) + ' avg' : 'N/A'}</span>
                                 </div>
                                 <div class="metric-item">
                                     <span>Connect Dots:</span>
-                                    <span>${baseline.connect_dots_score ? formatPercentage(baseline.connect_dots_score) + ' avg' : 'N/A'}</span>
+                                    <span>${baseline.connect_dots_score !== null && baseline.connect_dots_score !== undefined ? formatPercentage(baseline.connect_dots_score) + ' avg' : 'N/A'}</span>
                                 </div>
                             </div>
                         </div>
