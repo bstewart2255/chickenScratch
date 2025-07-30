@@ -2475,7 +2475,7 @@ function calculateDrawingBaseline(drawings) {
                     
                 if (enhancedFeatures && Object.keys(enhancedFeatures).length > 0) {
                     allEnhancedFeatures.push(enhancedFeatures);
-                    enhancedFeaturesEnabled = enhancedFeatures._enhanced_features_enabled || true;
+                    enhancedFeaturesEnabled = enhancedFeatures._enhanced_features_enabled ?? true;
                 }
             } catch (e) {
                 console.error('Error parsing drawing enhanced features:', e);
