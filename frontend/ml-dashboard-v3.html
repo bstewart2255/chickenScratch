@@ -773,6 +773,237 @@
             });
         }
 
+        // Render comprehensive enhanced biometric features
+        function renderComprehensiveEnhancedFeatures(attempt, baseline) {
+            if (!attempt._enhanced_features_enabled) {
+                return '';
+            }
+            
+            let html = '';
+            
+            // Pressure Analysis (conditional on device support)
+            if (!attempt._excluded_features?.includes('avg_pressure')) {
+                html += `
+                    <div class="data-group">
+                        <div class="data-group-title">Pressure Analysis</div>
+                        <div class="data-metric">
+                            <span class="metric-name">Avg Pressure:</span>
+                            <span class="metric-value">${formatMetricValue(attempt.avg_pressure?.toFixed(3), baseline.avg_pressure?.toFixed(3))}</span>
+                        </div>
+                        <div class="data-metric">
+                            <span class="metric-name">Max Pressure:</span>
+                            <span class="metric-value">${formatMetricValue(attempt.max_pressure?.toFixed(3), baseline.max_pressure?.toFixed(3))}</span>
+                        </div>
+                        <div class="data-metric">
+                            <span class="metric-name">Min Pressure:</span>
+                            <span class="metric-value">${formatMetricValue(attempt.min_pressure?.toFixed(3), baseline.min_pressure?.toFixed(3))}</span>
+                        </div>
+                        <div class="data-metric">
+                            <span class="metric-name">Pressure Std:</span>
+                            <span class="metric-value">${formatMetricValue(attempt.pressure_std?.toFixed(3), baseline.pressure_std?.toFixed(3))}</span>
+                        </div>
+                        <div class="data-metric">
+                            <span class="metric-name">Pressure Range:</span>
+                            <span class="metric-value">${formatMetricValue(attempt.pressure_range?.toFixed(3), baseline.pressure_range?.toFixed(3))}</span>
+                        </div>
+                        <div class="data-metric">
+                            <span class="metric-name">Contact Time Ratio:</span>
+                            <span class="metric-value">${formatMetricValue(attempt.contact_time_ratio?.toFixed(3), baseline.contact_time_ratio?.toFixed(3))}</span>
+                        </div>
+                        <div class="data-metric">
+                            <span class="metric-name">Pressure Buildup Rate:</span>
+                            <span class="metric-value">${formatMetricValue(attempt.pressure_buildup_rate?.toFixed(3), baseline.pressure_buildup_rate?.toFixed(3))}</span>
+                        </div>
+                        <div class="data-metric">
+                            <span class="metric-name">Pressure Release Rate:</span>
+                            <span class="metric-value">${formatMetricValue(attempt.pressure_release_rate?.toFixed(3), baseline.pressure_release_rate?.toFixed(3))}</span>
+                        </div>
+                    </div>`;
+            } else {
+                html += `
+                    <div class="data-group">
+                        <div class="data-group-title">Pressure Analysis</div>
+                        <div class="data-metric">
+                            <span class="metric-name">Pressure Features:</span>
+                            <span class="metric-value text-muted">Not supported on this device</span>
+                        </div>
+                    </div>`;
+            }
+            
+            // Behavioral Timing
+            html += `
+                <div class="data-group">
+                    <div class="data-group-title">Behavioral Timing</div>
+                    <div class="data-metric">
+                        <span class="metric-name">Pause Detection:</span>
+                        <span class="metric-value">${formatMetricValue(attempt.pause_count?.toFixed(1), baseline.pause_count?.toFixed(1))}</span>
+                    </div>
+                    <div class="data-metric">
+                        <span class="metric-name">Rhythm Consistency:</span>
+                        <span class="metric-value">${formatMetricValue(attempt.rhythm_consistency?.toFixed(3), baseline.rhythm_consistency?.toFixed(3))}</span>
+                    </div>
+                    <div class="data-metric">
+                        <span class="metric-name">Tempo Variation:</span>
+                        <span class="metric-value">${formatMetricValue(attempt.tempo_variation?.toFixed(3), baseline.tempo_variation?.toFixed(3))}</span>
+                    </div>
+                    <div class="data-metric">
+                        <span class="metric-name">Dwell Time Patterns:</span>
+                        <span class="metric-value">${formatMetricValue(attempt.dwell_time_patterns?.toFixed(3), baseline.dwell_time_patterns?.toFixed(3))}</span>
+                    </div>
+                    <div class="data-metric">
+                        <span class="metric-name">Inter Stroke Timing:</span>
+                        <span class="metric-value">${formatMetricValue(attempt.inter_stroke_timing?.toFixed(1), baseline.inter_stroke_timing?.toFixed(1))} ms</span>
+                    </div>
+                    <div class="data-metric">
+                        <span class="metric-name">Drawing Duration Total:</span>
+                        <span class="metric-value">${formatMetricValue(attempt.total_duration_ms?.toFixed(0), baseline.total_duration_ms?.toFixed(0))} ms</span>
+                    </div>
+                    <div class="data-metric">
+                        <span class="metric-name">Pause Time Ratio:</span>
+                        <span class="metric-value">${formatMetricValue(attempt.pause_time_ratio?.toFixed(3), baseline.pause_time_ratio?.toFixed(3))}</span>
+                    </div>
+                    <div class="data-metric">
+                        <span class="metric-name">Avg Stroke Duration:</span>
+                        <span class="metric-value">${formatMetricValue(attempt.avg_stroke_duration?.toFixed(1), baseline.avg_stroke_duration?.toFixed(1))} ms</span>
+                    </div>
+                </div>`;
+            
+            // Advanced Geometric
+            html += `
+                <div class="data-group">
+                    <div class="data-group-title">Advanced Geometric</div>
+                    <div class="data-metric">
+                        <span class="metric-name">Stroke Complexity:</span>
+                        <span class="metric-value">${formatMetricValue(attempt.stroke_complexity?.toFixed(3), baseline.stroke_complexity?.toFixed(3))}</span>
+                    </div>
+                    <div class="data-metric">
+                        <span class="metric-name">Tremor Index:</span>
+                        <span class="metric-value">${formatMetricValue(attempt.tremor_index?.toFixed(3), baseline.tremor_index?.toFixed(3))}</span>
+                    </div>
+                    <div class="data-metric">
+                        <span class="metric-name">Smoothness Index:</span>
+                        <span class="metric-value">${formatMetricValue(attempt.smoothness_index?.toFixed(3), baseline.smoothness_index?.toFixed(3))}</span>
+                    </div>
+                    <div class="data-metric">
+                        <span class="metric-name">Direction Changes:</span>
+                        <span class="metric-value">${formatMetricValue(attempt.direction_changes?.toFixed(1), baseline.direction_changes?.toFixed(1))}</span>
+                    </div>
+                    <div class="data-metric">
+                        <span class="metric-name">Curvature Analysis:</span>
+                        <span class="metric-value">${formatMetricValue(attempt.curvature_analysis?.toFixed(3), baseline.curvature_analysis?.toFixed(3))}</span>
+                    </div>
+                    <div class="data-metric">
+                        <span class="metric-name">Spatial Efficiency:</span>
+                        <span class="metric-value">${formatMetricValue(attempt.spatial_efficiency?.toFixed(3), baseline.spatial_efficiency?.toFixed(3))}</span>
+                    </div>
+                    <div class="data-metric">
+                        <span class="metric-name">Stroke Overlap Ratio:</span>
+                        <span class="metric-value">${formatMetricValue(attempt.stroke_overlap_ratio?.toFixed(3), baseline.stroke_overlap_ratio?.toFixed(3))}</span>
+                    </div>
+                </div>`;
+            
+            // Security Indicators
+            html += `
+                <div class="data-group">
+                    <div class="data-group-title">Security Indicators</div>
+                    <div class="data-metric">
+                        <span class="metric-name">Unnatural Pause Detection:</span>
+                        <span class="metric-value">${formatMetricValue(attempt.unnatural_pause_detection?.toFixed(3), baseline.unnatural_pause_detection?.toFixed(3))}</span>
+                    </div>
+                    <div class="data-metric">
+                        <span class="metric-name">Speed Anomaly Score:</span>
+                        <span class="metric-value">${formatMetricValue(attempt.speed_anomaly_score?.toFixed(3), baseline.speed_anomaly_score?.toFixed(3))}</span>
+                    </div>
+                    <div class="data-metric">
+                        <span class="metric-name">Pressure Anomaly Score:</span>
+                        <span class="metric-value">${formatMetricValue(attempt.pressure_anomaly_score?.toFixed(3), baseline.pressure_anomaly_score?.toFixed(3))}</span>
+                    </div>
+                    <div class="data-metric">
+                        <span class="metric-name">Timing Regularity Score:</span>
+                        <span class="metric-value">${formatMetricValue(attempt.timing_regularity_score?.toFixed(3), baseline.timing_regularity_score?.toFixed(3))}</span>
+                    </div>
+                    <div class="data-metric">
+                        <span class="metric-name">Device Consistency Score:</span>
+                        <span class="metric-value">${formatMetricValue(attempt.device_consistency_score?.toFixed(3), baseline.device_consistency_score?.toFixed(3))}</span>
+                    </div>
+                    <div class="data-metric">
+                        <span class="metric-name">Behavioral Authenticity Score:</span>
+                        <span class="metric-value">${formatMetricValue(attempt.behavioral_authenticity_score?.toFixed(3), baseline.behavioral_authenticity_score?.toFixed(3))}</span>
+                    </div>
+                </div>`;
+            
+            // Component-Specific Features
+            const componentType = attempt._component_type || 'signature';
+            
+            // Shape-specific features
+            if (['circle', 'square', 'triangle'].includes(componentType)) {
+                html += `
+                    <div class="data-group">
+                        <div class="data-group-title">Shape-Specific Features</div>`;
+                
+                if (attempt.start_position_analysis !== undefined) {
+                    html += `
+                        <div class="data-metric">
+                            <span class="metric-name">Start Position Analysis:</span>
+                            <span class="metric-value">${formatMetricValue(attempt.start_position_analysis?.toFixed(3), baseline.start_position_analysis?.toFixed(3))}</span>
+                        </div>`;
+                }
+                
+                if (attempt.closure_technique !== undefined) {
+                    html += `
+                        <div class="data-metric">
+                            <span class="metric-name">Closure Technique:</span>
+                            <span class="metric-value">${formatMetricValue(attempt.closure_technique?.toFixed(3), baseline.closure_technique?.toFixed(3))}</span>
+                        </div>`;
+                }
+                
+                if (attempt.corner_execution_pattern !== undefined) {
+                    html += `
+                        <div class="data-metric">
+                            <span class="metric-name">Corner Execution Pattern:</span>
+                            <span class="metric-value">${formatMetricValue(attempt.corner_execution_pattern?.toFixed(3), baseline.corner_execution_pattern?.toFixed(3))}</span>
+                        </div>`;
+                }
+                
+                html += `</div>`;
+            }
+            
+            // Drawing-specific features
+            if (['face', 'star', 'house', 'connect_dots'].includes(componentType)) {
+                html += `
+                    <div class="data-group">
+                        <div class="data-group-title">Drawing-Specific Features</div>`;
+                
+                if (attempt.stroke_sequence_pattern !== undefined) {
+                    html += `
+                        <div class="data-metric">
+                            <span class="metric-name">Stroke Sequence Pattern:</span>
+                            <span class="metric-value">${formatMetricValue(attempt.stroke_sequence_pattern?.toFixed(3), baseline.stroke_sequence_pattern?.toFixed(3))}</span>
+                        </div>`;
+                }
+                
+                if (attempt.spatial_relationship_consistency !== undefined) {
+                    html += `
+                        <div class="data-metric">
+                            <span class="metric-name">Spatial Relationship Consistency:</span>
+                            <span class="metric-value">${formatMetricValue(attempt.spatial_relationship_consistency?.toFixed(3), baseline.spatial_relationship_consistency?.toFixed(3))}</span>
+                        </div>`;
+                }
+                
+                if (attempt.artistic_style_fingerprint !== undefined) {
+                    html += `
+                        <div class="data-metric">
+                            <span class="metric-name">Artistic Style Fingerprint:</span>
+                            <span class="metric-value">${formatMetricValue(attempt.artistic_style_fingerprint?.toFixed(3), baseline.artistic_style_fingerprint?.toFixed(3))}</span>
+                        </div>`;
+                }
+                
+                html += `</div>`;
+            }
+            
+            return html;
+        }
+        
         // Render enhanced component features for shapes and drawings
         function renderEnhancedComponentFeatures(attempt, baseline) {
             // Check if we have enhanced features data
@@ -1154,6 +1385,8 @@
                             </div>
                             
                             ${renderEnhancedComponentFeatures(attempt, baseline)}
+                            
+                            ${renderComprehensiveEnhancedFeatures(attempt, baseline)}
 
                             <div class="data-group">
                                 <div class="data-group-title">Additional Metrics</div>
