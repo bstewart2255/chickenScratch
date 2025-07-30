@@ -369,8 +369,67 @@
             font-size: 12px;
             line-height: 1.5;
             color: #333;
-                }
+        }
 
+        /* Component Section Styles */
+        .component-data-section {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+
+        .signature-section {
+            background-color: #f8f9ff;
+            border-left-color: #4285f4;
+        }
+
+        .shape-section {
+            background-color: #fff8f0;
+            border-left-color: #ff9800;
+        }
+
+        .drawing-section {
+            background-color: #f0fff8;
+            border-left-color: #4caf50;
+        }
+
+        .system-section {
+            background-color: #f8f8f8;
+            border-left-color: #757575;
+        }
+
+        .component-header {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin: 0 0 15px 0;
+            color: #333;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 8px;
+        }
+
+        .component-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .component-content {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .component-data-section {
+                margin: 15px 0;
+                padding: 12px;
+            }
+            
+            .component-header {
+                font-size: 1em;
+                margin-bottom: 12px;
+            }
+        }
 
     </style>
 </head>
@@ -544,6 +603,37 @@
                 return `${value}/${baseline} (${percentage}%)`;
             }
             return `${value}`;
+        }
+
+        // Helper function to classify sections by component type
+        function getComponentType(sectionName) {
+            const signatureSections = [
+                'Core Metrics', 'Shape Analysis', 'Additional Metrics', 
+                'Pressure Analysis', 'Behavioral Timing', 'Geometric Complexity',
+                'Advanced Geometric', 'Security Indicators'
+            ];
+            
+            const shapeSections = [
+                'Shapes Performance', 'Shape Biometric Analysis',
+                'Shapes', 'Shape Metrics'
+            ];
+            
+            const drawingSections = [
+                'Drawings Performance', 'Drawing Biometric Analysis', 
+                'Drawings'
+            ];
+            
+            const systemSections = [
+                'Enhanced Feature Status',
+                'Device and Context'
+            ];
+            
+            if (signatureSections.includes(sectionName)) return 'signature';
+            if (shapeSections.includes(sectionName)) return 'shape';
+            if (drawingSections.includes(sectionName)) return 'drawing';
+            if (systemSections.includes(sectionName)) return 'system';
+            
+            return 'signature'; // Default fallback
         }
 
         // Format percentage value
@@ -938,256 +1028,292 @@
                 <div class="baseline-section">
                     <div class="baseline-title">📊 Baseline Reference (Enrollment + Verified Attempts)</div>
                     
-                    <!-- Row 1: Main baseline data (5 columns) -->
-                    <div class="baseline-grid baseline-grid-row1">
-                        <div class="baseline-group">
-                            <div class="group-title">Core Metrics</div>
-                            <div class="metric-item">
-                                <span>Stroke Count:</span>
-                                <span>${baseline.stroke_count?.toFixed(1) || 'N/A'} avg</span>
+                    <!-- Signature Data Subsection -->
+                    <div class="component-data-section signature-section">
+                        <h4 class="component-header">📝 Signature Data</h4>
+                        <div class="component-content">
+                            <div class="baseline-group">
+                                <div class="group-title">Core Metrics</div>
+                                <div class="metric-item">
+                                    <span>Stroke Count:</span>
+                                    <span>${baseline.stroke_count?.toFixed(1) || 'N/A'} avg</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Total Points:</span>
+                                    <span>${baseline.total_points?.toFixed(1) || 'N/A'} avg</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Duration (ms):</span>
+                                    <span>${baseline.total_duration_ms ? Math.round(baseline.total_duration_ms).toLocaleString() + ' avg' : 'N/A'}</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Avg Velocity:</span>
+                                    <span>${baseline.avg_velocity?.toFixed(3) || 'N/A'} avg</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Max Velocity:</span>
+                                    <span>${baseline.max_velocity?.toFixed(3) || 'N/A'} avg</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Velocity Std:</span>
+                                    <span>${baseline.velocity_std?.toFixed(3) || 'N/A'} avg</span>
+                                </div>
                             </div>
-                            <div class="metric-item">
-                                <span>Total Points:</span>
-                                <span>${baseline.total_points?.toFixed(1) || 'N/A'} avg</span>
+                            
+                            <div class="baseline-group">
+                                <div class="group-title">Shape Analysis</div>
+                                <div class="metric-item">
+                                    <span>Width:</span>
+                                    <span>${baseline.width ? Math.round(baseline.width) + ' avg' : 'N/A'}</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Height:</span>
+                                    <span>${baseline.height ? Math.round(baseline.height) + ' avg' : 'N/A'}</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Area:</span>
+                                    <span>${baseline.area ? Math.round(baseline.area).toLocaleString() + ' avg' : 'N/A'}</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Aspect Ratio:</span>
+                                    <span>${baseline.aspect_ratio?.toFixed(2) || 'N/A'} avg</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Center X:</span>
+                                    <span>${baseline.center_x ? Math.round(baseline.center_x) + ' avg' : 'N/A'}</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Center Y:</span>
+                                    <span>${baseline.center_y ? Math.round(baseline.center_y) + ' avg' : 'N/A'}</span>
+                                </div>
                             </div>
-                            <div class="metric-item">
-                                <span>Duration (ms):</span>
-                                <span>${baseline.total_duration_ms ? Math.round(baseline.total_duration_ms).toLocaleString() + ' avg' : 'N/A'}</span>
+                            
+                            <div class="baseline-group">
+                                <div class="group-title">Additional Metrics</div>
+                                <div class="metric-item">
+                                    <span>Stroke Length Avg:</span>
+                                    <span>${baseline.avg_stroke_length?.toFixed(1) || 'N/A'} avg</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Stroke Length Std:</span>
+                                    <span>${baseline.length_variation?.toFixed(1) || 'N/A'} avg</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Pressure Avg:</span>
+                                    <span>${baseline._excluded_features?.includes('avg_pressure') ? 'N/A' : (baseline.avg_pressure?.toFixed(2) || 'N/A')} avg</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Pause Count:</span>
+                                    <span>${baseline.pause_detection?.toFixed(0) || 'N/A'} avg</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Direction Changes:</span>
+                                    <span>${baseline.direction_changes?.toFixed(1) || 'N/A'} avg</span>
+                                </div>
                             </div>
-                            <div class="metric-item">
-                                <span>Avg Velocity:</span>
-                                <span>${baseline.avg_velocity?.toFixed(3) || 'N/A'} avg</span>
+                            
+                            <div class="baseline-group">
+                                <div class="group-title">Pressure Analysis</div>
+                                <div class="metric-item">
+                                    <span>Avg Pressure:</span>
+                                    <span>${baseline._excluded_features?.includes('avg_pressure') ? 'Not supported' : (baseline.avg_pressure?.toFixed(2) + ' avg' || 'N/A')}</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Max Pressure:</span>
+                                    <span>${baseline._excluded_features?.includes('max_pressure') ? 'Not supported' : (baseline.max_pressure?.toFixed(2) + ' avg' || 'N/A')}</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Min Pressure:</span>
+                                    <span>${baseline._excluded_features?.includes('min_pressure') ? 'Not supported' : (baseline.min_pressure?.toFixed(2) + ' avg' || 'N/A')}</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Pressure Std:</span>
+                                    <span>${baseline._excluded_features?.includes('pressure_std') ? 'Not supported' : (baseline.pressure_std?.toFixed(2) + ' avg' || 'N/A')}</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Pressure Range:</span>
+                                    <span>${baseline._excluded_features?.includes('pressure_range') ? 'Not supported' : (baseline.pressure_range?.toFixed(2) + ' avg' || 'N/A')}</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Contact Time Ratio:</span>
+                                    <span>${baseline._excluded_features?.includes('contact_time_ratio') ? 'Not supported' : (baseline.contact_time_ratio?.toFixed(2) + ' avg' || 'N/A')}</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Pressure Buildup Rate:</span>
+                                    <span>${baseline._excluded_features?.includes('pressure_buildup_rate') ? 'Not supported' : (baseline.pressure_buildup_rate?.toFixed(2) + ' avg' || 'N/A')}</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Pressure Release Rate:</span>
+                                    <span>${baseline._excluded_features?.includes('pressure_release_rate') ? 'Not supported' : (baseline.pressure_release_rate?.toFixed(2) + ' avg' || 'N/A')}</span>
+                                </div>
                             </div>
-                            <div class="metric-item">
-                                <span>Max Velocity:</span>
-                                <span>${baseline.max_velocity?.toFixed(3) || 'N/A'} avg</span>
+                            
+                            <div class="baseline-group">
+                                <div class="group-title">Behavioral Timing</div>
+                                <div class="metric-item">
+                                    <span>Pause Count:</span>
+                                    <span>${baseline.pause_detection?.toFixed(0) || 'N/A'} avg</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Rhythm Consistency:</span>
+                                    <span>${baseline.rhythm_consistency?.toFixed(1) || 'N/A'} avg</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Tempo Variation:</span>
+                                    <span>${baseline.tempo_variation?.toFixed(1) || 'N/A'} avg</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Dwell Time Patterns:</span>
+                                    <span>${baseline.dwell_time_patterns?.toFixed(1) || 'N/A'} avg</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Inter Stroke Timing:</span>
+                                    <span>${baseline.inter_stroke_timing?.toFixed(1) || 'N/A'} ms avg</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Total Duration:</span>
+                                    <span>${baseline.drawing_duration_total ? Math.round(baseline.drawing_duration_total).toLocaleString() + ' ms avg' : 'N/A'}</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Pause Time Ratio:</span>
+                                    <span>${baseline.pause_time_ratio?.toFixed(2) || 'N/A'} avg</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Avg Stroke Duration:</span>
+                                    <span>${baseline.avg_stroke_duration?.toFixed(1) || 'N/A'} ms avg</span>
+                                </div>
                             </div>
-                            <div class="metric-item">
-                                <span>Velocity Std:</span>
-                                <span>${baseline.velocity_std?.toFixed(3) || 'N/A'} avg</span>
+                            
+                            <div class="baseline-group">
+                                <div class="group-title">Geometric Complexity</div>
+                                <div class="metric-item">
+                                    <span>Stroke Complexity:</span>
+                                    <span>${baseline.stroke_complexity?.toFixed(2) || 'N/A'} avg</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Tremor Index:</span>
+                                    <span>${baseline.tremor_index?.toFixed(2) || 'N/A'} avg</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Smoothness Index:</span>
+                                    <span>${baseline.smoothness_index?.toFixed(2) || 'N/A'} avg</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Direction Changes:</span>
+                                    <span>${baseline.direction_changes?.toFixed(1) || 'N/A'} avg</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Curvature Analysis:</span>
+                                    <span>${baseline.curvature_analysis?.toFixed(3) || 'N/A'} avg</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Spatial Efficiency:</span>
+                                    <span>${baseline.spatial_efficiency?.toFixed(1) || 'N/A'} avg</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Stroke Overlap Ratio:</span>
+                                    <span>${baseline.stroke_overlap_ratio?.toFixed(3) || 'N/A'} avg</span>
+                                </div>
                             </div>
-                        </div>
-
-                        <div class="baseline-group">
-                            <div class="group-title">Shape Metrics</div>
-                            <div class="metric-item">
-                                <span>Width:</span>
-                                <span>${baseline.width ? Math.round(baseline.width) + ' avg' : 'N/A'}</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Height:</span>
-                                <span>${baseline.height ? Math.round(baseline.height) + ' avg' : 'N/A'}</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Area:</span>
-                                <span>${baseline.area ? Math.round(baseline.area).toLocaleString() + ' avg' : 'N/A'}</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Aspect Ratio:</span>
-                                <span>${baseline.aspect_ratio?.toFixed(2) || 'N/A'} avg</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Center X:</span>
-                                <span>${baseline.center_x ? Math.round(baseline.center_x) + ' avg' : 'N/A'}</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Center Y:</span>
-                                <span>${baseline.center_y ? Math.round(baseline.center_y) + ' avg' : 'N/A'}</span>
-                            </div>
-                        </div>
-
-                        <div class="baseline-group">
-                            <div class="group-title">Shapes</div>
-                            <div class="metric-item">
-                                <span>Circle Roundness:</span>
-                                <span>${baseline.circle_roundness ? formatPercentage(baseline.circle_roundness) + ' avg' : 'N/A'}</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Square Corners:</span>
-                                <span>${baseline.square_corner_accuracy ? formatPercentage(baseline.square_corner_accuracy) + ' avg' : 'N/A'}</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Triangle Closure:</span>
-                                <span>${baseline.triangle_closure ? formatPercentage(baseline.triangle_closure) + ' avg' : 'N/A'}</span>
-                            </div>
-                        </div>
-
-                        <div class="baseline-group">
-                            <div class="group-title">Drawings</div>
-                            <div class="metric-item">
-                                <span>Face Features:</span>
-                                <span>${baseline.face_score ? formatPercentage(baseline.face_score) + ' avg' : 'N/A'}</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Star Points:</span>
-                                <span>${baseline.star_score ? formatPercentage(baseline.star_score) + ' avg' : 'N/A'}</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>House Structure:</span>
-                                <span>${baseline.house_score ? formatPercentage(baseline.house_score) + ' avg' : 'N/A'}</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Connect Dots:</span>
-                                <span>${baseline.connect_dots_score ? formatPercentage(baseline.connect_dots_score) + ' avg' : 'N/A'}</span>
-                            </div>
-                        </div>
-
-                        <div class="baseline-group">
-                            <div class="group-title">Additional Metrics</div>
-                            <div class="metric-item">
-                                <span>Stroke Length Avg:</span>
-                                <span>${baseline.avg_stroke_length?.toFixed(1) || 'N/A'} avg</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Stroke Length Std:</span>
-                                <span>${baseline.length_variation?.toFixed(1) || 'N/A'} avg</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Pressure Avg:</span>
-                                <span>${baseline._excluded_features?.includes('avg_pressure') ? 'N/A' : (baseline.avg_pressure?.toFixed(2) || 'N/A')} avg</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Pause Count:</span>
-                                <span>${baseline.pause_detection?.toFixed(0) || 'N/A'} avg</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Direction Changes:</span>
-                                <span>${baseline.direction_changes?.toFixed(1) || 'N/A'} avg</span>
+                            
+                            <div class="baseline-group">
+                                <div class="group-title">Security Indicators</div>
+                                <div class="metric-item">
+                                    <span>Unnatural Pause Detection:</span>
+                                    <span>${baseline.unnatural_pause_detection?.toFixed(3) || '0.000'} avg</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Speed Anomaly Score:</span>
+                                    <span>${baseline.speed_anomaly_score?.toFixed(2) || 'N/A'} avg</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Pressure Anomaly Score:</span>
+                                    <span>${baseline._excluded_features?.includes('pressure_anomaly_score') ? 'Not supported' : (baseline.pressure_anomaly_score?.toFixed(3) || '0.000') + ' avg'}</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Timing Regularity Score:</span>
+                                    <span>${baseline.timing_regularity_score?.toFixed(2) || 'N/A'} avg</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Device Consistency Score:</span>
+                                    <span>${baseline.device_consistency_score?.toFixed(2) || 'N/A'} avg</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Behavioral Authenticity Score:</span>
+                                    <span>${baseline.behavioral_authenticity_score?.toFixed(2) || 'N/A'} avg</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Row 2: Enhanced Biometric Features (4 columns) -->
-                    <div class="baseline-grid baseline-grid-row2">
-                        <div class="baseline-group">
-                            <div class="group-title">Pressure Analysis</div>
-                            <div class="metric-item">
-                                <span>Avg Pressure:</span>
-                                <span>${baseline._excluded_features?.includes('avg_pressure') ? 'Not supported' : (baseline.avg_pressure?.toFixed(2) + ' avg' || 'N/A')}</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Max Pressure:</span>
-                                <span>${baseline._excluded_features?.includes('max_pressure') ? 'Not supported' : (baseline.max_pressure?.toFixed(2) + ' avg' || 'N/A')}</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Min Pressure:</span>
-                                <span>${baseline._excluded_features?.includes('min_pressure') ? 'Not supported' : (baseline.min_pressure?.toFixed(2) + ' avg' || 'N/A')}</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Pressure Std:</span>
-                                <span>${baseline._excluded_features?.includes('pressure_std') ? 'Not supported' : (baseline.pressure_std?.toFixed(2) + ' avg' || 'N/A')}</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Pressure Range:</span>
-                                <span>${baseline._excluded_features?.includes('pressure_range') ? 'Not supported' : (baseline.pressure_range?.toFixed(2) + ' avg' || 'N/A')}</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Contact Time Ratio:</span>
-                                <span>${baseline._excluded_features?.includes('contact_time_ratio') ? 'Not supported' : (baseline.contact_time_ratio?.toFixed(2) + ' avg' || 'N/A')}</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Pressure Buildup Rate:</span>
-                                <span>${baseline._excluded_features?.includes('pressure_buildup_rate') ? 'Not supported' : (baseline.pressure_buildup_rate?.toFixed(2) + ' avg' || 'N/A')}</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Pressure Release Rate:</span>
-                                <span>${baseline._excluded_features?.includes('pressure_release_rate') ? 'Not supported' : (baseline.pressure_release_rate?.toFixed(2) + ' avg' || 'N/A')}</span>
+                    
+                    <!-- Shape Data Subsection -->
+                    <div class="component-data-section shape-section">
+                        <h4 class="component-header">🔺 Shape Data</h4>
+                        <div class="component-content">
+                            <div class="baseline-group">
+                                <div class="group-title">Shapes Performance</div>
+                                <div class="metric-item">
+                                    <span>Circle Roundness:</span>
+                                    <span>${baseline.circle_roundness ? formatPercentage(baseline.circle_roundness) + ' avg' : 'N/A'}</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Square Corners:</span>
+                                    <span>${baseline.square_corner_accuracy ? formatPercentage(baseline.square_corner_accuracy) + ' avg' : 'N/A'}</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Triangle Closure:</span>
+                                    <span>${baseline.triangle_closure ? formatPercentage(baseline.triangle_closure) + ' avg' : 'N/A'}</span>
+                                </div>
                             </div>
                         </div>
-
-                        <div class="baseline-group">
-                            <div class="group-title">Behavioral Timing</div>
-                            <div class="metric-item">
-                                <span>Pause Count:</span>
-                                <span>${baseline.pause_detection?.toFixed(0) || 'N/A'} avg</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Rhythm Consistency:</span>
-                                <span>${baseline.rhythm_consistency?.toFixed(1) || 'N/A'} avg</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Tempo Variation:</span>
-                                <span>${baseline.tempo_variation?.toFixed(1) || 'N/A'} avg</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Dwell Time Patterns:</span>
-                                <span>${baseline.dwell_time_patterns?.toFixed(1) || 'N/A'} avg</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Inter Stroke Timing:</span>
-                                <span>${baseline.inter_stroke_timing?.toFixed(1) || 'N/A'} ms avg</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Total Duration:</span>
-                                <span>${baseline.drawing_duration_total ? Math.round(baseline.drawing_duration_total).toLocaleString() + ' ms avg' : 'N/A'}</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Pause Time Ratio:</span>
-                                <span>${baseline.pause_time_ratio?.toFixed(2) || 'N/A'} avg</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Avg Stroke Duration:</span>
-                                <span>${baseline.avg_stroke_duration?.toFixed(1) || 'N/A'} ms avg</span>
+                    </div>
+                    
+                    <!-- Drawing Data Subsection -->
+                    <div class="component-data-section drawing-section">
+                        <h4 class="component-header">🎨 Drawing Data</h4>
+                        <div class="component-content">
+                            <div class="baseline-group">
+                                <div class="group-title">Drawings Performance</div>
+                                <div class="metric-item">
+                                    <span>Face Features:</span>
+                                    <span>${baseline.face_score ? formatPercentage(baseline.face_score) + ' avg' : 'N/A'}</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Star Points:</span>
+                                    <span>${baseline.star_score ? formatPercentage(baseline.star_score) + ' avg' : 'N/A'}</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>House Structure:</span>
+                                    <span>${baseline.house_score ? formatPercentage(baseline.house_score) + ' avg' : 'N/A'}</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span>Connect Dots:</span>
+                                    <span>${baseline.connect_dots_score ? formatPercentage(baseline.connect_dots_score) + ' avg' : 'N/A'}</span>
+                                </div>
                             </div>
                         </div>
-
-                        <div class="baseline-group">
-                            <div class="group-title">Geometric Complexity</div>
-                            <div class="metric-item">
-                                <span>Stroke Complexity:</span>
-                                <span>${baseline.stroke_complexity?.toFixed(2) || 'N/A'} avg</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Tremor Index:</span>
-                                <span>${baseline.tremor_index?.toFixed(2) || 'N/A'} avg</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Smoothness Index:</span>
-                                <span>${baseline.smoothness_index?.toFixed(2) || 'N/A'} avg</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Direction Changes:</span>
-                                <span>${baseline.direction_changes?.toFixed(1) || 'N/A'} avg</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Curvature Analysis:</span>
-                                <span>${baseline.curvature_analysis?.toFixed(3) || 'N/A'} avg</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Spatial Efficiency:</span>
-                                <span>${baseline.spatial_efficiency?.toFixed(1) || 'N/A'} avg</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Stroke Overlap Ratio:</span>
-                                <span>${baseline.stroke_overlap_ratio?.toFixed(3) || 'N/A'} avg</span>
-                            </div>
-                        </div>
-
-                        <div class="baseline-group">
-                            <div class="group-title">Security Indicators</div>
-                            <div class="metric-item">
-                                <span>Unnatural Pause Detection:</span>
-                                <span>${baseline.unnatural_pause_detection?.toFixed(3) || '0.000'} avg</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Speed Anomaly Score:</span>
-                                <span>${baseline.speed_anomaly_score?.toFixed(2) || 'N/A'} avg</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Pressure Anomaly Score:</span>
-                                <span>${baseline._excluded_features?.includes('pressure_anomaly_score') ? 'Not supported' : (baseline.pressure_anomaly_score?.toFixed(3) || '0.000') + ' avg'}</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Timing Regularity Score:</span>
-                                <span>${baseline.timing_regularity_score?.toFixed(2) || 'N/A'} avg</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Device Consistency Score:</span>
-                                <span>${baseline.device_consistency_score?.toFixed(2) || 'N/A'} avg</span>
-                            </div>
-                            <div class="metric-item">
-                                <span>Behavioral Authenticity Score:</span>
-                                <span>${baseline.behavioral_authenticity_score?.toFixed(2) || 'N/A'} avg</span>
+                    </div>
+                    
+                    <!-- System Data Subsection -->
+                    <div class="component-data-section system-section">
+                        <h4 class="component-header">ℹ️ System Data</h4>
+                        <div class="component-content">
+                            <div class="baseline-group">
+                                <div class="group-title">Enhanced Feature Status</div>
+                                <div class="metric-item">
+                                    <span>Enhanced Features:</span>
+                                    <span>${baseline._enhanced_features_enabled ? '✓ Enabled' : 'Disabled'}</span>
+                                </div>
+                                ${baseline._excluded_features && baseline._excluded_features.length > 0 ? `
+                                <div class="metric-item">
+                                    <span>Excluded Features:</span>
+                                    <span>${baseline._excluded_features.join(', ')}</span>
+                                </div>` : ''}
+                                ${baseline._feature_extraction_version ? `
+                                <div class="metric-item">
+                                    <span>Feature Version:</span>
+                                    <span>${baseline._feature_extraction_version}</span>
+                                </div>` : ''}
                             </div>
                         </div>
                     </div>
@@ -1207,7 +1333,7 @@
                     <div class="attempt-card">
                         <div class="attempt-header">
                             <div class="attempt-info">
-                                <div class="attempt-title">Attempt #${attemptNumber}</div>
+                                <div class="attempt-title">🔍 Attempt #${attemptNumber}</div>
                                 <div class="attempt-meta">${formatTimestamp(attempt.timestamp)} • ${attempt.device_type || 'Unknown'} • ${attempt.browser || 'Unknown'}</div>
                             </div>
                             <div class="attempt-result">
@@ -1216,132 +1342,193 @@
                             </div>
                         </div>
                         
-                        <div class="attempt-data">
-                            <div class="data-group">
-                                <div class="data-group-title">Core Metrics</div>
-                                <div class="data-metric">
-                                    <span class="metric-name">Stroke Count:</span>
-                                    <span class="metric-value">${formatMetricValue(attempt.stroke_count, baseline.stroke_count)}</span>
+                        <!-- Signature Data Subsection -->
+                        <div class="component-data-section signature-section">
+                            <h4 class="component-header">📝 Signature Data</h4>
+                            <div class="component-content">
+                                <div class="data-group">
+                                    <div class="data-group-title">Core Metrics</div>
+                                    <div class="data-metric">
+                                        <span class="metric-name">Stroke Count:</span>
+                                        <span class="metric-value">${formatMetricValue(attempt.stroke_count, baseline.stroke_count)}</span>
+                                    </div>
+                                    <div class="data-metric">
+                                        <span class="metric-name">Total Points:</span>
+                                        <span class="metric-value">${formatMetricValue(attempt.total_points, baseline.total_points)}</span>
+                                    </div>
+                                    <div class="data-metric">
+                                        <span class="metric-name">Duration (ms):</span>
+                                        <span class="metric-value">${formatMetricValue(Math.round(attempt.total_duration_ms), baseline.total_duration_ms ? Math.round(baseline.total_duration_ms) : null)}</span>
+                                    </div>
+                                    <div class="data-metric">
+                                        <span class="metric-name">Avg Velocity:</span>
+                                        <span class="metric-value">${formatMetricValue(attempt.avg_velocity?.toFixed(3), baseline.avg_velocity?.toFixed(3))}</span>
+                                    </div>
+                                    <div class="data-metric">
+                                        <span class="metric-name">Max Velocity:</span>
+                                        <span class="metric-value">${formatMetricValue(attempt.max_velocity?.toFixed(3), baseline.max_velocity?.toFixed(3))}</span>
+                                    </div>
+                                    <div class="data-metric">
+                                        <span class="metric-name">Velocity Std:</span>
+                                        <span class="metric-value">${formatMetricValue(attempt.velocity_std?.toFixed(3), baseline.velocity_std?.toFixed(3))}</span>
+                                    </div>
                                 </div>
-                                <div class="data-metric">
-                                    <span class="metric-name">Total Points:</span>
-                                    <span class="metric-value">${formatMetricValue(attempt.total_points, baseline.total_points)}</span>
-                                </div>
-                                <div class="data-metric">
-                                    <span class="metric-name">Duration (ms):</span>
-                                    <span class="metric-value">${formatMetricValue(Math.round(attempt.total_duration_ms), baseline.total_duration_ms ? Math.round(baseline.total_duration_ms) : null)}</span>
-                                </div>
-                                <div class="data-metric">
-                                    <span class="metric-name">Avg Velocity:</span>
-                                    <span class="metric-value">${formatMetricValue(attempt.avg_velocity?.toFixed(3), baseline.avg_velocity?.toFixed(3))}</span>
-                                </div>
-                                <div class="data-metric">
-                                    <span class="metric-name">Max Velocity:</span>
-                                    <span class="metric-value">${formatMetricValue(attempt.max_velocity?.toFixed(3), baseline.max_velocity?.toFixed(3))}</span>
-                                </div>
-                                <div class="data-metric">
-                                    <span class="metric-name">Velocity Std:</span>
-                                    <span class="metric-value">${formatMetricValue(attempt.velocity_std?.toFixed(3), baseline.velocity_std?.toFixed(3))}</span>
-                                </div>
-                            </div>
 
-                            <div class="data-group">
-                                <div class="data-group-title">Shape Analysis</div>
-                                <div class="data-metric">
-                                    <span class="metric-name">Width:</span>
-                                    <span class="metric-value">${formatMetricValue(Math.round(attempt.width), Math.round(baseline.width))}</span>
+                                <div class="data-group">
+                                    <div class="data-group-title">Shape Analysis</div>
+                                    <div class="data-metric">
+                                        <span class="metric-name">Width:</span>
+                                        <span class="metric-value">${formatMetricValue(Math.round(attempt.width), Math.round(baseline.width))}</span>
+                                    </div>
+                                    <div class="data-metric">
+                                        <span class="metric-name">Height:</span>
+                                        <span class="metric-value">${formatMetricValue(Math.round(attempt.height), Math.round(baseline.height))}</span>
+                                    </div>
+                                    <div class="data-metric">
+                                        <span class="metric-name">Area:</span>
+                                        <span class="metric-value">${formatMetricValue(Math.round(attempt.area), Math.round(baseline.area))}</span>
+                                    </div>
+                                    <div class="data-metric">
+                                        <span class="metric-name">Aspect Ratio:</span>
+                                        <span class="metric-value">${formatMetricValue(attempt.aspect_ratio?.toFixed(2), baseline.aspect_ratio?.toFixed(2))}</span>
+                                    </div>
+                                    <div class="data-metric">
+                                        <span class="metric-name">Center X:</span>
+                                        <span class="metric-value">${formatMetricValue(Math.round(attempt.center_x), baseline.center_x ? Math.round(baseline.center_x) : null)}</span>
+                                    </div>
+                                    <div class="data-metric">
+                                        <span class="metric-name">Center Y:</span>
+                                        <span class="metric-value">${formatMetricValue(Math.round(attempt.center_y), baseline.center_y ? Math.round(baseline.center_y) : null)}</span>
+                                    </div>
                                 </div>
-                                <div class="data-metric">
-                                    <span class="metric-name">Height:</span>
-                                    <span class="metric-value">${formatMetricValue(Math.round(attempt.height), Math.round(baseline.height))}</span>
-                                </div>
-                                <div class="data-metric">
-                                    <span class="metric-name">Area:</span>
-                                    <span class="metric-value">${formatMetricValue(Math.round(attempt.area), Math.round(baseline.area))}</span>
-                                </div>
-                                <div class="data-metric">
-                                    <span class="metric-name">Aspect Ratio:</span>
-                                    <span class="metric-value">${formatMetricValue(attempt.aspect_ratio?.toFixed(2), baseline.aspect_ratio?.toFixed(2))}</span>
-                                </div>
-                                <div class="data-metric">
-                                    <span class="metric-name">Center X:</span>
-                                    <span class="metric-value">${formatMetricValue(Math.round(attempt.center_x), baseline.center_x ? Math.round(baseline.center_x) : null)}</span>
-                                </div>
-                                <div class="data-metric">
-                                    <span class="metric-name">Center Y:</span>
-                                    <span class="metric-value">${formatMetricValue(Math.round(attempt.center_y), baseline.center_y ? Math.round(baseline.center_y) : null)}</span>
-                                </div>
-                            </div>
 
-                            <div class="data-group">
-                                <div class="data-group-title">Shapes Performance</div>
-                                <div class="data-metric">
-                                    <span class="metric-name">Circle Score:</span>
-                                    <span class="metric-value">${formatPercentage(attempt.shape_scores?.circle)} (Roundness: ${formatMetricValue(attempt.circle_roundness, baseline.circle_roundness, false)}%)</span>
+                                <div class="data-group">
+                                    <div class="data-group-title">Additional Metrics</div>
+                                    <div class="data-metric">
+                                        <span class="metric-name">Stroke Length Avg:</span>
+                                        <span class="metric-value">${formatMetricValue(attempt.avg_stroke_length?.toFixed(1), baseline.avg_stroke_length?.toFixed(1))}</span>
+                                    </div>
+                                    <div class="data-metric">
+                                        <span class="metric-name">Stroke Length Std:</span>
+                                        <span class="metric-value">${formatMetricValue(attempt.length_variation?.toFixed(1), baseline.length_variation?.toFixed(1))}</span>
+                                    </div>
                                 </div>
-                                <div class="data-metric">
-                                    <span class="metric-name">Square Score:</span>
-                                    <span class="metric-value">${formatPercentage(attempt.shape_scores?.square)} (Corners: ${formatMetricValue(attempt.square_corner_accuracy, baseline.square_corner_accuracy, false)}%)</span>
-                                </div>
-                                <div class="data-metric">
-                                    <span class="metric-name">Triangle Score:</span>
-                                    <span class="metric-value">${formatPercentage(attempt.shape_scores?.triangle)} (Closure: ${formatMetricValue(attempt.triangle_closure, baseline.triangle_closure, false)}%)</span>
-                                </div>
+                                
+                                ${renderComprehensiveEnhancedFeatures(attempt, baseline)}
                             </div>
-
-                            <div class="data-group">
-                                <div class="data-group-title">Drawings Performance</div>
-                                <div class="data-metric">
-                                    <span class="metric-name">Face Score:</span>
-                                    <span class="metric-value">${formatPercentage(attempt.drawing_scores?.face)}</span>
+                        </div>
+                        
+                        <!-- Shape Data Subsection -->
+                        <div class="component-data-section shape-section">
+                            <h4 class="component-header">🔺 Shape Data</h4>
+                            <div class="component-content">
+                                <div class="data-group">
+                                    <div class="data-group-title">Shapes Performance</div>
+                                    <div class="data-metric">
+                                        <span class="metric-name">Circle Score:</span>
+                                        <span class="metric-value">${formatPercentage(attempt.shape_scores?.circle)} (Roundness: ${formatMetricValue(attempt.circle_roundness, baseline.circle_roundness, false)}%)</span>
+                                    </div>
+                                    <div class="data-metric">
+                                        <span class="metric-name">Square Score:</span>
+                                        <span class="metric-value">${formatPercentage(attempt.shape_scores?.square)} (Corners: ${formatMetricValue(attempt.square_corner_accuracy, baseline.square_corner_accuracy, false)}%)</span>
+                                    </div>
+                                    <div class="data-metric">
+                                        <span class="metric-name">Triangle Score:</span>
+                                        <span class="metric-value">${formatPercentage(attempt.shape_scores?.triangle)} (Closure: ${formatMetricValue(attempt.triangle_closure, baseline.triangle_closure, false)}%)</span>
+                                    </div>
                                 </div>
-                                <div class="data-metric">
-                                    <span class="metric-name">Star Score:</span>
-                                    <span class="metric-value">${formatPercentage(attempt.drawing_scores?.star)}</span>
-                                </div>
-                                <div class="data-metric">
-                                    <span class="metric-name">House Score:</span>
-                                    <span class="metric-value">${attempt.drawing_scores?.house !== null && attempt.drawing_scores?.house !== undefined ? formatPercentage(attempt.drawing_scores.house) : 'N/A'}</span>
-                                </div>
-                                <div class="data-metric">
-                                    <span class="metric-name">Connect Dots:</span>
-                                    <span class="metric-value">${attempt.drawing_scores?.connect_dots !== null && attempt.drawing_scores?.connect_dots !== undefined ? formatPercentage(attempt.drawing_scores.connect_dots) : 'N/A'}</span>
-                                </div>
+                                ${attempt.shape_biometric_scores || attempt.shape_enhanced_features ? `
+                                <div class="data-group">
+                                    <div class="data-group-title">Shape Biometric Analysis</div>
+                                    ${attempt.shape_biometric_scores ? Object.keys(attempt.shape_biometric_scores).map(shape => `
+                                        <div class="data-metric">
+                                            <span class="metric-name">${shape.charAt(0).toUpperCase() + shape.slice(1)} Biometric:</span>
+                                            <span class="metric-value">B: ${formatPercentage(attempt.shape_biometric_scores[shape].biometric)}, G: ${formatPercentage(attempt.shape_biometric_scores[shape].geometric)}</span>
+                                        </div>
+                                    `).join('') : ''}
+                                </div>` : ''}
                             </div>
-                            
-                            ${renderEnhancedComponentFeatures(attempt, baseline)}
-                            
-                            ${renderComprehensiveEnhancedFeatures(attempt, baseline)}
-
-                            <div class="data-group">
-                                <div class="data-group-title">Additional Metrics</div>
-                                <div class="data-metric">
-                                    <span class="metric-name">Stroke Length Avg:</span>
-                                    <span class="metric-value">${formatMetricValue(attempt.avg_stroke_length?.toFixed(1), baseline.avg_stroke_length?.toFixed(1))}</span>
+                        </div>
+                        
+                        <!-- Drawing Data Subsection -->
+                        <div class="component-data-section drawing-section">
+                            <h4 class="component-header">🎨 Drawing Data</h4>
+                            <div class="component-content">
+                                <div class="data-group">
+                                    <div class="data-group-title">Drawings Performance</div>
+                                    <div class="data-metric">
+                                        <span class="metric-name">Face Score:</span>
+                                        <span class="metric-value">${formatPercentage(attempt.drawing_scores?.face)}</span>
+                                    </div>
+                                    <div class="data-metric">
+                                        <span class="metric-name">Star Score:</span>
+                                        <span class="metric-value">${formatPercentage(attempt.drawing_scores?.star)}</span>
+                                    </div>
+                                    <div class="data-metric">
+                                        <span class="metric-name">House Score:</span>
+                                        <span class="metric-value">${attempt.drawing_scores?.house !== null && attempt.drawing_scores?.house !== undefined ? formatPercentage(attempt.drawing_scores.house) : 'N/A'}</span>
+                                    </div>
+                                    <div class="data-metric">
+                                        <span class="metric-name">Connect Dots:</span>
+                                        <span class="metric-value">${attempt.drawing_scores?.connect_dots !== null && attempt.drawing_scores?.connect_dots !== undefined ? formatPercentage(attempt.drawing_scores.connect_dots) : 'N/A'}</span>
+                                    </div>
                                 </div>
-                                <div class="data-metric">
-                                    <span class="metric-name">Stroke Length Std:</span>
-                                    <span class="metric-value">${formatMetricValue(attempt.length_variation?.toFixed(1), baseline.length_variation?.toFixed(1))}</span>
-                                </div>
+                                ${attempt.drawing_biometric_scores || attempt.drawing_enhanced_features ? `
+                                <div class="data-group">
+                                    <div class="data-group-title">Drawing Biometric Analysis</div>
+                                    ${attempt.drawing_biometric_scores ? Object.keys(attempt.drawing_biometric_scores).map(drawing => {
+                                        const drawingName = drawing === 'connect_dots' ? 'Connect Dots' : drawing.charAt(0).toUpperCase() + drawing.slice(1);
+                                        return `
+                                        <div class="data-metric">
+                                            <span class="metric-name">${drawingName} Biometric:</span>
+                                            <span class="metric-value">B: ${formatPercentage(attempt.drawing_biometric_scores[drawing].biometric)}, G: ${formatPercentage(attempt.drawing_biometric_scores[drawing].geometric)}</span>
+                                        </div>
+                                    `}).join('') : ''}
+                                </div>` : ''}
                             </div>
-
-                            <div class="data-group">
-                                <div class="data-group-title">Device & Context</div>
-                                <div class="data-metric">
-                                    <span class="metric-name">Device Type:</span>
-                                    <span class="metric-value">${attempt.device_type || 'Unknown'}</span>
-                                </div>
-                                <div class="data-metric">
-                                    <span class="metric-name">Browser:</span>
-                                    <span class="metric-value">${attempt.browser || 'Unknown'}</span>
-                                </div>
-                                <div class="data-metric">
-                                    <span class="metric-name">Input Method:</span>
-                                    <span class="metric-value">${attempt.input_method || 'Unknown'}</span>
-                                </div>
-                                <div class="data-metric">
-                                    <span class="metric-name">Canvas Coverage:</span>
-                                    <span class="metric-value">${formatPercentage(attempt.canvas_coverage)}</span>
+                        </div>
+                        
+                        <!-- System Data Subsection -->
+                        <div class="component-data-section system-section">
+                            <h4 class="component-header">ℹ️ System Data</h4>
+                            <div class="component-content">
+                                ${attempt._enhanced_features_enabled ? `
+                                <div class="data-group">
+                                    <div class="data-group-title">Enhanced Feature Status</div>
+                                    <div class="data-metric">
+                                        <span class="metric-name">Enhanced Features:</span>
+                                        <span class="metric-value" style="color: #4caf50;">✓ Enabled</span>
+                                    </div>
+                                    ${attempt._excluded_features && attempt._excluded_features.length > 0 ? `
+                                    <div class="data-metric">
+                                        <span class="metric-name">Excluded Features:</span>
+                                        <span class="metric-value">${attempt._excluded_features.join(', ')}</span>
+                                    </div>` : ''}
+                                    ${attempt._feature_extraction_version ? `
+                                    <div class="data-metric">
+                                        <span class="metric-name">Feature Version:</span>
+                                        <span class="metric-value">${attempt._feature_extraction_version}</span>
+                                    </div>` : ''}
+                                </div>` : ''}
+                                
+                                <div class="data-group">
+                                    <div class="data-group-title">Device & Context</div>
+                                    <div class="data-metric">
+                                        <span class="metric-name">Device Type:</span>
+                                        <span class="metric-value">${attempt.device_type || 'Unknown'}</span>
+                                    </div>
+                                    <div class="data-metric">
+                                        <span class="metric-name">Browser:</span>
+                                        <span class="metric-value">${attempt.browser || 'Unknown'}</span>
+                                    </div>
+                                    <div class="data-metric">
+                                        <span class="metric-name">Input Method:</span>
+                                        <span class="metric-value">${attempt.input_method || 'Unknown'}</span>
+                                    </div>
+                                    <div class="data-metric">
+                                        <span class="metric-name">Canvas Coverage:</span>
+                                        <span class="metric-value">${formatPercentage(attempt.canvas_coverage)}</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
