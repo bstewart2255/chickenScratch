@@ -146,6 +146,8 @@ setInterval(() => {
 
 // Import enhanced feature extraction module
 const EnhancedFeatureExtractor = require('./enhanced-feature-extraction');
+// Import component-specific features module
+const ComponentSpecificFeatures = require('./component-specific-features');
 
 // Feature flag for enhanced features (can be controlled via environment variable)
 const ENABLE_ENHANCED_FEATURES = process.env.ENABLE_ENHANCED_FEATURES !== 'false'; // Default to true
@@ -257,6 +259,200 @@ function calculateMLFeatures(signatureData) {
     }
     
     return basicFeatures;
+}
+
+// Helper function to extract biometric features for any component (signature, shape, or drawing)
+function extractBiometricFeatures(strokeData, componentType, deviceCapabilities = null) {
+    try {
+        // Use existing extractAllFeatures for core biometric features
+        const enhancedFeatures = EnhancedFeatureExtractor.extractAllFeatures(
+            strokeData,
+            deviceCapabilities
+        );
+        
+        // Add component-specific features
+        let componentFeatures = {};
+        
+        // Determine if it's a shape or drawing
+        const shapeTypes = ['circle', 'square', 'triangle'];
+        const drawingTypes = ['face', 'star', 'house', 'connect_dots'];
+        
+        if (shapeTypes.includes(componentType)) {
+            componentFeatures = ComponentSpecificFeatures.extractShapeSpecificFeatures(
+                strokeData,
+                componentType
+            );
+        } else if (drawingTypes.includes(componentType)) {
+            componentFeatures = ComponentSpecificFeatures.extractDrawingSpecificFeatures(
+                strokeData,
+                componentType
+            );
+        }
+        
+        return {
+            ...enhancedFeatures,
+            ...componentFeatures,
+            _component_type: componentType,
+            _feature_extraction_version: '2.0',
+            _enhanced_features_enabled: true
+        };
+    } catch (error) {
+        console.error(`Error extracting biometric features for ${componentType}:`, error);
+        return {
+            _component_type: componentType,
+            _enhanced_features_enabled: false,
+            _enhanced_features_error: error.message
+        };
+    }
+}
+
+// Calculate enhanced component score using weighted model
+function calculateEnhancedComponentScore(storedFeatures, attemptFeatures, componentType) {
+    // Biometric similarity (using existing enhanced feature comparison)
+    const biometricScore = calculateBiometricSimilarity(storedFeatures, attemptFeatures);
+    
+    // Geometric accuracy (enhanced version of existing functions)
+    const geometricScore = calculateGeometricAccuracy(attemptFeatures, componentType);
+    
+    // Component-specific weights
+    const weights = getComponentWeights(componentType);
+    
+    return {
+        overall_score: (weights.biometric * biometricScore) + (weights.geometric * geometricScore),
+        biometric_score: biometricScore,
+        geometric_score: geometricScore,
+        feature_breakdown: generateFeatureBreakdown(attemptFeatures)
+    };
+}
+
+// Get component-specific weights
+function getComponentWeights(componentType) {
+    const weights = {
+        'circle': { biometric: 0.7, geometric: 0.3 },
+        'square': { biometric: 0.7, geometric: 0.3 },
+        'triangle': { biometric: 0.7, geometric: 0.3 },
+        'face': { biometric: 0.9, geometric: 0.1 },
+        'star': { biometric: 0.8, geometric: 0.2 },
+        'house': { biometric: 0.85, geometric: 0.15 },
+        'connect_dots': { biometric: 0.9, geometric: 0.1 }
+    };
+    return weights[componentType] || { biometric: 0.8, geometric: 0.2 };
+}
+
+// Calculate biometric similarity between stored and attempt features
+function calculateBiometricSimilarity(storedFeatures, attemptFeatures) {
+    // Use similar logic to signature authentication
+    const features = [
+        'avg_pressure', 'pressure_std', 'pressure_range',
+        'pause_detection', 'rhythm_consistency', 'drawing_duration_total',
+        'stroke_complexity', 'tremor_index', 'smoothness_index',
+        'speed_anomaly_score', 'timing_regularity_score', 'behavioral_authenticity_score'
+    ];
+    
+    let totalScore = 0;
+    let validFeatures = 0;
+    
+    features.forEach(feature => {
+        if (storedFeatures[feature] !== undefined && attemptFeatures[feature] !== undefined) {
+            const stored = storedFeatures[feature];
+            const attempt = attemptFeatures[feature];
+            
+            // Calculate similarity (1 - normalized difference)
+            const diff = Math.abs(stored - attempt);
+            const maxVal = Math.max(stored, attempt);
+            const similarity = maxVal > 0 ? 1 - (diff / maxVal) : 1;
+            
+            totalScore += similarity;
+            validFeatures++;
+        }
+    });
+    
+    return validFeatures > 0 ? totalScore / validFeatures : 0.5;
+}
+
+// Calculate geometric accuracy for shapes/drawings
+function calculateGeometricAccuracy(features, componentType) {
+    // Shape-specific geometric scoring
+    if (['circle', 'square', 'triangle'].includes(componentType)) {
+        switch(componentType) {
+            case 'circle':
+                return calculateCircleGeometricScore(features);
+            case 'square':
+                return calculateSquareGeometricScore(features);
+            case 'triangle':
+                return calculateTriangleGeometricScore(features);
+        }
+    }
+    
+    // Drawing-specific scoring
+    switch(componentType) {
+        case 'face':
+            return features.facial_symmetry_index || 0.5;
+        case 'star':
+            return features.star_point_symmetry || 0.5;
+        case 'house':
+            return features.structural_hierarchy || 0.5;
+        case 'connect_dots':
+            return features.path_efficiency || 0.5;
+        default:
+            return 0.5;
+    }
+}
+
+// Enhanced geometric scoring functions
+function calculateCircleGeometricScore(features) {
+    const scores = [
+        features.radial_deviation ? 1 - features.radial_deviation : 0.5,
+        features.closure_technique || 0.5,
+        features.curve_consistency ? 1 / (1 + features.curve_consistency) : 0.5
+    ];
+    return scores.reduce((a, b) => a + b, 0) / scores.length;
+}
+
+function calculateSquareGeometricScore(features) {
+    const scores = [
+        features.corner_execution_pattern || 0.5,
+        features.line_straightness_signature ? 1 - features.line_straightness_signature : 0.5,
+        features.edge_length_consistency || 0.5
+    ];
+    return scores.reduce((a, b) => a + b, 0) / scores.length;
+}
+
+function calculateTriangleGeometricScore(features) {
+    const scores = [
+        features.angle_consistency || 0.5,
+        features.apex_sharpness ? 1 / (1 + features.apex_sharpness) : 0.5,
+        features.side_length_ratios ? 1 / (1 + Math.abs(features.side_length_ratios - 1)) : 0.5
+    ];
+    return scores.reduce((a, b) => a + b, 0) / scores.length;
+}
+
+// Generate feature breakdown for debugging
+function generateFeatureBreakdown(features) {
+    const breakdown = {
+        pressure_features: {},
+        timing_features: {},
+        geometric_features: {},
+        security_features: {},
+        component_features: {}
+    };
+    
+    // Categorize features
+    Object.keys(features).forEach(key => {
+        if (key.includes('pressure')) {
+            breakdown.pressure_features[key] = features[key];
+        } else if (key.includes('timing') || key.includes('duration') || key.includes('pause')) {
+            breakdown.timing_features[key] = features[key];
+        } else if (key.includes('angle') || key.includes('curve') || key.includes('line')) {
+            breakdown.geometric_features[key] = features[key];
+        } else if (key.includes('anomaly') || key.includes('authenticity')) {
+            breakdown.security_features[key] = features[key];
+        } else if (!key.startsWith('_')) {
+            breakdown.component_features[key] = features[key];
+        }
+    });
+    
+    return breakdown;
 }
 
 // Helper function to extract displayable signature data
@@ -564,28 +760,40 @@ app.post('/register', async (req, res) => {
             }
         }
         
-        // Save shapes
-        console.log('Saving shapes...');
+        // Save shapes with enhanced features
+        console.log('Saving shapes with enhanced features...');
         for (const [shapeType, shapeData] of Object.entries(shapes)) {
             try {
+                // Extract stroke data for enhanced features
+                const strokeData = extractStrokeData(shapeData);
+                
+                // Extract device capabilities if provided
+                const deviceCapabilities = shapeData.device_capabilities || metadata?.device_capabilities || null;
+                
+                // Extract enhanced biometric features
+                const enhancedFeatures = ENABLE_ENHANCED_FEATURES 
+                    ? extractBiometricFeatures(strokeData, shapeType, deviceCapabilities)
+                    : {};
+                
                 await pool.query(
-                    'INSERT INTO shapes (user_id, shape_type, shape_data, metrics) VALUES ($1, $2, $3, $4)',
+                    'INSERT INTO shapes (user_id, shape_type, shape_data, metrics, enhanced_features) VALUES ($1, $2, $3, $4, $5)',
                     [
                         userId, 
                         shapeType, 
                         JSON.stringify(shapeData),
-                        JSON.stringify(shapeData.metrics || {})  // Add metrics
+                        JSON.stringify(shapeData.metrics || {}),
+                        JSON.stringify(enhancedFeatures)
                     ]
                 );
-                console.log(`✅ Saved shape: ${shapeType}`);
+                console.log(`✅ Saved shape: ${shapeType} with ${Object.keys(enhancedFeatures).length} enhanced features`);
             } catch (shapeError) {
                 console.error(`Error saving shape ${shapeType}:`, shapeError);
                 throw shapeError;
             }
         }
         
-        // Save creative drawings
-        console.log('Saving creative drawings...');
+        // Save creative drawings with enhanced features
+        console.log('Saving creative drawings with enhanced features...');
         for (const [drawingType, drawingData] of Object.entries(drawings)) {
             try {
                 console.log(`Processing drawing: ${drawingType}`);
@@ -601,11 +809,25 @@ app.post('/register', async (req, res) => {
                     boundingBox: drawingData.metrics?.boundingBox || drawingData.metrics?.bounding_box || null
                 };
                 
+                // Extract device capabilities if provided
+                const deviceCapabilities = drawingData.device_capabilities || metadata?.device_capabilities || null;
+                
+                // Extract enhanced biometric features
+                const enhancedFeatures = ENABLE_ENHANCED_FEATURES 
+                    ? extractBiometricFeatures(strokes, drawingType, deviceCapabilities)
+                    : {};
+                
                 await pool.query(
-                    'INSERT INTO drawings (user_id, drawing_type, drawing_data, metrics) VALUES ($1, $2, $3, $4)',
-                    [userId, drawingType, JSON.stringify(drawingData), JSON.stringify(drawingMetrics)]
+                    'INSERT INTO drawings (user_id, drawing_type, drawing_data, metrics, enhanced_features) VALUES ($1, $2, $3, $4, $5)',
+                    [
+                        userId, 
+                        drawingType, 
+                        JSON.stringify(drawingData), 
+                        JSON.stringify(drawingMetrics),
+                        JSON.stringify(enhancedFeatures)
+                    ]
                 );
-                console.log(`✅ Saved drawing: ${drawingType}`);
+                console.log(`✅ Saved drawing: ${drawingType} with ${Object.keys(enhancedFeatures).length} enhanced features`);
             } catch (drawingError) {
                 console.error(`Error saving drawing ${drawingType}:`, drawingError);
                 // Continue with other drawings
@@ -950,7 +1172,7 @@ app.post('/login', async (req, res) => {
             });
             
             const storedShapesResult = await pool.query(
-                'SELECT shape_type, shape_data, metrics FROM shapes WHERE user_id = $1 AND shape_type = ANY($2::text[])',
+                'SELECT shape_type, shape_data, metrics, enhanced_features FROM shapes WHERE user_id = $1 AND shape_type = ANY($2::text[])',
                 [userId, ['circle', 'square', 'triangle']]
             );
             
@@ -960,45 +1182,139 @@ app.post('/login', async (req, res) => {
             storedShapesResult.rows.forEach(row => {
                 storedShapes[row.shape_type] = {
                     data: row.shape_data,
-                    metrics: row.metrics || {}
+                    metrics: row.metrics || {},
+                    enhanced_features: row.enhanced_features
                 };
             });
             
-            // Verify each provided shape using shape-specific scoring
+            // Verify each provided shape using enhanced biometric scoring
             if (shapes.circle && storedShapes.circle) {
-                console.log('Comparing circle shape...');
-                // Use shape-specific scoring based on the PROVIDED shape's metrics
-                const providedMetrics = shapes.circle.metrics || {};
-                const circleScore = calculateCircleRoundness(providedMetrics);
+                console.log('Comparing circle shape with enhanced features...');
+                
+                // Extract stroke data and device capabilities
+                const strokeData = extractStrokeData(shapes.circle);
+                const deviceCapabilities = shapes.circle.device_capabilities || metadata?.device_capabilities || null;
+                
+                // Extract enhanced features for attempt
+                const attemptFeatures = ENABLE_ENHANCED_FEATURES 
+                    ? extractBiometricFeatures(strokeData, 'circle', deviceCapabilities)
+                    : shapes.circle.metrics || {};
+                
+                // Get stored enhanced features or calculate from stored data
+                let storedFeatures;
+                try {
+                    if (storedShapes.circle.enhanced_features) {
+                        // enhanced_features is already parsed from JSONB column
+                        storedFeatures = storedShapes.circle.enhanced_features;
+                    } else if (ENABLE_ENHANCED_FEATURES) {
+                        // Calculate from stored shape data (already parsed from JSONB)
+                        storedFeatures = extractBiometricFeatures(extractStrokeData(storedShapes.circle.data), 'circle', deviceCapabilities);
+                    } else {
+                        // Use metrics (already parsed from JSONB)
+                        storedFeatures = storedShapes.circle.metrics || {};
+                    }
+                } catch (error) {
+                    console.error('Error processing stored circle features:', error);
+                    storedFeatures = {};
+                }
+                
+                // Calculate enhanced score
+                const scoreResult = calculateEnhancedComponentScore(storedFeatures, attemptFeatures, 'circle');
+                const circleScore = scoreResult.overall_score * 100;
                 
                 scores.circle = Math.round(circleScore);
+                scores.circle_biometric = scoreResult.biometric_score;
+                scores.circle_geometric = scoreResult.geometric_score;
                 totalScore += circleScore;
                 scoreCount++;
-                console.log('✅ Circle shape score:', scores.circle, '(aspect ratio:', providedMetrics.aspect_ratio, ')');
+                console.log('✅ Circle shape score:', scores.circle, 
+                    `(biometric: ${Math.round(scoreResult.biometric_score * 100)}, geometric: ${Math.round(scoreResult.geometric_score * 100)})`);
             }
             
             if (shapes.square && storedShapes.square) {
-                console.log('Comparing square shape...');
-                // Use shape-specific scoring based on the PROVIDED shape's metrics
-                const providedMetrics = shapes.square.metrics || {};
-                const squareScore = calculateSquareCorners(providedMetrics);
+                console.log('Comparing square shape with enhanced features...');
+                
+                // Extract stroke data and device capabilities
+                const strokeData = extractStrokeData(shapes.square);
+                const deviceCapabilities = shapes.square.device_capabilities || metadata?.device_capabilities || null;
+                
+                // Extract enhanced features for attempt
+                const attemptFeatures = ENABLE_ENHANCED_FEATURES 
+                    ? extractBiometricFeatures(strokeData, 'square', deviceCapabilities)
+                    : shapes.square.metrics || {};
+                
+                // Get stored enhanced features or calculate from stored data
+                let storedFeatures;
+                try {
+                    if (storedShapes.square.enhanced_features) {
+                        // enhanced_features is already parsed from JSONB column
+                        storedFeatures = storedShapes.square.enhanced_features;
+                    } else if (ENABLE_ENHANCED_FEATURES) {
+                        // Calculate from stored shape data (already parsed from JSONB)
+                        storedFeatures = extractBiometricFeatures(extractStrokeData(storedShapes.square.data), 'square', deviceCapabilities);
+                    } else {
+                        // Use metrics (already parsed from JSONB)
+                        storedFeatures = storedShapes.square.metrics || {};
+                    }
+                } catch (error) {
+                    console.error('Error processing stored square features:', error);
+                    storedFeatures = {};
+                }
+                
+                // Calculate enhanced score
+                const scoreResult = calculateEnhancedComponentScore(storedFeatures, attemptFeatures, 'square');
+                const squareScore = scoreResult.overall_score * 100;
                 
                 scores.square = Math.round(squareScore);
+                scores.square_biometric = scoreResult.biometric_score;
+                scores.square_geometric = scoreResult.geometric_score;
                 totalScore += squareScore;
                 scoreCount++;
-                console.log('✅ Square shape score:', scores.square, '(aspect ratio:', providedMetrics.aspect_ratio, ')');
+                console.log('✅ Square shape score:', scores.square, 
+                    `(biometric: ${Math.round(scoreResult.biometric_score * 100)}, geometric: ${Math.round(scoreResult.geometric_score * 100)})`);
             }
             
             if (shapes.triangle && storedShapes.triangle) {
-                console.log('Comparing triangle shape...');
-                // Use shape-specific scoring based on the PROVIDED shape's metrics
-                const providedMetrics = shapes.triangle.metrics || {};
-                const triangleScore = calculateTriangleClosure(providedMetrics);
+                console.log('Comparing triangle shape with enhanced features...');
+                
+                // Extract stroke data and device capabilities
+                const strokeData = extractStrokeData(shapes.triangle);
+                const deviceCapabilities = shapes.triangle.device_capabilities || metadata?.device_capabilities || null;
+                
+                // Extract enhanced features for attempt
+                const attemptFeatures = ENABLE_ENHANCED_FEATURES 
+                    ? extractBiometricFeatures(strokeData, 'triangle', deviceCapabilities)
+                    : shapes.triangle.metrics || {};
+                
+                // Get stored enhanced features or calculate from stored data
+                let storedFeatures;
+                try {
+                    if (storedShapes.triangle.enhanced_features) {
+                        // enhanced_features is already parsed from JSONB column
+                        storedFeatures = storedShapes.triangle.enhanced_features;
+                    } else if (ENABLE_ENHANCED_FEATURES) {
+                        // Calculate from stored shape data (already parsed from JSONB)
+                        storedFeatures = extractBiometricFeatures(extractStrokeData(storedShapes.triangle.data), 'triangle', deviceCapabilities);
+                    } else {
+                        // Use metrics (already parsed from JSONB)
+                        storedFeatures = storedShapes.triangle.metrics || {};
+                    }
+                } catch (error) {
+                    console.error('Error processing stored triangle features:', error);
+                    storedFeatures = {};
+                }
+                
+                // Calculate enhanced score
+                const scoreResult = calculateEnhancedComponentScore(storedFeatures, attemptFeatures, 'triangle');
+                const triangleScore = scoreResult.overall_score * 100;
                 
                 scores.triangle = Math.round(triangleScore);
+                scores.triangle_biometric = scoreResult.biometric_score;
+                scores.triangle_geometric = scoreResult.geometric_score;
                 totalScore += triangleScore;
                 scoreCount++;
-                console.log('✅ Triangle shape score:', scores.triangle, '(velocity std:', providedMetrics.velocity_std, ')');
+                console.log('✅ Triangle shape score:', scores.triangle, 
+                    `(biometric: ${Math.round(scoreResult.biometric_score * 100)}, geometric: ${Math.round(scoreResult.geometric_score * 100)})`);
             }
         } else if (hasShapes) {
             // Estimate shape scores based on signature score
@@ -1024,7 +1340,7 @@ app.post('/login', async (req, res) => {
             const { compareDrawings } = require('./drawingVerification');
             
             const storedDrawingsResult = await pool.query(
-                'SELECT drawing_type, drawing_data, metrics FROM drawings WHERE user_id = $1 AND drawing_type = ANY($2::text[])',
+                'SELECT drawing_type, drawing_data, metrics, enhanced_features FROM drawings WHERE user_id = $1 AND drawing_type = ANY($2::text[])',
                 [userId, ['face', 'star', 'house', 'connect_dots']]
             );
             
@@ -1034,30 +1350,54 @@ app.post('/login', async (req, res) => {
             storedDrawingsResult.rows.forEach(row => {
                 storedDrawings[row.drawing_type] = {
                     data: row.drawing_data,
-                    metrics: row.metrics || {}
+                    metrics: row.metrics || {},
+                    enhanced_features: row.enhanced_features
                 };
             });
             
-            // Verify each provided drawing
+            // Verify each provided drawing with enhanced biometric features
             if (drawings.face && storedDrawings.face) {
                 try {
-                    console.log('Comparing face drawings:', {
-                        storedData: typeof storedDrawings.face.data,
-                        attemptData: typeof drawings.face,
-                        hasStoredStrokes: !!(storedDrawings.face.data && storedDrawings.face.data.strokes),
-                        hasAttemptStrokes: !!(drawings.face && drawings.face.strokes)
-                    });
+                    console.log('Comparing face drawing with enhanced features...');
                     
-                    const result = await compareDrawings(storedDrawings.face.data, drawings.face, 'face');
-                    if (result.error) {
-                        console.warn('Face drawing comparison error:', result.error);
-                        scores.face = 0;
-                    } else {
-                        scores.face = result.score;
-                        totalScore += result.score;
-                        scoreCount++;
-                        console.log('✅ Face drawing score:', scores.face);
+                    // Extract stroke data and device capabilities
+                    const strokeData = extractStrokeDataFromSignaturePad(drawings.face);
+                    const deviceCapabilities = drawings.face.device_capabilities || metadata?.device_capabilities || null;
+                    
+                    // Extract enhanced features for attempt
+                    const attemptFeatures = ENABLE_ENHANCED_FEATURES 
+                        ? extractBiometricFeatures(strokeData, 'face', deviceCapabilities)
+                        : { strokeCount: strokeData?.length || 0, pointCount: strokeData?.reduce((sum, s) => sum + s.length, 0) || 0 };
+                    
+                    // Get stored enhanced features or calculate from stored data
+                    let storedFeatures;
+                    try {
+                        if (storedDrawings.face.enhanced_features) {
+                            // enhanced_features is already parsed from JSONB column
+                            storedFeatures = storedDrawings.face.enhanced_features;
+                        } else if (ENABLE_ENHANCED_FEATURES) {
+                            // Calculate from stored drawing data (already parsed from JSONB)
+                            storedFeatures = extractBiometricFeatures(extractStrokeDataFromSignaturePad(storedDrawings.face.data), 'face', deviceCapabilities);
+                        } else {
+                            // Use metrics (already parsed from JSONB)
+                            storedFeatures = storedDrawings.face.metrics || {};
+                        }
+                    } catch (error) {
+                        console.error('Error processing stored face features:', error);
+                        storedFeatures = {};
                     }
+                    
+                    // Calculate enhanced score
+                    const scoreResult = calculateEnhancedComponentScore(storedFeatures, attemptFeatures, 'face');
+                    const faceScore = scoreResult.overall_score * 100;
+                    
+                    scores.face = Math.round(faceScore);
+                    scores.face_biometric = scoreResult.biometric_score;
+                    scores.face_geometric = scoreResult.geometric_score;
+                    totalScore += faceScore;
+                    scoreCount++;
+                    console.log('✅ Face drawing score:', scores.face, 
+                        `(biometric: ${Math.round(scoreResult.biometric_score * 100)}, geometric: ${Math.round(scoreResult.geometric_score * 100)})`);
                 } catch (error) {
                     console.error('Error in face drawing comparison:', error);
                     scores.face = 0;
@@ -1066,16 +1406,46 @@ app.post('/login', async (req, res) => {
             
             if (drawings.star && storedDrawings.star) {
                 try {
-                    const result = await compareDrawings(storedDrawings.star.data, drawings.star, 'star');
-                    if (result.error) {
-                        console.warn('Star drawing comparison error:', result.error);
-                        scores.star = 0;
-                    } else {
-                        scores.star = result.score;
-                        totalScore += result.score;
-                        scoreCount++;
-                        console.log('✅ Star drawing score:', scores.star);
+                    console.log('Comparing star drawing with enhanced features...');
+                    
+                    // Extract stroke data and device capabilities
+                    const strokeData = extractStrokeDataFromSignaturePad(drawings.star);
+                    const deviceCapabilities = drawings.star.device_capabilities || metadata?.device_capabilities || null;
+                    
+                    // Extract enhanced features for attempt
+                    const attemptFeatures = ENABLE_ENHANCED_FEATURES 
+                        ? extractBiometricFeatures(strokeData, 'star', deviceCapabilities)
+                        : { strokeCount: strokeData?.length || 0, pointCount: strokeData?.reduce((sum, s) => sum + s.length, 0) || 0 };
+                    
+                    // Get stored enhanced features or calculate from stored data
+                    let storedFeatures;
+                    try {
+                        if (storedDrawings.star.enhanced_features) {
+                            // enhanced_features is already parsed from JSONB column
+                            storedFeatures = storedDrawings.star.enhanced_features;
+                        } else if (ENABLE_ENHANCED_FEATURES) {
+                            // Calculate from stored drawing data (already parsed from JSONB)
+                            storedFeatures = extractBiometricFeatures(extractStrokeDataFromSignaturePad(storedDrawings.star.data), 'star', deviceCapabilities);
+                        } else {
+                            // Use metrics (already parsed from JSONB)
+                            storedFeatures = storedDrawings.star.metrics || {};
+                        }
+                    } catch (error) {
+                        console.error('Error processing stored star features:', error);
+                        storedFeatures = {};
                     }
+                    
+                    // Calculate enhanced score
+                    const scoreResult = calculateEnhancedComponentScore(storedFeatures, attemptFeatures, 'star');
+                    const starScore = scoreResult.overall_score * 100;
+                    
+                    scores.star = Math.round(starScore);
+                    scores.star_biometric = scoreResult.biometric_score;
+                    scores.star_geometric = scoreResult.geometric_score;
+                    totalScore += starScore;
+                    scoreCount++;
+                    console.log('✅ Star drawing score:', scores.star, 
+                        `(biometric: ${Math.round(scoreResult.biometric_score * 100)}, geometric: ${Math.round(scoreResult.geometric_score * 100)})`);
                 } catch (error) {
                     console.error('Error in star drawing comparison:', error);
                     scores.star = 0;
@@ -1084,16 +1454,44 @@ app.post('/login', async (req, res) => {
             
             if (drawings.house && storedDrawings.house) {
                 try {
-                    const result = await compareDrawings(storedDrawings.house.data, drawings.house, 'house');
-                    if (result.error) {
-                        console.warn('House drawing comparison error:', result.error);
-                        scores.house = 0;
-                    } else {
-                        scores.house = result.score;
-                        totalScore += result.score;
-                        scoreCount++;
-                        console.log('✅ House drawing score:', scores.house);
+                    console.log('Comparing house drawing with enhanced features...');
+                    
+                    // Extract stroke data and device capabilities
+                    const strokeData = extractStrokeDataFromSignaturePad(drawings.house);
+                    const deviceCapabilities = drawings.house.device_capabilities || metadata?.device_capabilities || null;
+                    
+                    // Extract enhanced features for attempt
+                    const attemptFeatures = ENABLE_ENHANCED_FEATURES 
+                        ? extractBiometricFeatures(strokeData, 'house', deviceCapabilities)
+                        : { strokeCount: strokeData?.length || 0, pointCount: strokeData?.reduce((sum, s) => sum + s.length, 0) || 0 };
+                    
+                    // Get stored enhanced features or calculate from stored data
+                    let storedFeatures;
+                    try {
+                        if (storedDrawings.house.enhanced_features) {
+                            // enhanced_features is already parsed from JSONB column
+                            storedFeatures = storedDrawings.house.enhanced_features;
+                        } else if (ENABLE_ENHANCED_FEATURES) {
+                            // Calculate from stored drawing data (already parsed from JSONB)
+                            storedFeatures = extractBiometricFeatures(extractStrokeDataFromSignaturePad(storedDrawings.house.data), 'house', deviceCapabilities);
+                        } else {
+                            // Use metrics (already parsed from JSONB)
+                            storedFeatures = storedDrawings.house.metrics || {};
+                        }
+                    } catch (error) {
+                        console.error('Error processing stored house features:', error);
+                        storedFeatures = {};
                     }
+                    
+                    // Calculate enhanced score
+                    const scoreResult = calculateEnhancedComponentScore(storedFeatures, attemptFeatures, 'house');
+                    const houseScore = scoreResult.overall_score * 100;
+                    
+                    scores.house = Math.round(houseScore);
+                    totalScore += houseScore;
+                    scoreCount++;
+                    console.log('✅ House drawing score:', scores.house, 
+                        `(biometric: ${Math.round(scoreResult.biometric_score * 100)}, geometric: ${Math.round(scoreResult.geometric_score * 100)})`);
                 } catch (error) {
                     console.error('Error in house drawing comparison:', error);
                     scores.house = 0;
@@ -1102,16 +1500,44 @@ app.post('/login', async (req, res) => {
             
             if (drawings.connect_dots && storedDrawings.connect_dots) {
                 try {
-                    const result = await compareDrawings(storedDrawings.connect_dots.data, drawings.connect_dots, 'connect_dots');
-                    if (result.error) {
-                        console.warn('Connect dots drawing comparison error:', result.error);
-                        scores.connect_dots = 0;
-                    } else {
-                        scores.connect_dots = result.score;
-                        totalScore += result.score;
-                        scoreCount++;
-                        console.log('✅ Connect dots drawing score:', scores.connect_dots);
+                    console.log('Comparing connect dots drawing with enhanced features...');
+                    
+                    // Extract stroke data and device capabilities
+                    const strokeData = extractStrokeDataFromSignaturePad(drawings.connect_dots);
+                    const deviceCapabilities = drawings.connect_dots.device_capabilities || metadata?.device_capabilities || null;
+                    
+                    // Extract enhanced features for attempt
+                    const attemptFeatures = ENABLE_ENHANCED_FEATURES 
+                        ? extractBiometricFeatures(strokeData, 'connect_dots', deviceCapabilities)
+                        : { strokeCount: strokeData?.length || 0, pointCount: strokeData?.reduce((sum, s) => sum + s.length, 0) || 0 };
+                    
+                    // Get stored enhanced features or calculate from stored data
+                    let storedFeatures;
+                    try {
+                        if (storedDrawings.connect_dots.enhanced_features) {
+                            // enhanced_features is already parsed from JSONB column
+                            storedFeatures = storedDrawings.connect_dots.enhanced_features;
+                        } else if (ENABLE_ENHANCED_FEATURES) {
+                            // Calculate from stored drawing data (already parsed from JSONB)
+                            storedFeatures = extractBiometricFeatures(extractStrokeDataFromSignaturePad(storedDrawings.connect_dots.data), 'connect_dots', deviceCapabilities);
+                        } else {
+                            // Use metrics (already parsed from JSONB)
+                            storedFeatures = storedDrawings.connect_dots.metrics || {};
+                        }
+                    } catch (error) {
+                        console.error('Error processing stored connect_dots features:', error);
+                        storedFeatures = {};
                     }
+                    
+                    // Calculate enhanced score
+                    const scoreResult = calculateEnhancedComponentScore(storedFeatures, attemptFeatures, 'connect_dots');
+                    const connectDotsScore = scoreResult.overall_score * 100;
+                    
+                    scores.connect_dots = Math.round(connectDotsScore);
+                    totalScore += connectDotsScore;
+                    scoreCount++;
+                    console.log('✅ Connect dots score:', scores.connect_dots, 
+                        `(biometric: ${Math.round(scoreResult.biometric_score * 100)}, geometric: ${Math.round(scoreResult.geometric_score * 100)})`);
                 } catch (error) {
                     console.error('Error in connect dots drawing comparison:', error);
                     scores.connect_dots = 0;
@@ -1187,11 +1613,38 @@ app.post('/login', async (req, res) => {
                 }
             });
             
+            // Collect enhanced biometric scores
+            const shapeBiometricScores = {};
+            const drawingBiometricScores = {};
+            
+            // Store biometric scores from shapes (stored in scoreResult during authentication)
+            authFlowShapes.forEach(shape => {
+                if (scores[`${shape}_biometric`] !== undefined) {
+                    shapeBiometricScores[shape] = {
+                        biometric: scores[`${shape}_biometric`],
+                        geometric: scores[`${shape}_geometric`]
+                    };
+                }
+            });
+            
+            // Store biometric scores from drawings
+            authFlowDrawings.forEach(drawing => {
+                if (scores[`${drawing}_biometric`] !== undefined) {
+                    drawingBiometricScores[drawing] = {
+                        biometric: scores[`${drawing}_biometric`],
+                        geometric: scores[`${drawing}_geometric`]
+                    };
+                }
+            });
+            
             // Create properly structured scores object with clear separation
             const structuredScores = {
                 signature: scores.signature,
                 shape_scores: Object.keys(shapeScores).length > 0 ? shapeScores : {},
-                drawing_scores: Object.keys(drawingScores).length > 0 ? drawingScores : {}
+                drawing_scores: Object.keys(drawingScores).length > 0 ? drawingScores : {},
+                shape_biometric_scores: Object.keys(shapeBiometricScores).length > 0 ? shapeBiometricScores : null,
+                drawing_biometric_scores: Object.keys(drawingBiometricScores).length > 0 ? drawingBiometricScores : null,
+                _enhanced_features_enabled: ENABLE_ENHANCED_FEATURES
             };
             
             console.log('Saving authentication attempt:', {
@@ -1280,9 +1733,9 @@ app.get('/debug/metrics/:username', async (req, res) => {
             [userId]
         );
         
-        // Get shapes with metrics
+        // Get shapes with metrics and enhanced features
         const shapes = await pool.query(
-            'SELECT shape_type, metrics, created_at FROM shapes WHERE user_id = $1 ORDER BY created_at DESC',
+            'SELECT shape_type, metrics, enhanced_features, created_at FROM shapes WHERE user_id = $1 ORDER BY created_at DESC',
             [userId]
         );
         
@@ -1295,6 +1748,7 @@ app.get('/debug/metrics/:username', async (req, res) => {
             shapes: shapes.rows.map(row => ({
                 type: row.shape_type,
                 metrics: row.metrics,
+                enhanced_features: row.enhanced_features,
                 created_at: row.created_at
             }))
         });
@@ -1933,15 +2387,36 @@ function calculateShapeBaseline(shapes) {
         return {
             circle_roundness: null,
             square_corner_accuracy: null,  // FIXED: was square_corners
-            triangle_closure: null
+            triangle_closure: null,
+            shape_enhanced_features: null
         };
     }
     
-    const baseline = {};
+    const baseline = {
+        shape_enhanced_features: {}
+    };
+    
+    // Aggregate enhanced features across all shapes
+    const allEnhancedFeatures = [];
     
     shapes.forEach(shape => {
         const shapeType = shape.shape_type;
         const metrics = shape.metrics || {};
+        
+        // Extract enhanced features if available
+        if (shape.enhanced_features) {
+            try {
+                const enhancedFeatures = typeof shape.enhanced_features === 'string' 
+                    ? JSON.parse(shape.enhanced_features) 
+                    : shape.enhanced_features;
+                    
+                if (enhancedFeatures && Object.keys(enhancedFeatures).length > 0) {
+                    allEnhancedFeatures.push(enhancedFeatures);
+                }
+            } catch (e) {
+                console.error('Error parsing shape enhanced features:', e);
+            }
+        }
         
         switch(shapeType) {
             case 'circle':
@@ -1959,6 +2434,11 @@ function calculateShapeBaseline(shapes) {
         }
     });
     
+    // Calculate baseline for enhanced features if available
+    if (allEnhancedFeatures.length > 0) {
+        baseline.shape_enhanced_features = calculateEnhancedFeatureBaseline(allEnhancedFeatures);
+    }
+    
     return baseline;
 }
 
@@ -1968,15 +2448,36 @@ function calculateDrawingBaseline(drawings) {
             face_score: null,
             star_score: null,
             house_score: null,
-            connect_dots_score: null
+            connect_dots_score: null,
+            drawing_enhanced_features: null
         };
     }
     
-    const baseline = {};
+    const baseline = {
+        drawing_enhanced_features: {}
+    };
+    
+    // Aggregate enhanced features across all drawings
+    const allEnhancedFeatures = [];
     
     drawings.forEach(drawing => {
         const drawingType = drawing.drawing_type;
         const metrics = drawing.metrics || {};
+        
+        // Extract enhanced features if available
+        if (drawing.enhanced_features) {
+            try {
+                const enhancedFeatures = typeof drawing.enhanced_features === 'string' 
+                    ? JSON.parse(drawing.enhanced_features) 
+                    : drawing.enhanced_features;
+                    
+                if (enhancedFeatures && Object.keys(enhancedFeatures).length > 0) {
+                    allEnhancedFeatures.push(enhancedFeatures);
+                }
+            } catch (e) {
+                console.error('Error parsing drawing enhanced features:', e);
+            }
+        }
         
         // Check if this drawing actually has data
         const hasData = metrics.strokeCount > 0 && metrics.pointCount > 0;
@@ -1995,6 +2496,47 @@ function calculateDrawingBaseline(drawings) {
                 baseline.connect_dots_score = hasData ? calculateConnectDotsScore(metrics) : null;
                 break;
         }
+    });
+    
+    // Calculate baseline for enhanced features if available
+    if (allEnhancedFeatures.length > 0) {
+        baseline.drawing_enhanced_features = calculateEnhancedFeatureBaseline(allEnhancedFeatures);
+    }
+    
+    return baseline;
+}
+
+// Calculate baseline for enhanced features by averaging across multiple samples
+function calculateEnhancedFeatureBaseline(featureSamples) {
+    if (!featureSamples || featureSamples.length === 0) {
+        return null;
+    }
+    
+    const baseline = {};
+    const featureSums = {};
+    const featureCounts = {};
+    
+    // Aggregate all features across samples
+    featureSamples.forEach(sample => {
+        Object.keys(sample).forEach(feature => {
+            // Skip metadata fields
+            if (feature.startsWith('_')) return;
+            
+            const value = sample[feature];
+            if (typeof value === 'number' && !isNaN(value)) {
+                if (!featureSums[feature]) {
+                    featureSums[feature] = 0;
+                    featureCounts[feature] = 0;
+                }
+                featureSums[feature] += value;
+                featureCounts[feature]++;
+            }
+        });
+    });
+    
+    // Calculate averages
+    Object.keys(featureSums).forEach(feature => {
+        baseline[feature] = featureSums[feature] / featureCounts[feature];
     });
     
     return baseline;
@@ -2131,6 +2673,32 @@ app.get('/api/user/:username/detailed-analysis', async (req, res) => {
         const enhancedAuthAttempts = authAttemptsResult.rows.map(attempt => {
             const mlFeatures = attempt.signature_metrics || {};
             
+            // Extract enhanced biometric data from drawing_scores
+            let shapeBiometricScores = null;
+            let drawingBiometricScores = null;
+            let enhancedFeaturesEnabled = false;
+            
+            if (attempt.drawing_scores) {
+                try {
+                    const scores = typeof attempt.drawing_scores === 'string' 
+                        ? JSON.parse(attempt.drawing_scores) 
+                        : attempt.drawing_scores;
+                    
+                    // Check for enhanced biometric scores in the new structure
+                    if (scores.shape_biometric_scores) {
+                        shapeBiometricScores = scores.shape_biometric_scores;
+                    }
+                    if (scores.drawing_biometric_scores) {
+                        drawingBiometricScores = scores.drawing_biometric_scores;
+                    }
+                    if (scores._enhanced_features_enabled) {
+                        enhancedFeaturesEnabled = true;
+                    }
+                } catch (e) {
+                    console.error('Error parsing drawing scores for enhanced features:', e);
+                }
+            }
+            
             return {
                 id: attempt.id,
                 created_at: attempt.created_at,
@@ -2145,7 +2713,14 @@ app.get('/api/user/:username/detailed-analysis', async (req, res) => {
                 ...mlFeatures,
                 
                 // Add shape scores (if available)
-                shape_scores: extractShapeScores(attempt)
+                shape_scores: extractShapeScores(attempt),
+                
+                // Add enhanced biometric data
+                shape_biometric_scores: shapeBiometricScores,
+                drawing_biometric_scores: drawingBiometricScores,
+                _enhanced_features_enabled: enhancedFeaturesEnabled || mlFeatures._enhanced_features_enabled,
+                _excluded_features: mlFeatures._excluded_features,
+                _feature_extraction_version: mlFeatures._feature_extraction_version
             };
         });
         
