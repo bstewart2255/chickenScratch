@@ -75,6 +75,29 @@ const EnhancedFeatureExtractor = {
     return true;
   },
 
+  // Helper function to validate if an array contains point objects
+  isPointArray(arr) {
+    if (!Array.isArray(arr) || arr.length === 0) {
+      return false;
+    }
+    
+    // Check first few elements to validate they are point objects
+    const sampleSize = Math.min(3, arr.length);
+    for (let i = 0; i < sampleSize; i++) {
+      const item = arr[i];
+      if (!item || typeof item !== 'object') {
+        return false;
+      }
+      
+      // A point should have x and y coordinates
+      if (typeof item.x !== 'number' || typeof item.y !== 'number') {
+        return false;
+      }
+    }
+    
+    return true;
+  },
+
   // Utility function to extract strokes array from various data formats
   extractStrokes(strokeData) {
     if (!strokeData) return [];
@@ -107,9 +130,24 @@ const EnhancedFeatureExtractor = {
       
       // If stroke has other properties but no points array, try to extract
       if (stroke && typeof stroke === 'object') {
-        // Check for alternative point array names
-        const points = stroke.data || stroke.raw || stroke.strokes || [];
-        if (Array.isArray(points)) {
+        // Check for alternative point array names - validate each is an array of points
+        let points = null;
+        
+        // Try stroke.data first (most common for point arrays)
+        if (stroke.data && Array.isArray(stroke.data) && this.isPointArray(stroke.data)) {
+          points = stroke.data;
+        }
+        // Try stroke.raw (alternative point array name)
+        else if (stroke.raw && Array.isArray(stroke.raw) && this.isPointArray(stroke.raw)) {
+          points = stroke.raw;
+        }
+        // Try stroke.points (if it exists but wasn't caught above)
+        else if (stroke.points && Array.isArray(stroke.points) && this.isPointArray(stroke.points)) {
+          points = stroke.points;
+        }
+        // Don't use stroke.strokes as it likely contains other stroke objects, not points
+        
+        if (points) {
           return { ...stroke, points };
         }
       }
