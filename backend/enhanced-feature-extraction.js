@@ -45,15 +45,8 @@ const EnhancedFeatureExtractor = {
       return false;
     }
     
-    // Handle different data structures - check if it's wrapped in an object
-    let strokes = strokeData;
-    if (strokeData.strokes) {
-      strokes = strokeData.strokes;
-    } else if (strokeData.raw) {
-      strokes = strokeData.raw;
-    } else if (strokeData.data && Array.isArray(strokeData.data)) {
-      strokes = strokeData.data;
-    }
+    // Get normalized strokes using extractStrokes
+    const strokes = this.extractStrokes(strokeData);
     
     // Check for empty strokes
     if (!Array.isArray(strokes) || strokes.length === 0) {
@@ -86,23 +79,44 @@ const EnhancedFeatureExtractor = {
   extractStrokes(strokeData) {
     if (!strokeData) return [];
     
+    let rawStrokes = [];
+    
     if (Array.isArray(strokeData)) {
-      return strokeData;
+      rawStrokes = strokeData;
+    } else if (strokeData.strokes && Array.isArray(strokeData.strokes)) {
+      rawStrokes = strokeData.strokes;
+    } else if (strokeData.raw && Array.isArray(strokeData.raw)) {
+      rawStrokes = strokeData.raw;
+    } else if (strokeData.data && Array.isArray(strokeData.data)) {
+      rawStrokes = strokeData.data;
+    } else {
+      return [];
     }
     
-    if (strokeData.strokes && Array.isArray(strokeData.strokes)) {
-      return strokeData.strokes;
-    }
-    
-    if (strokeData.raw && Array.isArray(strokeData.raw)) {
-      return strokeData.raw;
-    }
-    
-    if (strokeData.data && Array.isArray(strokeData.data)) {
-      return strokeData.data;
-    }
-    
-    return [];
+    // Normalize stroke format - ensure each stroke has a points property
+    return rawStrokes.map((stroke, index) => {
+      // If stroke already has the expected format with points property
+      if (stroke && typeof stroke === 'object' && stroke.points && Array.isArray(stroke.points)) {
+        return stroke;
+      }
+      
+      // If stroke is an array of points, wrap it
+      if (Array.isArray(stroke)) {
+        return { points: stroke };
+      }
+      
+      // If stroke has other properties but no points array, try to extract
+      if (stroke && typeof stroke === 'object') {
+        // Check for alternative point array names
+        const points = stroke.data || stroke.raw || stroke.strokes || [];
+        if (Array.isArray(points)) {
+          return { ...stroke, points };
+        }
+      }
+      
+      console.warn(`Invalid stroke format at index ${index}:`, stroke);
+      return { points: [] };
+    }).filter(stroke => stroke.points.length > 0);
   },
 
   // Phase 1: Pressure Analysis Features
