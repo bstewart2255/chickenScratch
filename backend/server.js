@@ -2463,16 +2463,19 @@ function calculateDrawingBaseline(drawings) {
     drawings.forEach(drawing => {
         const drawingType = drawing.drawing_type;
         const metrics = drawing.metrics || {};
+        let enhancedFeatures = null;
+        let enhancedFeaturesEnabled = false;
         
         // Extract enhanced features if available
         if (drawing.enhanced_features) {
             try {
-                const enhancedFeatures = typeof drawing.enhanced_features === 'string' 
+                enhancedFeatures = typeof drawing.enhanced_features === 'string' 
                     ? JSON.parse(drawing.enhanced_features) 
                     : drawing.enhanced_features;
                     
                 if (enhancedFeatures && Object.keys(enhancedFeatures).length > 0) {
                     allEnhancedFeatures.push(enhancedFeatures);
+                    enhancedFeaturesEnabled = enhancedFeatures._enhanced_features_enabled || true;
                 }
             } catch (e) {
                 console.error('Error parsing drawing enhanced features:', e);
@@ -2484,16 +2487,16 @@ function calculateDrawingBaseline(drawings) {
         
         switch(drawingType) {
             case 'face':
-                baseline.face_score = hasData ? calculateFaceScore(metrics) : null;
+                baseline.face_score = hasData ? calculateFaceScore(metrics, enhancedFeatures, enhancedFeaturesEnabled) : null;
                 break;
             case 'star':
-                baseline.star_score = hasData ? calculateStarScore(metrics) : null;
+                baseline.star_score = hasData ? calculateStarScore(metrics, enhancedFeatures, enhancedFeaturesEnabled) : null;
                 break;
             case 'house':
-                baseline.house_score = hasData ? calculateHouseScore(metrics) : null;
+                baseline.house_score = hasData ? calculateHouseScore(metrics, enhancedFeatures, enhancedFeaturesEnabled) : null;
                 break;
             case 'connect_dots':
-                baseline.connect_dots_score = hasData ? calculateConnectDotsScore(metrics) : null;
+                baseline.connect_dots_score = hasData ? calculateConnectDotsScore(metrics, enhancedFeatures, enhancedFeaturesEnabled) : null;
                 break;
         }
     });
@@ -2564,62 +2567,229 @@ function calculateTriangleClosure(metrics) {
     return Math.round(closure);
 }
 
-// Drawing-specific scoring functions
-function calculateFaceScore(metrics) {
+// Calculate biometric authenticity score from enhanced features
+function calculateBiometricAuthenticity(enhancedFeatures) {
+    if (!enhancedFeatures || !enhancedFeatures._enhanced_features_enabled) {
+        return 50; // Default score if no enhanced features
+    }
+    
+    let score = 0;
+    let weightTotal = 0;
+    
+    // Behavioral timing features (30% weight)
+    const timingFeatures = ['rhythm_consistency', 'tempo_variation', 'pause_detection', 
+                           'inter_stroke_timing', 'dwell_time_patterns'];
+    const timingWeight = 30;
+    let timingScore = 0;
+    let timingCount = 0;
+    
+    timingFeatures.forEach(feature => {
+        if (enhancedFeatures[feature] !== undefined && enhancedFeatures[feature] !== null) {
+            // Normalize timing scores to 0-100 range
+            let normalized = enhancedFeatures[feature];
+            if (feature === 'rhythm_consistency') {
+                normalized = Math.min(100, normalized * 100);
+            } else if (feature === 'tempo_variation') {
+                normalized = Math.max(0, 100 - (normalized * 50));
+            }
+            timingScore += normalized;
+            timingCount++;
+        }
+    });
+    
+    if (timingCount > 0) {
+        score += (timingScore / timingCount) * (timingWeight / 100);
+        weightTotal += timingWeight;
+    }
+    
+    // Advanced geometric features (30% weight)
+    const geometricFeatures = ['stroke_complexity', 'smoothness_index', 'tremor_index',
+                               'spatial_efficiency', 'curvature_analysis'];
+    const geometricWeight = 30;
+    let geometricScore = 0;
+    let geometricCount = 0;
+    
+    geometricFeatures.forEach(feature => {
+        if (enhancedFeatures[feature] !== undefined && enhancedFeatures[feature] !== null) {
+            let normalized = enhancedFeatures[feature];
+            if (feature === 'tremor_index') {
+                normalized = Math.max(0, 100 - (normalized * 100));
+            } else {
+                normalized = Math.min(100, normalized * 100);
+            }
+            geometricScore += normalized;
+            geometricCount++;
+        }
+    });
+    
+    if (geometricCount > 0) {
+        score += (geometricScore / geometricCount) * (geometricWeight / 100);
+        weightTotal += geometricWeight;
+    }
+    
+    // Security indicators (20% weight)
+    const securityFeatures = ['behavioral_authenticity_score', 'timing_regularity_score',
+                             'device_consistency_score'];
+    const securityWeight = 20;
+    let securityScore = 0;
+    let securityCount = 0;
+    
+    securityFeatures.forEach(feature => {
+        if (enhancedFeatures[feature] !== undefined && enhancedFeatures[feature] !== null) {
+            securityScore += Math.min(100, enhancedFeatures[feature] * 100);
+            securityCount++;
+        }
+    });
+    
+    if (securityCount > 0) {
+        score += (securityScore / securityCount) * (securityWeight / 100);
+        weightTotal += securityWeight;
+    }
+    
+    // Pressure features if available (20% weight)
+    if (!enhancedFeatures._excluded_features?.includes('avg_pressure')) {
+        const pressureFeatures = ['pressure_std', 'pressure_buildup_rate', 'contact_time_ratio'];
+        const pressureWeight = 20;
+        let pressureScore = 0;
+        let pressureCount = 0;
+        
+        pressureFeatures.forEach(feature => {
+            if (enhancedFeatures[feature] !== undefined && enhancedFeatures[feature] !== null) {
+                pressureScore += Math.min(100, enhancedFeatures[feature] * 100);
+                pressureCount++;
+            }
+        });
+        
+        if (pressureCount > 0) {
+            score += (pressureScore / pressureCount) * (pressureWeight / 100);
+            weightTotal += pressureWeight;
+        }
+    }
+    
+    // Normalize final score
+    if (weightTotal > 0) {
+        return Math.round((score / weightTotal) * 100);
+    }
+    
+    return 50; // Default if no features could be scored
+}
+
+// Calculate structural accuracy for drawings
+function calculateStructuralAccuracy(metrics, drawingType) {
+    if (!metrics || metrics.strokeCount === 0) return 0;
+    
+    const strokeCount = metrics.strokeCount || 0;
+    const pointCount = metrics.pointCount || 0;
+    
+    switch(drawingType) {
+        case 'face':
+            // A face typically has 3-7 strokes
+            const faceStrokeScore = Math.min(100, (strokeCount / 5) * 100);
+            const facePointScore = Math.min(100, (pointCount / 50) * 100);
+            return Math.round((faceStrokeScore + facePointScore) / 2);
+            
+        case 'star':
+            // A 5-pointed star typically has 1-2 strokes
+            const starStrokeScore = strokeCount >= 1 ? 80 : 20;
+            const starPointScore = Math.min(100, (pointCount / 30) * 100);
+            return Math.round((starStrokeScore + starPointScore) / 2);
+            
+        case 'house':
+            // A house typically has 4-8 strokes
+            const houseStrokeScore = Math.min(100, (strokeCount / 6) * 100);
+            const housePointScore = Math.min(100, (pointCount / 60) * 100);
+            return Math.round((houseStrokeScore + housePointScore) / 2);
+            
+        case 'connect_dots':
+            // Connect dots should be efficient
+            const efficiency = strokeCount > 0 ? Math.max(0, 100 - (strokeCount - 1) * 20) : 0;
+            const completeness = Math.min(100, (pointCount / 20) * 100);
+            return Math.round((efficiency + completeness) / 2);
+            
+        default:
+            return 50;
+    }
+}
+
+// Enhanced drawing score calculation
+function calculateEnhancedDrawingScore(drawingData, drawingType) {
+    // Check if enhanced features exist
+    if (drawingData.enhanced_features && drawingData._enhanced_features_enabled) {
+        // Use enhanced biometric features for scoring
+        const enhancedFeatures = drawingData.enhanced_features;
+        
+        // Combine biometric authenticity with structural accuracy
+        const biometricScore = calculateBiometricAuthenticity(enhancedFeatures);
+        const structuralScore = calculateStructuralAccuracy(drawingData.metrics, drawingType);
+        
+        // Weight: 80% biometric, 20% structural for drawings
+        return Math.round((biometricScore * 0.8) + (structuralScore * 0.2));
+    }
+    
+    // Fallback to basic scoring for legacy data
+    return calculateStructuralAccuracy(drawingData.metrics, drawingType);
+}
+
+// Drawing-specific scoring functions (updated to use enhanced features)
+function calculateFaceScore(metrics, enhancedFeatures = null, enhancedFeaturesEnabled = false) {
     // If no actual data, return null
-    if (metrics.strokeCount === 0) return null;
+    if (!metrics || metrics.strokeCount === 0) return null;
     
-    // Basic face score based on complexity and completeness
-    const strokeCount = metrics.strokeCount || 0;
-    const pointCount = metrics.pointCount || 0;
+    // Use enhanced scoring if available
+    if (enhancedFeatures && enhancedFeaturesEnabled) {
+        return calculateEnhancedDrawingScore(
+            { metrics, enhanced_features: enhancedFeatures, _enhanced_features_enabled: true },
+            'face'
+        );
+    }
     
-    // A face typically has 3-7 strokes (2 eyes, nose, mouth, maybe head outline)
-    const strokeScore = Math.min(100, (strokeCount / 5) * 100);
-    const pointScore = Math.min(100, (pointCount / 50) * 100);
-    
-    return Math.round((strokeScore + pointScore) / 2);
+    // Fallback to basic scoring
+    return calculateStructuralAccuracy(metrics, 'face');
 }
 
-function calculateStarScore(metrics) {
-    if (metrics.strokeCount === 0) return null;
+function calculateStarScore(metrics, enhancedFeatures = null, enhancedFeaturesEnabled = false) {
+    if (!metrics || metrics.strokeCount === 0) return null;
     
-    // Star scoring based on stroke count and complexity
-    const strokeCount = metrics.strokeCount || 0;
-    const pointCount = metrics.pointCount || 0;
+    // Use enhanced scoring if available
+    if (enhancedFeatures && enhancedFeaturesEnabled) {
+        return calculateEnhancedDrawingScore(
+            { metrics, enhanced_features: enhancedFeatures, _enhanced_features_enabled: true },
+            'star'
+        );
+    }
     
-    // A 5-pointed star typically has 1-2 strokes
-    const strokeScore = strokeCount >= 1 ? 80 : 20;
-    const pointScore = Math.min(100, (pointCount / 30) * 100);
-    
-    return Math.round((strokeScore + pointScore) / 2);
+    // Fallback to basic scoring
+    return calculateStructuralAccuracy(metrics, 'star');
 }
 
-function calculateHouseScore(metrics) {
-    if (metrics.strokeCount === 0) return null;
+function calculateHouseScore(metrics, enhancedFeatures = null, enhancedFeaturesEnabled = false) {
+    if (!metrics || metrics.strokeCount === 0) return null;
     
-    // House scoring based on component count
-    const strokeCount = metrics.strokeCount || 0;
-    const pointCount = metrics.pointCount || 0;
+    // Use enhanced scoring if available
+    if (enhancedFeatures && enhancedFeaturesEnabled) {
+        return calculateEnhancedDrawingScore(
+            { metrics, enhanced_features: enhancedFeatures, _enhanced_features_enabled: true },
+            'house'
+        );
+    }
     
-    // A house typically has 4-8 strokes (walls, roof, door, windows)
-    const strokeScore = Math.min(100, (strokeCount / 6) * 100);
-    const pointScore = Math.min(100, (pointCount / 60) * 100);
-    
-    return Math.round((strokeScore + pointScore) / 2);
+    // Fallback to basic scoring
+    return calculateStructuralAccuracy(metrics, 'house');
 }
 
-function calculateConnectDotsScore(metrics) {
-    if (metrics.strokeCount === 0) return null;
+function calculateConnectDotsScore(metrics, enhancedFeatures = null, enhancedFeaturesEnabled = false) {
+    if (!metrics || metrics.strokeCount === 0) return null;
     
-    // Connect dots scoring based on efficiency
-    const strokeCount = metrics.strokeCount || 0;
-    const pointCount = metrics.pointCount || 0;
+    // Use enhanced scoring if available
+    if (enhancedFeatures && enhancedFeaturesEnabled) {
+        return calculateEnhancedDrawingScore(
+            { metrics, enhanced_features: enhancedFeatures, _enhanced_features_enabled: true },
+            'connect_dots'
+        );
+    }
     
-    // Connect dots should be efficient (fewer strokes is better)
-    const efficiency = strokeCount > 0 ? Math.max(0, 100 - (strokeCount - 1) * 20) : 0;
-    const completeness = Math.min(100, (pointCount / 20) * 100);
-    
-    return Math.round((efficiency + completeness) / 2);
+    // Fallback to basic scoring
+    return calculateStructuralAccuracy(metrics, 'connect_dots');
 }
 
 // Enhanced detailed-analysis endpoint with proper ML feature extraction
