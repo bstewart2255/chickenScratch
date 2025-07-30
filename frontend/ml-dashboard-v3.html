@@ -1016,6 +1016,135 @@
             return html;
         }
 
+        // Render shape biometric analysis section
+        function renderShapeBiometricAnalysis(attempt, baseline) {
+            // Check if we have shape enhanced features data
+            const hasEnhancedShapes = attempt.shape_enhanced_features || attempt.shape_biometric_scores;
+            
+            if (!hasEnhancedShapes) {
+                return '';
+            }
+            
+            let html = `
+                <div class="data-group">
+                    <div class="data-group-title">Shape Biometric Analysis</div>`;
+            
+            // Show biometric vs geometric breakdown if available
+            if (attempt.shape_biometric_scores) {
+                ['circle', 'square', 'triangle'].forEach(shape => {
+                    if (attempt.shape_biometric_scores[shape]) {
+                        const scores = attempt.shape_biometric_scores[shape];
+                        html += `
+                            <div class="data-metric">
+                                <span class="metric-name">${shape.charAt(0).toUpperCase() + shape.slice(1)} Biometric:</span>
+                                <span class="metric-value">B: ${formatPercentage(scores.biometric)}, G: ${formatPercentage(scores.geometric)}</span>
+                            </div>`;
+                    }
+                });
+            }
+            
+            // Show specific enhanced features if available
+            if (attempt.shape_enhanced_features) {
+                const features = attempt.shape_enhanced_features;
+                if (features.avg_pressure !== undefined) {
+                    html += `
+                        <div class="data-metric">
+                            <span class="metric-name">Shape Pressure:</span>
+                            <span class="metric-value">${formatMetricValue(features.avg_pressure?.toFixed(3), baseline.shape_avg_pressure?.toFixed(3))}</span>
+                        </div>`;
+                }
+                if (features.tremor_index !== undefined) {
+                    html += `
+                        <div class="data-metric">
+                            <span class="metric-name">Shape Tremor:</span>
+                            <span class="metric-value">${formatMetricValue(features.tremor_index?.toFixed(3), baseline.shape_tremor_index?.toFixed(3))}</span>
+                        </div>`;
+                }
+                if (features.stroke_complexity !== undefined) {
+                    html += `
+                        <div class="data-metric">
+                            <span class="metric-name">Shape Complexity:</span>
+                            <span class="metric-value">${formatMetricValue(features.stroke_complexity?.toFixed(3), baseline.shape_stroke_complexity?.toFixed(3))}</span>
+                        </div>`;
+                }
+                if (features.smoothness_index !== undefined) {
+                    html += `
+                        <div class="data-metric">
+                            <span class="metric-name">Shape Smoothness:</span>
+                            <span class="metric-value">${formatMetricValue(features.smoothness_index?.toFixed(3), baseline.shape_smoothness_index?.toFixed(3))}</span>
+                        </div>`;
+                }
+            }
+            
+            html += `</div>`;
+            return html;
+        }
+
+        // Render drawing biometric analysis section
+        function renderDrawingBiometricAnalysis(attempt, baseline) {
+            // Check if we have drawing enhanced features data
+            const hasEnhancedDrawings = attempt.drawing_enhanced_features || attempt.drawing_biometric_scores;
+            
+            if (!hasEnhancedDrawings) {
+                return '';
+            }
+            
+            let html = `
+                <div class="data-group">
+                    <div class="data-group-title">Drawing Biometric Analysis</div>`;
+            
+            // Show biometric vs geometric breakdown if available
+            if (attempt.drawing_biometric_scores) {
+                ['face', 'star', 'house', 'connect_dots'].forEach(drawing => {
+                    if (attempt.drawing_biometric_scores[drawing]) {
+                        const scores = attempt.drawing_biometric_scores[drawing];
+                        const drawingName = drawing === 'connect_dots' ? 'Connect Dots' : drawing.charAt(0).toUpperCase() + drawing.slice(1);
+                        html += `
+                            <div class="data-metric">
+                                <span class="metric-name">${drawingName} Biometric:</span>
+                                <span class="metric-value">B: ${formatPercentage(scores.biometric)}, G: ${formatPercentage(scores.geometric)}</span>
+                            </div>`;
+                    }
+                });
+            }
+            
+            // Show specific enhanced features if available
+            if (attempt.drawing_enhanced_features) {
+                const features = attempt.drawing_enhanced_features;
+                if (features.stroke_sequence_pattern !== undefined) {
+                    html += `
+                        <div class="data-metric">
+                            <span class="metric-name">Stroke Pattern:</span>
+                            <span class="metric-value">${formatMetricValue(features.stroke_sequence_pattern?.toFixed(3), baseline.drawing_stroke_pattern?.toFixed(3))}</span>
+                        </div>`;
+                }
+                if (features.spatial_consistency !== undefined) {
+                    html += `
+                        <div class="data-metric">
+                            <span class="metric-name">Spatial Consistency:</span>
+                            <span class="metric-value">${formatMetricValue(features.spatial_consistency?.toFixed(3), baseline.drawing_spatial_consistency?.toFixed(3))}</span>
+                        </div>`;
+                }
+                if (features.artistic_style_fingerprint !== undefined) {
+                    html += `
+                        <div class="data-metric">
+                            <span class="metric-name">Artistic Style:</span>
+                            <span class="metric-value">${formatMetricValue(features.artistic_style_fingerprint?.toFixed(3), baseline.drawing_artistic_style?.toFixed(3))}</span>
+                        </div>`;
+                }
+                if (features.spatial_relationship_consistency !== undefined) {
+                    html += `
+                        <div class="data-metric">
+                            <span class="metric-name">Spatial Relationships:</span>
+                            <span class="metric-value">${formatMetricValue(features.spatial_relationship_consistency?.toFixed(3), baseline.drawing_spatial_relationships?.toFixed(3))}</span>
+                        </div>`;
+                }
+            }
+            
+            html += `</div>`;
+            return html;
+        }
+
         // Render the Data tab
         function renderDataTab() {
             if (!currentData) return;
@@ -1437,16 +1566,7 @@
                                         <span class="metric-value">${formatPercentage(attempt.shape_scores?.triangle)} (Closure: ${formatMetricValue(attempt.triangle_closure, baseline.triangle_closure, false)}%)</span>
                                     </div>
                                 </div>
-                                ${attempt.shape_biometric_scores || attempt.shape_enhanced_features ? `
-                                <div class="data-group">
-                                    <div class="data-group-title">Shape Biometric Analysis</div>
-                                    ${attempt.shape_biometric_scores ? Object.keys(attempt.shape_biometric_scores).map(shape => `
-                                        <div class="data-metric">
-                                            <span class="metric-name">${shape.charAt(0).toUpperCase() + shape.slice(1)} Biometric:</span>
-                                            <span class="metric-value">B: ${formatPercentage(attempt.shape_biometric_scores[shape].biometric)}, G: ${formatPercentage(attempt.shape_biometric_scores[shape].geometric)}</span>
-                                        </div>
-                                    `).join('') : ''}
-                                </div>` : ''}
+                                ${renderShapeBiometricAnalysis(attempt, baseline)}
                             </div>
                         </div>
                         
@@ -1473,18 +1593,7 @@
                                         <span class="metric-value">${attempt.drawing_scores?.connect_dots !== null && attempt.drawing_scores?.connect_dots !== undefined ? formatPercentage(attempt.drawing_scores.connect_dots) : 'N/A'}</span>
                                     </div>
                                 </div>
-                                ${attempt.drawing_biometric_scores || attempt.drawing_enhanced_features ? `
-                                <div class="data-group">
-                                    <div class="data-group-title">Drawing Biometric Analysis</div>
-                                    ${attempt.drawing_biometric_scores ? Object.keys(attempt.drawing_biometric_scores).map(drawing => {
-                                        const drawingName = drawing === 'connect_dots' ? 'Connect Dots' : drawing.charAt(0).toUpperCase() + drawing.slice(1);
-                                        return `
-                                        <div class="data-metric">
-                                            <span class="metric-name">${drawingName} Biometric:</span>
-                                            <span class="metric-value">B: ${formatPercentage(attempt.drawing_biometric_scores[drawing].biometric)}, G: ${formatPercentage(attempt.drawing_biometric_scores[drawing].geometric)}</span>
-                                        </div>
-                                    `}).join('') : ''}
-                                </div>` : ''}
+                                ${renderDrawingBiometricAnalysis(attempt, baseline)}
                             </div>
                         </div>
                         
