@@ -3271,19 +3271,22 @@ app.get('/api/user/:username/detailed-analysis', async (req, res) => {
                 signatures: signatures.rows.map(sig => ({
                     id: sig.id,
                     created_at: sig.created_at,
-                    metrics: sig.metrics
+                    metrics: sig.metrics,
+                    signature_data: sig.signature_data
                 })),
                 shapes: shapes.rows.map(shape => ({
                     id: shape.id,
                     shape_type: shape.shape_type,
                     created_at: shape.created_at,
-                    metrics: shape.metrics
+                    metrics: shape.metrics,
+                    shape_data: shape.shape_data
                 })),
                 drawings: drawings.rows.map(drawing => ({
                     id: drawing.id,
                     drawing_type: drawing.drawing_type,
                     created_at: drawing.created_at,
-                    metrics: drawing.metrics
+                    metrics: drawing.metrics,
+                    drawing_data: drawing.drawing_data
                 }))
             },
             baseline,
