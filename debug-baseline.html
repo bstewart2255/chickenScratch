@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Baseline</title>
+</head>
+<body>
+    <h1>Debugging Baseline Data</h1>
+    <div id="output"></div>
+    
+    <script>
+        async function debugBaseline() {
+            const username = 'migrationtest12';
+            const API_URL = 'http://localhost:3000';
+            
+            try {
+                const response = await fetch(`${API_URL}/api/user/${username}/detailed-analysis`);
+                const data = await response.json();
+                
+                console.log('Full baseline object:', data.baseline);
+                
+                const output = document.getElementById('output');
+                output.innerHTML = `
+                    <h2>Baseline Shape Data:</h2>
+                    <p>circle_roundness: ${data.baseline.circle_roundness}</p>
+                    <p>square_corner_accuracy: ${data.baseline.square_corner_accuracy}</p>
+                    <p>triangle_closure: ${data.baseline.triangle_closure}</p>
+                    
+                    <h2>Baseline Drawing Data:</h2>
+                    <p>face_score: ${data.baseline.face_score}</p>
+                    <p>star_score: ${data.baseline.star_score}</p>
+                    <p>house_score: ${data.baseline.house_score}</p>
+                    <p>connect_dots_score: ${data.baseline.connect_dots_score}</p>
+                    
+                    <h2>Testing formatPercentage function:</h2>
+                    <p>formatPercentage(${data.baseline.circle_roundness}): ${formatPercentage(data.baseline.circle_roundness)}</p>
+                    <p>formatPercentage(null): ${formatPercentage(null)}</p>
+                    <p>formatPercentage(undefined): ${formatPercentage(undefined)}</p>
+                    <p>formatPercentage(0): ${formatPercentage(0)}</p>
+                `;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('output').innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+        
+        function formatPercentage(value) {
+            if (value === null || value === undefined) return 'N/A';
+            return `${Math.round(value)}%`;
+        }
+        
+        debugBaseline();
+    </script>
+</body>
+</html>

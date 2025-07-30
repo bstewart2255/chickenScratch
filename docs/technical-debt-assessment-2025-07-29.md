@@ -38,7 +38,7 @@ My analysis of the file structure reveals several areas of concern:
 **b. Inconsistent Code and Project Structure**
 *   **Evidence:**
     *   Inconsistent naming conventions are prevalent (e.g., `check_tables.js` vs. `checkData.js`, `run_migration.js` vs. `run-migration.js`).
-    *   Redundant, versioned files exist (e.g., `ml-dashboard.html`, `ml-dashboard-v2.html`, `ml-dashboard-v3.html`), suggesting old code is not being cleaned up.
+    *   ✅ **RESOLVED**: Redundant ML dashboard files have been cleaned up. Only `ml-dashboard-v3.html` remains active, with older versions archived in `legacy/ml-dashboards/`.
     *   One-off scripts for debugging and data fixes are common (`diagnose-dashboard.js`, `fixVelocityBaselines.js`, `comprehensiveVelocityFix.js`). This points to developers repeatedly solving problems with temporary, manual scripts instead of building robust, permanent solutions.
 *   **Impact:** This makes the codebase difficult to navigate and understand, increasing the time it takes for developers to become productive and increasing the chance of bugs.
 
