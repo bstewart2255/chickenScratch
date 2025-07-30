@@ -3302,3 +3302,6 @@ function extractStrokeDataFromSignaturePad(signatureData) {
         return null;
     }
 }
+
+// Export for testing
+module.exports = { calculateMLFeatures };
