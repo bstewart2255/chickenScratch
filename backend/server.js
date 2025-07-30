@@ -3837,25 +3837,20 @@ function extractStrokeDataFromSignaturePad(signatureData, depth = 0) {
         }
         
         // Handle data property that might contain the actual stroke data
-        // Only recurse if data is different from the original signatureData to prevent circular references
-        if (parsed.data && parsed.data !== signatureData) {
+        if (parsed.data) {
             // Check if data is a string that needs parsing
             if (typeof parsed.data === 'string') {
                 try {
                     const dataParsed = JSON.parse(parsed.data);
-                    // Only recurse if the parsed data is different from current parsed object
-                    if (JSON.stringify(dataParsed) !== JSON.stringify(parsed)) {
-                        return extractStrokeDataFromSignaturePad(parsed.data, depth + 1);
-                    }
+                    // Recursively process the parsed data object, not the original string
+                    return extractStrokeDataFromSignaturePad(dataParsed, depth + 1);
                 } catch (parseError) {
                     // If parsing fails, try with the raw string
                     return extractStrokeDataFromSignaturePad(parsed.data, depth + 1);
                 }
             } else {
-                // For non-string data, check if it's different from current parsed object
-                if (JSON.stringify(parsed.data) !== JSON.stringify(parsed)) {
-                    return extractStrokeDataFromSignaturePad(parsed.data, depth + 1);
-                }
+                // For non-string data, recursively process the data object
+                return extractStrokeDataFromSignaturePad(parsed.data, depth + 1);
             }
         }
         
@@ -3868,4 +3863,4 @@ function extractStrokeDataFromSignaturePad(signatureData, depth = 0) {
 }
 
 // Export for testing
-module.exports = { calculateMLFeatures };
+module.exports = { calculateMLFeatures, extractStrokeDataFromSignaturePad };
