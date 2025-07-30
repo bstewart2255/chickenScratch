@@ -461,6 +461,11 @@ const ComponentSpecificFeatures = {
   analyzeSideLengthRatios(strokeData) {
     if (!strokeData || strokeData.length === 0) return 0;
     
+    // Validate that strokeData[0] exists and has points
+    if (!strokeData[0] || !strokeData[0].points || !Array.isArray(strokeData[0].points) || strokeData[0].points.length === 0) {
+      return 0;
+    }
+    
     const corners = this.detectCorners(strokeData[0].points);
     if (corners.length < 3) return 0;
     
@@ -472,8 +477,18 @@ const ComponentSpecificFeatures = {
       sideLengths.push(length);
     }
     
+    // Check for zero lengths to prevent division by zero
+    if (sideLengths.some(length => length === 0)) {
+      return 0;
+    }
+    
     // Sort to get ratios
     sideLengths.sort((a, b) => a - b);
+    
+    // Prevent division by zero when calculating ratios
+    if (sideLengths[0] === 0 || sideLengths[1] === 0) {
+      return 0;
+    }
     
     // Return ratio pattern as a feature
     return (sideLengths[1] / sideLengths[0]) * (sideLengths[2] / sideLengths[1]);
@@ -482,8 +497,15 @@ const ComponentSpecificFeatures = {
   analyzeApexSharpness(strokeData) {
     if (!strokeData || strokeData.length === 0) return 0;
     
+    // Validate that strokeData[0] exists and has points
+    if (!strokeData[0] || !strokeData[0].points || !Array.isArray(strokeData[0].points) || strokeData[0].points.length === 0) {
+      return 0;
+    }
+    
     const corners = this.detectCorners(strokeData[0].points);
     const points = strokeData[0].points;
+    
+    if (corners.length === 0) return 0;
     
     const sharpnessScores = corners.map(corner => {
       // Measure curvature at corner
