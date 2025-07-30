@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ML Dashboard Layout Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .test-section {
+            margin-bottom: 40px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        /* Old layout (Issue) */
+        .attempt-data-old {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            border: 2px solid #ff5252;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        
+        /* New layout (Fixed) */
+        .attempt-data-new {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            border: 2px solid #4caf50;
+            padding: 10px;
+        }
+        
+        .data-group {
+            background: #fafafa;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .data-group-title {
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #333;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+            font-size: 1.1em;
+        }
+        
+        /* Old metric style */
+        .data-metric-old {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+        
+        /* New metric style */
+        .data-metric-new {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 13px;
+            gap: 10px;
+        }
+        
+        .metric-name-old {
+            color: #555;
+        }
+        
+        .metric-name-new {
+            color: #555;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+        
+        .metric-value-old {
+            font-weight: 500;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .metric-value-new {
+            font-weight: 500;
+            font-family: 'Courier New', monospace;
+            white-space: nowrap;
+            text-align: right;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .issue-label {
+            background: #ff5252;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+        
+        .fixed-label {
+            background: #4caf50;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <h1>ML Dashboard Layout Test - Issue #2</h1>
+    <p>This page demonstrates the text wrapping issue in auth attempt signature sections and the fix.</p>
+    
+    <div class="test-section">
+        <h2>Before Fix (250px minimum width)</h2>
+        <div class="issue-label">ISSUE: Text wrapping</div>
+        <div class="attempt-data-old">
+            <div class="data-group">
+                <div class="data-group-title">Signature Enhanced Features</div>
+                <div class="data-metric-old">
+                    <span class="metric-name-old">Pause Time Ratio:</span>
+                    <span class="metric-value-old">0.24 avg</span>
+                </div>
+                <div class="data-metric-old">
+                    <span class="metric-name-old">Stroke Overlap Ratio:</span>
+                    <span class="metric-value-old">0.020 avg</span>
+                </div>
+                <div class="data-metric-old">
+                    <span class="metric-name-old">Avg Stroke Duration:</span>
+                    <span class="metric-value-old">632.8 ms avg</span>
+                </div>
+                <div class="data-metric-old">
+                    <span class="metric-name-old">Behavioral Authenticity Score:</span>
+                    <span class="metric-value-old">0.875</span>
+                </div>
+            </div>
+            <div class="data-group">
+                <div class="data-group-title">Other Data</div>
+                <div class="data-metric-old">
+                    <span class="metric-name-old">Some metric:</span>
+                    <span class="metric-value-old">Value</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>After Fix (350px minimum width + nowrap)</h2>
+        <div class="fixed-label">FIXED: No text wrapping</div>
+        <div class="attempt-data-new">
+            <div class="data-group">
+                <div class="data-group-title">Signature Enhanced Features</div>
+                <div class="data-metric-new">
+                    <span class="metric-name-new">Pause Time Ratio:</span>
+                    <span class="metric-value-new">0.24 avg</span>
+                </div>
+                <div class="data-metric-new">
+                    <span class="metric-name-new">Stroke Overlap Ratio:</span>
+                    <span class="metric-value-new">0.020 avg</span>
+                </div>
+                <div class="data-metric-new">
+                    <span class="metric-name-new">Avg Stroke Duration:</span>
+                    <span class="metric-value-new">632.8 ms avg</span>
+                </div>
+                <div class="data-metric-new">
+                    <span class="metric-name-new">Behavioral Authenticity Score:</span>
+                    <span class="metric-value-new">0.875</span>
+                </div>
+            </div>
+            <div class="data-group">
+                <div class="data-group-title">Other Data</div>
+                <div class="data-metric-new">
+                    <span class="metric-name-new">Some metric:</span>
+                    <span class="metric-value-new">Value</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Responsive Test</h2>
+        <p>Resize your browser window to see how the layout adapts. The fixed version should maintain better spacing and prevent text wrapping even on smaller screens.</p>
+    </div>
+</body>
+</html>

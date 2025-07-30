@@ -2644,11 +2644,48 @@ function calculateEnhancedBaseline(signatures, shapes, drawings) {
     // Calculate drawing-specific baseline metrics  
     const drawingBaseline = calculateDrawingBaseline(drawings);
     
-    return {
-        ...signatureBaseline,
-        ...shapeBaseline,
-        ...drawingBaseline
+    // Structure the baseline data correctly for the API response
+    const baseline = {
+        ...signatureBaseline
     };
+    
+    // Add shape features if available
+    if (shapeBaseline.circle_roundness !== null || 
+        shapeBaseline.square_corner_accuracy !== null || 
+        shapeBaseline.triangle_closure !== null) {
+        baseline.shape_features = {
+            circle_roundness: shapeBaseline.circle_roundness,
+            square_corners: shapeBaseline.square_corner_accuracy, // Map to expected name
+            triangle_closure: shapeBaseline.triangle_closure
+        };
+        
+        // Add enhanced features if available
+        if (shapeBaseline.shape_enhanced_features && 
+            Object.keys(shapeBaseline.shape_enhanced_features).length > 0) {
+            baseline.shape_enhanced_features = shapeBaseline.shape_enhanced_features;
+        }
+    }
+    
+    // Add drawing features if available
+    if (drawingBaseline.face_score !== null || 
+        drawingBaseline.star_score !== null || 
+        drawingBaseline.house_score !== null || 
+        drawingBaseline.connect_dots_score !== null) {
+        baseline.drawing_features = {
+            face_features: drawingBaseline.face_score,
+            star_points: drawingBaseline.star_score,
+            house_structure: drawingBaseline.house_score,
+            connect_dots: drawingBaseline.connect_dots_score
+        };
+        
+        // Add enhanced features if available
+        if (drawingBaseline.drawing_enhanced_features && 
+            Object.keys(drawingBaseline.drawing_enhanced_features).length > 0) {
+            baseline.drawing_enhanced_features = drawingBaseline.drawing_enhanced_features;
+        }
+    }
+    
+    return baseline;
 }
 
 function calculateShapeBaseline(shapes) {
@@ -3758,8 +3795,15 @@ app.listen(PORT, () => {
 });
 
 // Helper function to extract stroke data from SignaturePad v4 format
-function extractStrokeDataFromSignaturePad(signatureData) {
+function extractStrokeDataFromSignaturePad(signatureData, depth = 0) {
     if (!signatureData) return null;
+    
+    // Prevent infinite recursion by limiting depth
+    const MAX_DEPTH = 5;
+    if (depth > MAX_DEPTH) {
+        console.warn('Maximum recursion depth reached in extractStrokeDataFromSignaturePad');
+        return null;
+    }
     
     try {
         let parsed = signatureData;
@@ -3779,20 +3823,40 @@ function extractStrokeDataFromSignaturePad(signatureData) {
                     return stroke;
                 }
                 return [];
-            });
+            }).filter(stroke => stroke.length > 0); // Filter out empty strokes
         }
         
         // Handle legacy format: {strokes: [[...], [...]]}
         if (parsed.strokes && Array.isArray(parsed.strokes)) {
-            return parsed.strokes;
+            return parsed.strokes.filter(stroke => stroke && stroke.length > 0);
         }
         
         // Handle direct array format: [[...], [...]]
         if (Array.isArray(parsed)) {
-            return parsed;
+            return parsed.filter(stroke => stroke && stroke.length > 0);
         }
         
-        console.warn('No stroke data found in signature data');
+        // Handle data property that might contain the actual stroke data
+        if (parsed.data) {
+            // Check if data is a string that needs parsing
+            if (typeof parsed.data === 'string') {
+                try {
+                    const dataParsed = JSON.parse(parsed.data);
+                    // Recursively process the parsed data object, not the original string
+                    return extractStrokeDataFromSignaturePad(dataParsed, depth + 1);
+                } catch (parseError) {
+                    // If parsing fails, don't recursively call with the same unparseable string
+                    // Instead, log the error and return null to avoid infinite recursion
+                    console.warn('Failed to parse data string as JSON:', parseError.message);
+                    return null;
+                }
+            } else {
+                // For non-string data, recursively process the data object
+                return extractStrokeDataFromSignaturePad(parsed.data, depth + 1);
+            }
+        }
+        
+        console.warn('No stroke data found in signature data:', Object.keys(parsed || {}));
         return null;
     } catch (error) {
         console.error('Error extracting stroke data from SignaturePad format:', error);
@@ -3801,4 +3865,4 @@ function extractStrokeDataFromSignaturePad(signatureData) {
 }
 
 // Export for testing
-module.exports = { calculateMLFeatures };
+module.exports = { calculateMLFeatures, extractStrokeDataFromSignaturePad };
