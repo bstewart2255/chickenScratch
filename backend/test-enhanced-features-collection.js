@@ -58,7 +58,7 @@ async function testEnhancedFeaturesCollection() {
         
         console.log('✅ Authentication response received');
         console.log('Success:', response.data.success);
-        console.log('Score:', response.data.score);
+        console.log('Scores:', response.data.scores);
         
         // Wait a moment for database to process
         await new Promise(resolve => setTimeout(resolve, 1000));
