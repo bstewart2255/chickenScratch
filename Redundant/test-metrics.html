@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Metrics Collection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        #output {
+            background: #f0f0f0;
+            padding: 20px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Metrics Collection</h1>
+    <p>Open the console and draw on the main signature page. This page will display the console output.</p>
+    
+    <button onclick="testMetricsStructure()">Test Metrics Structure</button>
+    <button onclick="clearOutput()">Clear Output</button>
+    
+    <div id="output"></div>
+    
+    <script>
+        function testMetricsStructure() {
+            // Test the metrics structure
+            const mockMetrics = {
+                basic: {
+                    stroke_count: 3,
+                    total_points: 150,
+                    duration_ms: 2500,
+                    bounding_box: {
+                        width: 200,
+                        height: 100,
+                        center_x: 150,
+                        center_y: 75
+                    },
+                    total_distance: 450,
+                    avg_speed: "0.180"
+                },
+                context: {
+                    device_type: detectDeviceType(),
+                    input_method: detectInputMethod(),
+                    canvas_coverage: "25.0",
+                    timestamp: new Date().toISOString(),
+                    retry_count: 0
+                }
+            };
+            
+            displayOutput('Mock Metrics Structure:', mockMetrics);
+        }
+        
+        function detectDeviceType() {
+            const ua = navigator.userAgent;
+            if (/tablet|ipad|playbook|silk/i.test(ua)) return 'tablet';
+            if (/mobile|iphone|ipod|android|blackberry|opera|mini|windows\sce|palm|smartphone|iemobile/i.test(ua)) return 'mobile';
+            return 'desktop';
+        }
+        
+        function detectInputMethod() {
+            return 'ontouchstart' in window ? 'touch' : 'mouse';
+        }
+        
+        function displayOutput(label, data) {
+            const output = document.getElementById('output');
+            output.textContent += `\n${label}\n${JSON.stringify(data, null, 2)}\n`;
+            output.scrollTop = output.scrollHeight;
+        }
+        
+        function clearOutput() {
+            document.getElementById('output').textContent = '';
+        }
+        
+        // Listen for console messages from the main page
+        console.log('Test page ready. Metrics will be displayed here when calculated.');
+    </script>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Enhanced ML Dashboard Modal</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            background: #f5f7fa;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        h1 {
+            color: #2d3748;
+            margin-bottom: 30px;
+        }
+        .test-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 10px;
+            transition: background 0.2s;
+        }
+        .test-button:hover {
+            background: #5a67d8;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .status.success {
+            background: #d4f4dd;
+            color: #1e7e34;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .results {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f7fafc;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Test Enhanced ML Dashboard Modal</h1>
+        
+        <p>This page tests the enhanced user details modal with signature visualization.</p>
+        
+        <div>
+            <button class="test-button" onclick="testUserDetails('alice')">Test User: alice</button>
+            <button class="test-button" onclick="testUserDetails('bob')">Test User: bob</button>
+            <button class="test-button" onclick="testUserDetails('testuser')">Test User: testuser</button>
+        </div>
+        
+        <div id="status"></div>
+        <div id="results" class="results" style="display: none;"></div>
+    </div>
+    
+    <script>
+        const API_URL = 'https://chickenscratch.onrender.com';
+        
+        async function testUserDetails(username) {
+            const statusEl = document.getElementById('status');
+            const resultsEl = document.getElementById('results');
+            
+            statusEl.className = 'status';
+            statusEl.textContent = `Fetching details for user: ${username}...`;
+            resultsEl.style.display = 'none';
+            
+            try {
+                const response = await fetch(`${API_URL}/api/user/${username}/details`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    statusEl.className = 'status success';
+                    statusEl.textContent = `✓ Successfully fetched details for ${username}`;
+                    
+                    // Display results
+                    resultsEl.style.display = 'block';
+                    resultsEl.textContent = JSON.stringify(data, null, 2);
+                    
+                    // Check if enhanced data is present
+                    console.log('User details response:', {
+                        hasEnrollmentSignatures: !!data.enrollmentSignatures,
+                        enrollmentSignatureCount: data.enrollmentSignatures ? data.enrollmentSignatures.length : 0,
+                        hasRecentAttemptsWithSignatures: data.recentAttemptsWithFeatures ? 
+                            data.recentAttemptsWithFeatures.some(a => a.signature) : false
+                    });
+                    
+                    // Validate signature data structure
+                    if (data.enrollmentSignatures && data.enrollmentSignatures.length > 0) {
+                        console.log('First enrollment signature:', data.enrollmentSignatures[0]);
+                        console.log('Has strokes:', !!data.enrollmentSignatures[0].strokes);
+                    }
+                    
+                    if (data.recentAttemptsWithFeatures && data.recentAttemptsWithFeatures.length > 0) {
+                        const firstAttempt = data.recentAttemptsWithFeatures[0];
+                        console.log('First auth attempt:', {
+                            hasSignature: !!firstAttempt.signature,
+                            signatureType: firstAttempt.signature ? typeof firstAttempt.signature : 'none'
+                        });
+                    }
+                    
+                } else {
+                    statusEl.className = 'status error';
+                    statusEl.textContent = `✗ Error: ${data.error}`;
+                    resultsEl.style.display = 'block';
+                    resultsEl.textContent = JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                statusEl.className = 'status error';
+                statusEl.textContent = `✗ Network error: ${error.message}`;
+                console.error('Error:', error);
+            }
+        }
+        
+        // Test the first user automatically
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('Test page loaded. Click a button to test the enhanced user details endpoint.');
+        });
+    </script>
+</body>
+</html>
