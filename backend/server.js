@@ -1108,6 +1108,32 @@ app.post('/login', async (req, res) => {
     }
     
     try {
+        // Enhanced Features Collection System
+        const enhancedFeaturesCollection = {
+            signature: null,
+            shapes: {},
+            drawings: {},
+            _extraction_timestamp: new Date().toISOString(),
+            _feature_extraction_version: "2.0",
+            _enhanced_features_enabled: ENABLE_ENHANCED_FEATURES,
+            _total_components_processed: 0
+        };
+
+        // Helper function to add features to collection
+        function addFeaturesToCollection(componentType, componentName, features) {
+            if (!features || typeof features !== 'object') return;
+            
+            if (componentType === 'signature') {
+                enhancedFeaturesCollection.signature = features;
+            } else if (componentType === 'shapes') {
+                enhancedFeaturesCollection.shapes[componentName] = features;
+            } else if (componentType === 'drawings') {
+                enhancedFeaturesCollection.drawings[componentName] = features;
+            }
+            
+            enhancedFeaturesCollection._total_components_processed++;
+        }
+
         // Get user
         const userResult = await pool.query(
             'SELECT id FROM users WHERE username = $1',
@@ -1133,6 +1159,27 @@ app.post('/login', async (req, res) => {
         const storedSignature = storedSigResult.rows[0].signature_data;
         const storedMetrics = storedSigResult.rows[0].metrics || {};
         
+        // Extract enhanced features for signature if enabled
+        let signatureEnhancedFeatures = null;
+        if (ENABLE_ENHANCED_FEATURES) {
+            try {
+                // Extract stroke data from signature
+                const signatureStrokeData = extractStrokeData(signature);
+                const deviceCapabilities = metadata?.device_capabilities || null;
+                
+                if (signatureStrokeData && signatureStrokeData.length > 0) {
+                    // Extract enhanced biometric features for signature
+                    signatureEnhancedFeatures = extractBiometricFeatures(signatureStrokeData, 'signature', deviceCapabilities);
+                    console.log('✅ Extracted signature enhanced features:', Object.keys(signatureEnhancedFeatures).length, 'features');
+                    
+                    // Collect signature features
+                    addFeaturesToCollection('signature', 'main', signatureEnhancedFeatures);
+                }
+            } catch (error) {
+                console.error('Error extracting signature enhanced features:', error);
+            }
+        }
+
         // Calculate signature score (always required) - now using ML
         const signatureScore = await compareSignatures(
             storedSignature.data, 
@@ -1218,6 +1265,12 @@ app.post('/login', async (req, res) => {
                     storedFeatures = {};
                 }
                 
+                // Collect circle enhanced features
+                if (ENABLE_ENHANCED_FEATURES && attemptFeatures && Object.keys(attemptFeatures).length > 0) {
+                    addFeaturesToCollection('shapes', 'circle', attemptFeatures);
+                    console.log('✅ Collected circle enhanced features:', Object.keys(attemptFeatures).length, 'features');
+                }
+                
                 // Calculate enhanced score
                 const scoreResult = calculateEnhancedComponentScore(storedFeatures, attemptFeatures, 'circle');
                 const circleScore = scoreResult.overall_score * 100;
@@ -1261,6 +1314,12 @@ app.post('/login', async (req, res) => {
                     storedFeatures = {};
                 }
                 
+                // Collect square enhanced features
+                if (ENABLE_ENHANCED_FEATURES && attemptFeatures && Object.keys(attemptFeatures).length > 0) {
+                    addFeaturesToCollection('shapes', 'square', attemptFeatures);
+                    console.log('✅ Collected square enhanced features:', Object.keys(attemptFeatures).length, 'features');
+                }
+                
                 // Calculate enhanced score
                 const scoreResult = calculateEnhancedComponentScore(storedFeatures, attemptFeatures, 'square');
                 const squareScore = scoreResult.overall_score * 100;
@@ -1302,6 +1361,12 @@ app.post('/login', async (req, res) => {
                 } catch (error) {
                     console.error('Error processing stored triangle features:', error);
                     storedFeatures = {};
+                }
+                
+                // Collect triangle enhanced features
+                if (ENABLE_ENHANCED_FEATURES && attemptFeatures && Object.keys(attemptFeatures).length > 0) {
+                    addFeaturesToCollection('shapes', 'triangle', attemptFeatures);
+                    console.log('✅ Collected triangle enhanced features:', Object.keys(attemptFeatures).length, 'features');
                 }
                 
                 // Calculate enhanced score
@@ -1387,6 +1452,12 @@ app.post('/login', async (req, res) => {
                         storedFeatures = {};
                     }
                     
+                    // Collect face enhanced features
+                    if (ENABLE_ENHANCED_FEATURES && attemptFeatures && Object.keys(attemptFeatures).length > 0) {
+                        addFeaturesToCollection('drawings', 'face', attemptFeatures);
+                        console.log('✅ Collected face enhanced features:', Object.keys(attemptFeatures).length, 'features');
+                    }
+                    
                     // Calculate enhanced score
                     const scoreResult = calculateEnhancedComponentScore(storedFeatures, attemptFeatures, 'face');
                     const faceScore = scoreResult.overall_score * 100;
@@ -1433,6 +1504,12 @@ app.post('/login', async (req, res) => {
                     } catch (error) {
                         console.error('Error processing stored star features:', error);
                         storedFeatures = {};
+                    }
+                    
+                    // Collect star enhanced features
+                    if (ENABLE_ENHANCED_FEATURES && attemptFeatures && Object.keys(attemptFeatures).length > 0) {
+                        addFeaturesToCollection('drawings', 'star', attemptFeatures);
+                        console.log('✅ Collected star enhanced features:', Object.keys(attemptFeatures).length, 'features');
                     }
                     
                     // Calculate enhanced score
@@ -1483,6 +1560,12 @@ app.post('/login', async (req, res) => {
                         storedFeatures = {};
                     }
                     
+                    // Collect house enhanced features
+                    if (ENABLE_ENHANCED_FEATURES && attemptFeatures && Object.keys(attemptFeatures).length > 0) {
+                        addFeaturesToCollection('drawings', 'house', attemptFeatures);
+                        console.log('✅ Collected house enhanced features:', Object.keys(attemptFeatures).length, 'features');
+                    }
+                    
                     // Calculate enhanced score
                     const scoreResult = calculateEnhancedComponentScore(storedFeatures, attemptFeatures, 'house');
                     const houseScore = scoreResult.overall_score * 100;
@@ -1527,6 +1610,12 @@ app.post('/login', async (req, res) => {
                     } catch (error) {
                         console.error('Error processing stored connect_dots features:', error);
                         storedFeatures = {};
+                    }
+                    
+                    // Collect connect_dots enhanced features
+                    if (ENABLE_ENHANCED_FEATURES && attemptFeatures && Object.keys(attemptFeatures).length > 0) {
+                        addFeaturesToCollection('drawings', 'connect_dots', attemptFeatures);
+                        console.log('✅ Collected connect_dots enhanced features:', Object.keys(attemptFeatures).length, 'features');
                     }
                     
                     // Calculate enhanced score
@@ -1647,20 +1736,47 @@ app.post('/login', async (req, res) => {
                 _enhanced_features_enabled: ENABLE_ENHANCED_FEATURES
             };
             
+            // Prepare comprehensive enhanced features object for storage
+            const authAttemptEnhancedFeatures = {
+                ...enhancedFeaturesCollection,
+                _device_capabilities: metadata?.device_capabilities || null,
+                _processing_summary: {
+                    total_features_collected: enhancedFeaturesCollection._total_components_processed,
+                    signature_features: enhancedFeaturesCollection.signature ? Object.keys(enhancedFeaturesCollection.signature).length : 0,
+                    shape_components: Object.keys(enhancedFeaturesCollection.shapes).length,
+                    drawing_components: Object.keys(enhancedFeaturesCollection.drawings).length,
+                    estimated_total_features: (
+                        (enhancedFeaturesCollection.signature ? Object.keys(enhancedFeaturesCollection.signature).length : 0) +
+                        Object.values(enhancedFeaturesCollection.shapes).reduce((sum, features) => sum + Object.keys(features).length, 0) +
+                        Object.values(enhancedFeaturesCollection.drawings).reduce((sum, features) => sum + Object.keys(features).length, 0)
+                    )
+                }
+            };
+
+            console.log('🔍 Enhanced Features Collection Summary:', {
+                signature: !!authAttemptEnhancedFeatures.signature,
+                shapes: Object.keys(authAttemptEnhancedFeatures.shapes),
+                drawings: Object.keys(authAttemptEnhancedFeatures.drawings),
+                total_estimated_features: authAttemptEnhancedFeatures._processing_summary.estimated_total_features
+            });
+
             console.log('Saving authentication attempt:', {
                 userId,
                 success: isSuccess,
                 confidence: averageScore,
                 signatureId: authSignatureId,
-                scores: structuredScores
+                scores: structuredScores,
+                enhanced_features_collected: authAttemptEnhancedFeatures._processing_summary.total_features_collected
             });
             
-            // Store in database with properly structured JSON
+            // Store in database with properly structured JSON including enhanced features
             await pool.query(
-                'INSERT INTO auth_attempts (user_id, success, confidence, device_info, signature_id, drawing_scores) VALUES ($1, $2, $3, $4, $5, $6)',
+                'INSERT INTO auth_attempts (user_id, success, confidence, device_info, signature_id, drawing_scores, enhanced_features) VALUES ($1, $2, $3, $4, $5, $6, $7)',
                 [userId, isSuccess, averageScore, req.headers['user-agent'] || 'Unknown', authSignatureId, 
-                 JSON.stringify(structuredScores)]
+                 JSON.stringify(structuredScores), JSON.stringify(authAttemptEnhancedFeatures)]
             );
+            
+            console.log('✅ Auth attempt stored with enhanced features from', authAttemptEnhancedFeatures._total_components_processed, 'components');
             
             console.log('✅ Authentication attempt saved successfully');
         } catch (err) {
@@ -2833,6 +2949,7 @@ app.get('/api/user/:username/detailed-analysis', async (req, res) => {
                 a.confidence,
                 a.device_info,
                 a.drawing_scores,
+                a.enhanced_features,
                 a.signature_id,
                 s.metrics as signature_metrics
             FROM auth_attempts a
@@ -2872,6 +2989,25 @@ app.get('/api/user/:username/detailed-analysis', async (req, res) => {
                 }
             }
             
+            // Parse enhanced features if available
+            let enhancedFeatures = null;
+            if (attempt.enhanced_features) {
+                try {
+                    enhancedFeatures = typeof attempt.enhanced_features === 'string' 
+                        ? JSON.parse(attempt.enhanced_features) 
+                        : attempt.enhanced_features;
+                    enhancedFeaturesEnabled = enhancedFeatures._enhanced_features_enabled || enhancedFeaturesEnabled;
+                    
+                    console.log('📊 Enhanced features available for auth attempt', attempt.id, '- Components:', {
+                        signature: !!enhancedFeatures.signature,
+                        shapes: Object.keys(enhancedFeatures.shapes || {}),
+                        drawings: Object.keys(enhancedFeatures.drawings || {})
+                    });
+                } catch (e) {
+                    console.error('Error parsing enhanced features for auth attempt', attempt.id, ':', e);
+                }
+            }
+            
             return {
                 id: attempt.id,
                 created_at: attempt.created_at,
@@ -2893,7 +3029,13 @@ app.get('/api/user/:username/detailed-analysis', async (req, res) => {
                 drawing_biometric_scores: drawingBiometricScores,
                 _enhanced_features_enabled: enhancedFeaturesEnabled || mlFeatures._enhanced_features_enabled,
                 _excluded_features: mlFeatures._excluded_features,
-                _feature_extraction_version: mlFeatures._feature_extraction_version
+                _feature_extraction_version: mlFeatures._feature_extraction_version,
+                
+                // Add enhanced features from all components
+                enhanced_features: enhancedFeatures,
+                
+                // Add processing summary if available
+                _processing_summary: enhancedFeatures?._processing_summary || null
             };
         });
         
