@@ -593,10 +593,10 @@ async function insertSignatureWithFallback(pool, signatureData) {
     try {
         // Try with is_enrollment column first
         const result = await pool.query(`
-            INSERT INTO signatures (user_id, stroke_data, signature_data, metrics, data_format, is_enrollment, created_at)
-            VALUES ($1, $2, $3, $4, 'stroke_data', $5, NOW())
+            INSERT INTO signatures (user_id, stroke_data, metrics, data_format, is_enrollment, created_at)
+            VALUES ($1, $2, $3, 'stroke_data', $4, NOW())
             RETURNING id
-        `, [userId, JSON.stringify(strokeData), JSON.stringify(signature), JSON.stringify(mlFeatures), isEnrollment]);
+        `, [userId, JSON.stringify(strokeData), JSON.stringify(mlFeatures), isEnrollment]);
         
         console.log(`✅ Signature saved with is_enrollment column (ID: ${result.rows[0].id})`);
         return result;
@@ -608,10 +608,10 @@ async function insertSignatureWithFallback(pool, signatureData) {
             
             // Fallback: INSERT without is_enrollment column
             const result = await pool.query(`
-                INSERT INTO signatures (user_id, stroke_data, signature_data, metrics, data_format, created_at)
-                VALUES ($1, $2, $3, $4, 'stroke_data', NOW())
+                INSERT INTO signatures (user_id, stroke_data, metrics, data_format, created_at)
+                VALUES ($1, $2, $3, 'stroke_data', NOW())
                 RETURNING id
-            `, [userId, JSON.stringify(strokeData), JSON.stringify(signature), JSON.stringify(mlFeatures)]);
+            `, [userId, JSON.stringify(strokeData), JSON.stringify(mlFeatures)]);
             
             console.log(`✅ Signature saved without is_enrollment column (ID: ${result.rows[0].id})`);
             return result;
@@ -776,11 +776,10 @@ app.post('/register', async (req, res) => {
                     : {};
                 
                 await pool.query(
-                    'INSERT INTO shapes (user_id, shape_type, shape_data, metrics, enhanced_features) VALUES ($1, $2, $3, $4, $5)',
+                    'INSERT INTO shapes (user_id, shape_type, metrics, enhanced_features) VALUES ($1, $2, $3, $4)',
                     [
                         userId, 
                         shapeType, 
-                        JSON.stringify(shapeData),
                         JSON.stringify(shapeData.metrics || {}),
                         JSON.stringify(enhancedFeatures)
                     ]
@@ -818,11 +817,10 @@ app.post('/register', async (req, res) => {
                     : {};
                 
                 await pool.query(
-                    'INSERT INTO drawings (user_id, drawing_type, drawing_data, metrics, enhanced_features) VALUES ($1, $2, $3, $4, $5)',
+                    'INSERT INTO drawings (user_id, drawing_type, metrics, enhanced_features) VALUES ($1, $2, $3, $4)',
                     [
                         userId, 
                         drawingType, 
-                        JSON.stringify(drawingData), 
                         JSON.stringify(drawingMetrics),
                         JSON.stringify(enhancedFeatures)
                     ]
@@ -947,20 +945,26 @@ app.get('/auth/challenges/:username', async (req, res) => {
         if (challenges.drawings) {
             // Get user's drawing prompts from registration
             const drawingsResult = await pool.query(`
-                SELECT shape_type, shape_data
+                SELECT shape_type
                 FROM shapes
                 WHERE user_id = $1 AND shape_type LIKE 'drawing_%'
                 LIMIT 2
             `, [userId]);
             
             drawingsResult.rows.forEach((row, index) => {
-                const drawingData = row.shape_data;
-                // Use more descriptive fallbacks for drawings
+                // Use more descriptive fallbacks for drawings based on shape_type
+                const drawingPrompts = {
+                    'drawing_face': 'Draw a simple face',
+                    'drawing_star': 'Draw a star',
+                    'drawing_house': 'Draw a house',
+                    'drawing_connect_dots': 'Connect the dots'
+                };
                 const fallbackPrompts = ['Draw a star', 'Draw a simple face'];
+                const prompt = drawingPrompts[row.shape_type] || fallbackPrompts[index] || `Drawing ${index + 1}`;
                 challenges.required.push({
                     type: 'drawing',
-                    name: drawingData.prompt || fallbackPrompts[index] || `Drawing ${index + 1}`,
-                    prompt: drawingData.prompt || fallbackPrompts[index] || `Drawing ${index + 1}`,
+                    name: prompt,
+                    prompt: prompt,
                     drawingType: row.shape_type
                 });
             });
@@ -1148,7 +1152,7 @@ app.post('/login', async (req, res) => {
         
         // Get stored signature
         const storedSigResult = await pool.query(
-            'SELECT signature_data, metrics FROM signatures WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1',
+            'SELECT stroke_data, metrics FROM signatures WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1',
             [userId]
         );
         
@@ -1156,7 +1160,7 @@ app.post('/login', async (req, res) => {
             return res.status(404).json({ error: 'No signature on file' });
         }
         
-        const storedSignature = storedSigResult.rows[0].signature_data;
+        const storedSignature = storedSigResult.rows[0].stroke_data;
         const storedMetrics = storedSigResult.rows[0].metrics || {};
         
         // Extract enhanced features for signature if enabled
@@ -1219,7 +1223,7 @@ app.post('/login', async (req, res) => {
             });
             
             const storedShapesResult = await pool.query(
-                'SELECT shape_type, shape_data, metrics, enhanced_features FROM shapes WHERE user_id = $1 AND shape_type = ANY($2::text[])',
+                'SELECT shape_type, metrics, enhanced_features FROM shapes WHERE user_id = $1 AND shape_type = ANY($2::text[])',
                 [userId, ['circle', 'square', 'triangle']]
             );
             
@@ -1228,7 +1232,6 @@ app.post('/login', async (req, res) => {
             const storedShapes = {};
             storedShapesResult.rows.forEach(row => {
                 storedShapes[row.shape_type] = {
-                    data: row.shape_data,
                     metrics: row.metrics || {},
                     enhanced_features: row.enhanced_features
                 };
@@ -1405,7 +1408,7 @@ app.post('/login', async (req, res) => {
             const { compareDrawings, extractStrokeDataFromSignaturePad: extractStrokeDataFromDrawingModule } = require('./drawingVerification');
             
             const storedDrawingsResult = await pool.query(
-                'SELECT drawing_type, drawing_data, metrics, enhanced_features FROM drawings WHERE user_id = $1 AND drawing_type = ANY($2::text[])',
+                'SELECT drawing_type, metrics, enhanced_features FROM drawings WHERE user_id = $1 AND drawing_type = ANY($2::text[])',
                 [userId, ['face', 'star', 'house', 'connect_dots']]
             );
             
@@ -1414,7 +1417,6 @@ app.post('/login', async (req, res) => {
             const storedDrawings = {};
             storedDrawingsResult.rows.forEach(row => {
                 storedDrawings[row.drawing_type] = {
-                    data: row.drawing_data,
                     metrics: row.metrics || {},
                     enhanced_features: row.enhanced_features
                 };
@@ -2347,13 +2349,13 @@ app.get('/api/user/:username/details', async (req, res) => {
             
             // Parse signature data to include strokes for visualization
             let signatureStrokes = null;
-            if (sig.signature_data) {
+            if (sig.stroke_data) {
                 try {
-                    const sigData = typeof sig.signature_data === 'string' ? 
-                        JSON.parse(sig.signature_data) : sig.signature_data;
+                    const sigData = typeof sig.stroke_data === 'string' ? 
+                        JSON.parse(sig.stroke_data) : sig.stroke_data;
                     signatureStrokes = sigData.data || sigData.strokes || sigData;
                 } catch (e) {
-                    console.error('Error parsing signature data:', e);
+                    console.error('Error parsing stroke data:', e);
                 }
             }
             
@@ -2370,7 +2372,7 @@ app.get('/api/user/:username/details', async (req, res) => {
         // Get enrollment signatures (first 3) with displayable signature data
         const enrollmentSignatures = signatures.rows.slice(-3).reverse().map(sig => {
             // Extract displayable data from the signature
-            const displayableData = extractDisplayableSignatureData(sig.signature_data);
+            const displayableData = extractDisplayableSignatureData(sig.stroke_data);
             return {
                 signature: displayableData,  // Now contains just the stroke data or base64
                 metrics: sig.metrics || {},
@@ -3118,9 +3120,9 @@ app.get('/api/user/:username/detailed-analysis', async (req, res) => {
         
         // Get enrollment data (signatures, shapes, drawings)
         const [signatures, shapes, drawings] = await Promise.all([
-            pool.query('SELECT * FROM signatures WHERE user_id = $1 ORDER BY created_at ASC', [user.id]),
-            pool.query('SELECT * FROM shapes WHERE user_id = $1 ORDER BY created_at ASC', [user.id]),
-            pool.query('SELECT * FROM drawings WHERE user_id = $1 ORDER BY created_at ASC', [user.id])
+            pool.query('SELECT id, user_id, stroke_data, metrics, data_format, created_at FROM signatures WHERE user_id = $1 ORDER BY created_at ASC', [user.id]),
+            pool.query('SELECT id, user_id, shape_type, metrics, enhanced_features, created_at FROM shapes WHERE user_id = $1 ORDER BY created_at ASC', [user.id]),
+            pool.query('SELECT id, user_id, drawing_type, metrics, enhanced_features, created_at FROM drawings WHERE user_id = $1 ORDER BY created_at ASC', [user.id])
         ]);
         
         // Calculate enhanced baseline including shapes and drawings
@@ -3271,22 +3273,22 @@ app.get('/api/user/:username/detailed-analysis', async (req, res) => {
                 signatures: signatures.rows.map(sig => ({
                     id: sig.id,
                     created_at: sig.created_at,
-                    metrics: sig.metrics,
-                    signature_data: sig.signature_data
+                    metrics: sig.metrics
+                    // Removed signature_data to reduce payload size
                 })),
                 shapes: shapes.rows.map(shape => ({
                     id: shape.id,
                     shape_type: shape.shape_type,
                     created_at: shape.created_at,
-                    metrics: shape.metrics,
-                    shape_data: shape.shape_data
+                    metrics: shape.metrics
+                    // Removed shape_data to reduce payload size
                 })),
                 drawings: drawings.rows.map(drawing => ({
                     id: drawing.id,
                     drawing_type: drawing.drawing_type,
                     created_at: drawing.created_at,
-                    metrics: drawing.metrics,
-                    drawing_data: drawing.drawing_data
+                    metrics: drawing.metrics
+                    // Removed drawing_data to reduce payload size
                 }))
             },
             baseline,
@@ -3383,7 +3385,7 @@ app.get('/api/auth-attempt/:attemptId/breakdown', async (req, res) => {
         const attemptResult = await pool.query(
             `SELECT 
                 a.*, 
-                s.signature_data, s.metrics as signature_metrics,
+                s.stroke_data, s.metrics as signature_metrics,
                 u.username
              FROM auth_attempts a
              JOIN users u ON a.user_id = u.id
@@ -3400,7 +3402,7 @@ app.get('/api/auth-attempt/:attemptId/breakdown', async (req, res) => {
         
         // Get enrollment signatures for comparison
         const enrollmentSigs = await pool.query(
-            'SELECT signature_data, metrics FROM signatures WHERE user_id = $1 ORDER BY created_at ASC LIMIT 3',
+            'SELECT stroke_data, metrics FROM signatures WHERE user_id = $1 ORDER BY created_at ASC LIMIT 3',
             [attempt.user_id]
         );
         
@@ -3416,12 +3418,12 @@ app.get('/api/auth-attempt/:attemptId/breakdown', async (req, res) => {
                 drawing_scores: extractDrawingScores(attempt)
             },
             signature: {
-                data: extractDisplayableSignatureData(attempt.signature_data),
+                data: extractDisplayableSignatureData(attempt.stroke_data),
                 metrics: attempt.signature_metrics
             },
             enrollment_signatures: enrollmentSigs.rows.map(sig => ({
                 ...sig,
-                signature_data: extractDisplayableSignatureData(sig.signature_data)
+                stroke_data: extractDisplayableSignatureData(sig.stroke_data)
             }))
         });
         

@@ -251,93 +251,6 @@
             text-overflow: ellipsis;
         }
 
-        /* Images Tab Styles */
-        .images-layout {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            height: calc(100vh - 200px);
-        }
-
-        .baseline-images {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            border: 2px solid #e3f2fd;
-        }
-
-        .baseline-images-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 15px;
-            color: #1976d2;
-        }
-
-        .auth-images {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            overflow-y: auto;
-        }
-
-        .auth-images-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 15px;
-            position: sticky;
-            top: 0;
-            background: white;
-            z-index: 1;
-        }
-
-        .image-group {
-            margin-bottom: 25px;
-        }
-
-        .image-group-title {
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: #555;
-        }
-
-        .image-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 10px;
-        }
-
-        .image-item {
-            text-align: center;
-        }
-
-        .image-canvas {
-            width: 150px;
-            height: 100px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background: white;
-            margin-bottom: 5px;
-        }
-
-        .image-label {
-            font-size: 12px;
-            color: #666;
-        }
-
-        .attempt-image-card {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-        }
-
-        .attempt-image-header {
-            font-weight: 600;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
 
         .loading {
             text-align: center;
@@ -462,7 +375,6 @@
     <div class="tabs">
         <div class="tab-buttons">
             <button class="tab-button active" onclick="switchTab('data')">Data</button>
-            <button class="tab-button" onclick="switchTab('images')">Images</button>
             <button class="tab-button" onclick="switchTab('raw')">Raw</button>
         </div>
     </div>
@@ -473,10 +385,6 @@
             <div class="loading">Loading data...</div>
         </div>
 
-        <!-- Images Tab -->
-        <div id="imagesTab" class="tab-content">
-            <div class="loading">Loading images...</div>
-        </div>
 
         <!-- Raw Tab -->
         <div id="rawTab" class="tab-content">
@@ -572,7 +480,6 @@
             
             // Show loading state
             document.getElementById('dataTab').innerHTML = '<div class="loading">Loading data...</div>';
-            document.getElementById('imagesTab').innerHTML = '<div class="loading">Loading images...</div>';
             document.getElementById('rawTab').innerHTML = '<div class="loading">Loading raw data...</div>';
             
             try {
@@ -585,16 +492,10 @@
                 
                 // Render all tabs
                 renderDataTab();
-                renderImagesTab();
                 renderRawTab();
             } catch (error) {
                 console.error('Error loading user data:', error);
                 document.getElementById('dataTab').innerHTML = `
-                    <div class="error">
-                        Error loading data for user "${username}": ${error.message}
-                    </div>
-                `;
-                document.getElementById('imagesTab').innerHTML = `
                     <div class="error">
                         Error loading data for user "${username}": ${error.message}
                     </div>
@@ -2070,189 +1971,6 @@
             });
         }
 
-        // Render the Images tab
-        function renderImagesTab() {
-            if (!currentData) return;
-            
-            const { enrollment } = currentData;
-            
-            let html = `
-                <div class="images-layout">
-                    <!-- Baseline Images -->
-                    <div class="baseline-images">
-                        <div class="baseline-images-title">🎯 Enrollment Images</div>
-            `;
-            
-            // Enrollment signatures
-            if (enrollment.signatures && enrollment.signatures.length > 0) {
-                html += `
-                    <div class="image-group">
-                        <div class="image-group-title">Signatures (${enrollment.signatures.length} enrollment samples)</div>
-                        <div class="image-grid">
-                `;
-                
-                enrollment.signatures.forEach((sig, index) => {
-                    html += `
-                        <div class="image-item">
-                            <canvas class="image-canvas" id="enrollment-sig-${index}"></canvas>
-                            <div class="image-label">Signature ${index + 1}</div>
-                        </div>
-                    `;
-                });
-                
-                html += `
-                        </div>
-                    </div>
-                `;
-            }
-            
-            // Enrollment shapes
-            if (enrollment.shapes && enrollment.shapes.length > 0) {
-                html += `
-                    <div class="image-group">
-                        <div class="image-group-title">Shapes</div>
-                        <div class="image-grid">
-                `;
-                
-                enrollment.shapes.forEach((shape, index) => {
-                    html += `
-                        <div class="image-item">
-                            <canvas class="image-canvas" id="enrollment-shape-${index}"></canvas>
-                            <div class="image-label">${shape.shape_type.charAt(0).toUpperCase() + shape.shape_type.slice(1)}</div>
-                        </div>
-                    `;
-                });
-                
-                html += `
-                        </div>
-                    </div>
-                `;
-            }
-            
-            // Enrollment drawings
-            if (enrollment.drawings && enrollment.drawings.length > 0) {
-                html += `
-                    <div class="image-group">
-                        <div class="image-group-title">Drawings</div>
-                        <div class="image-grid">
-                `;
-                
-                enrollment.drawings.forEach((drawing, index) => {
-                    html += `
-                        <div class="image-item">
-                            <canvas class="image-canvas" id="enrollment-drawing-${index}"></canvas>
-                            <div class="image-label">${drawing.drawing_type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</div>
-                        </div>
-                    `;
-                });
-                
-                html += `
-                        </div>
-                    </div>
-                `;
-            }
-            
-            html += `
-                    </div>
-
-                    <!-- Authentication Attempt Images -->
-                    <div class="auth-images">
-                        <div class="auth-images-title">📋 Authentication Attempts</div>
-            `;
-            
-            // Attempt images
-            // The original code had a loop for authAttempts, but the new HTML structure
-            // for the images tab is different. This part of the script needs to be
-            // updated to reflect the new HTML structure.
-            // For now, we'll just show a placeholder or remove if not directly applicable.
-            // Given the new HTML structure, the attempt images are now part of the
-            // enrollment data or a separate section if needed.
-            // For simplicity, we'll remove the attempt image rendering as it's not
-            // directly tied to the enrollment data in the new HTML structure.
-            // If the intent was to show attempts, the HTML structure would need to be
-            // changed to include a separate section for attempts.
-            // For now, we'll just render the enrollment images.
-            
-            html += `
-                    </div>
-                </div>
-            `;
-            
-            document.getElementById('imagesTab').innerHTML = html;
-            
-            // Draw all canvases after DOM update
-            setTimeout(() => {
-                // Draw enrollment images
-                if (enrollment) {
-                    // Signatures
-                    if (enrollment.signatures) {
-                        enrollment.signatures.forEach((sig, index) => {
-                            const canvas = document.getElementById(`enrollment-sig-${index}`);
-                            if (canvas) {
-                                // Handle different signature data formats
-                                if (typeof sig.signature_data === 'string' && sig.signature_data.startsWith('data:image')) {
-                                    // Base64 image
-                                    const img = new Image();
-                                    img.onload = () => {
-                                        const ctx = canvas.getContext('2d');
-                                        ctx.clearRect(0, 0, canvas.width, canvas.height);
-                                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                                    };
-                                    img.src = sig.signature_data;
-                                } else {
-                                    // Stroke data
-                                    drawStrokesOnCanvas(canvas, sig.signature_data);
-                                }
-                            }
-                        });
-                    }
-                    
-                    // Shapes
-                    if (enrollment.shapes) {
-                        enrollment.shapes.forEach((shape, index) => {
-                            const canvas = document.getElementById(`enrollment-shape-${index}`);
-                            if (canvas) {
-                                if (typeof shape.shape_data === 'string' && shape.shape_data.startsWith('data:image')) {
-                                    // Base64 image
-                                    const img = new Image();
-                                    img.onload = () => {
-                                        const ctx = canvas.getContext('2d');
-                                        ctx.clearRect(0, 0, canvas.width, canvas.height);
-                                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                                    };
-                                    img.src = shape.shape_data;
-                                } else {
-                                    // Stroke data
-                                    drawStrokesOnCanvas(canvas, shape.shape_data);
-                                }
-                            }
-                        });
-                    }
-                    
-                    // Drawings
-                    if (enrollment.drawings) {
-                        enrollment.drawings.forEach((drawing, index) => {
-                            const canvas = document.getElementById(`enrollment-drawing-${index}`);
-                            if (canvas) {
-                                if (typeof drawing.drawing_data === 'string' && drawing.drawing_data.startsWith('data:image')) {
-                                    // Base64 image
-                                    const img = new Image();
-                                    img.onload = () => {
-                                        const ctx = canvas.getContext('2d');
-                                        ctx.clearRect(0, 0, canvas.width, canvas.height);
-                                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                                    };
-                                    img.src = drawing.drawing_data;
-                                } else {
-                                    // Stroke data
-                                    drawStrokesOnCanvas(canvas, drawing.drawing_data);
-                                }
-                            }
-                        });
-                    }
-                }
-            }, 100);
-        }
 
         // Render the Raw tab
         function renderRawTab() {
