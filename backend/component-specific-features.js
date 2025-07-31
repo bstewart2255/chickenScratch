@@ -655,14 +655,24 @@ const ComponentSpecificFeatures = {
     // Analyze left vs right distribution
     let leftPoints = 0, rightPoints = 0;
     strokeData.forEach(stroke => {
+      // Add null/undefined checks for stroke and stroke.points
+      if (!stroke || !stroke.points || !Array.isArray(stroke.points)) {
+        console.warn('Invalid stroke data in analyzeFacialSymmetry:', stroke);
+        return; // Skip this stroke
+      }
+      
       stroke.points.forEach(point => {
-        if (point.x < centerX) leftPoints++;
-        else rightPoints++;
+        if (point && typeof point.x === 'number') {
+          if (point.x < centerX) leftPoints++;
+          else rightPoints++;
+        }
       });
     });
     
     // Calculate symmetry score
     const total = leftPoints + rightPoints;
+    if (total === 0) return 0; // Prevent division by zero
+    
     const symmetry = 1 - Math.abs(leftPoints - rightPoints) / total;
     
     return symmetry;
@@ -673,13 +683,22 @@ const ComponentSpecificFeatures = {
     
     // Sort strokes by vertical position
     const strokePositions = strokeData.map((stroke, index) => {
+      // Add null/undefined checks for stroke
+      if (!stroke || !stroke.points || !Array.isArray(stroke.points) || stroke.points.length === 0) {
+        console.warn(`Invalid stroke at index ${index} in analyzeFacialFeaturePlacement:`, stroke);
+        return null;
+      }
+      
       const bounds = this.calculateStrokeBounds(stroke);
       return {
         index: index,
         centerY: (bounds.minY + bounds.maxY) / 2,
         centerX: (bounds.minX + bounds.maxX) / 2
       };
-    }).sort((a, b) => a.centerY - b.centerY);
+    }).filter(pos => pos !== null).sort((a, b) => a.centerY - b.centerY);
+    
+    // Check if we have enough valid strokes
+    if (strokePositions.length < 3) return 0;
     
     // Calculate relative positions (expected: eyes at top, nose middle, mouth bottom)
     const positions = strokePositions.map(s => s.centerY);
@@ -708,7 +727,14 @@ const ComponentSpecificFeatures = {
   analyzeStarPointSymmetry(strokeData) {
     if (!strokeData || strokeData.length === 0) return 0;
     
-    const points = strokeData[0].points;
+    // Add null/undefined checks for stroke and points
+    const firstStroke = strokeData[0];
+    if (!firstStroke || !firstStroke.points || !Array.isArray(firstStroke.points) || firstStroke.points.length === 0) {
+      console.warn('Invalid stroke data in analyzeStarPointSymmetry:', firstStroke);
+      return 0;
+    }
+    
+    const points = firstStroke.points;
     const corners = this.detectCorners(points);
     
     if (corners.length < 5) return 0;
@@ -733,7 +759,14 @@ const ComponentSpecificFeatures = {
   analyzeStarAngleRegularity(strokeData) {
     if (!strokeData || strokeData.length === 0) return 0;
     
-    const points = strokeData[0].points;
+    // Add null/undefined checks for stroke and points
+    const firstStroke = strokeData[0];
+    if (!firstStroke || !firstStroke.points || !Array.isArray(firstStroke.points) || firstStroke.points.length === 0) {
+      console.warn('Invalid stroke data in analyzeStarAngleRegularity:', firstStroke);
+      return 0;
+    }
+    
+    const points = firstStroke.points;
     const corners = this.detectCorners(points);
     
     if (corners.length < 5) return 0;

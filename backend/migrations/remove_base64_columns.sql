@@ -5,18 +5,24 @@
 BEGIN;
 
 -- Function to check if column exists
-CREATE OR REPLACE FUNCTION column_exists(table_name text, column_name text)
+CREATE OR REPLACE FUNCTION column_exists(p_table_name text, p_column_name text)
 RETURNS boolean AS $$
 BEGIN
     RETURN EXISTS (
         SELECT 1
         FROM information_schema.columns
         WHERE table_schema = 'public'
-        AND table_name = $1
-        AND column_name = $2
+        AND table_name = p_table_name
+        AND column_name = p_column_name
     );
 END;
 $$ LANGUAGE plpgsql;
+
+-- Drop dependent views first
+DROP VIEW IF EXISTS system_health_summary CASCADE;
+DROP VIEW IF EXISTS storage_efficiency_monitor CASCADE;
+DROP VIEW IF EXISTS system_status_overview CASCADE;
+DROP VIEW IF EXISTS data_consistency_monitor CASCADE;
 
 -- Remove signature_data column from signatures table
 DO $$
