@@ -1428,8 +1428,13 @@ app.post('/login', async (req, res) => {
                     console.log('Comparing face drawing with enhanced features...');
                     
                     // Extract stroke data and device capabilities
-                    const strokeData = extractStrokeDataFromSignaturePad(drawings.face);
+                    const rawStrokeData = extractStrokeDataFromSignaturePad(drawings.face);
                     const deviceCapabilities = drawings.face.device_capabilities || metadata?.device_capabilities || null;
+                    
+                    // Transform stroke data to expected format for ComponentSpecificFeatures
+                    // extractStrokeDataFromSignaturePad returns array of point arrays
+                    // ComponentSpecificFeatures expects array of stroke objects with points property
+                    const strokeData = rawStrokeData ? rawStrokeData.map(points => ({ points })) : null;
                     
                     // Debug logging for stroke data extraction
                     console.log('🔍 Debug face drawing data:', {
@@ -1473,8 +1478,10 @@ app.post('/login', async (req, res) => {
                             storedFeatures = storedDrawings.face.enhanced_features;
                         } else if (ENABLE_ENHANCED_FEATURES) {
                             // Calculate from stored drawing data (already parsed from JSONB)
-                            const storedStrokeData = extractStrokeDataFromSignaturePad(storedDrawings.face.data);
-                            if (storedStrokeData && storedStrokeData.length > 0) {
+                            const rawStoredStrokeData = extractStrokeDataFromSignaturePad(storedDrawings.face.data);
+                            if (rawStoredStrokeData && rawStoredStrokeData.length > 0) {
+                                // Transform stored stroke data to expected format
+                                const storedStrokeData = rawStoredStrokeData.map(points => ({ points }));
                                 storedFeatures = extractBiometricFeatures(storedStrokeData, 'face', deviceCapabilities);
                             } else {
                                 storedFeatures = storedDrawings.face.metrics || {};
@@ -1516,8 +1523,13 @@ app.post('/login', async (req, res) => {
                     console.log('Comparing star drawing with enhanced features...');
                     
                     // Extract stroke data and device capabilities
-                    const strokeData = extractStrokeDataFromSignaturePad(drawings.star);
+                    const rawStrokeData = extractStrokeDataFromSignaturePad(drawings.star);
                     const deviceCapabilities = drawings.star.device_capabilities || metadata?.device_capabilities || null;
+                    
+                    // Transform stroke data to expected format for ComponentSpecificFeatures
+                    // extractStrokeDataFromSignaturePad returns array of point arrays
+                    // ComponentSpecificFeatures expects array of stroke objects with points property
+                    const strokeData = rawStrokeData ? rawStrokeData.map(points => ({ points })) : null;
                     
                     // Debug logging for stroke data extraction
                     console.log('🔍 Debug star drawing data:', {
@@ -1561,8 +1573,10 @@ app.post('/login', async (req, res) => {
                             storedFeatures = storedDrawings.star.enhanced_features;
                         } else if (ENABLE_ENHANCED_FEATURES) {
                             // Calculate from stored drawing data (already parsed from JSONB)
-                            const storedStrokeData = extractStrokeDataFromSignaturePad(storedDrawings.star.data);
-                            if (storedStrokeData && storedStrokeData.length > 0) {
+                            const rawStoredStrokeData = extractStrokeDataFromSignaturePad(storedDrawings.star.data);
+                            if (rawStoredStrokeData && rawStoredStrokeData.length > 0) {
+                                // Transform stored stroke data to expected format
+                                const storedStrokeData = rawStoredStrokeData.map(points => ({ points }));
                                 storedFeatures = extractBiometricFeatures(storedStrokeData, 'star', deviceCapabilities);
                             } else {
                                 storedFeatures = storedDrawings.star.metrics || {};
