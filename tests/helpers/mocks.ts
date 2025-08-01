@@ -1,8 +1,4 @@
 import { Request, Response, NextFunction } from 'express';
-import { DatabaseService } from '../../backend/services/DatabaseService';
-import { BiometricEngine } from '../../backend/services/BiometricEngine';
-import { ConfigService } from '../../src/config/ConfigService';
-import { Logger } from '../../src/utils/Logger';
 
 // Mock Express objects
 export const mockRequest = (overrides: any = {}): Partial<Request> => ({
@@ -231,7 +227,7 @@ export class MockWebSocket {
 // Test database connection helper
 export const setupTestDatabase = async (): Promise<void> => {
   // Mock database setup
-  process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/signature_auth_test';
+  process.env['DATABASE_URL'] = 'postgresql://test:test@localhost:5432/signature_auth_test';
 };
 
 export const teardownTestDatabase = async (): Promise<void> => {

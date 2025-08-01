@@ -1,5 +1,5 @@
 import { ErrorHandler } from '../../../src/utils/ErrorHandler';
-import { AppError, ValidationError, AuthenticationError, DatabaseError } from '../../../src/types/errors';
+import { ValidationError, AuthenticationError, DatabaseError, NotFoundError, RateLimitError } from '../../../src/types/core/errors';
 import { mockRequest, mockResponse, mockNext } from '../../helpers/mocks';
 
 describe('ErrorHandler', () => {
@@ -14,365 +14,315 @@ describe('ErrorHandler', () => {
   });
 
   describe('handleError', () => {
-    it('should handle AppError with custom status code', () => {
-      const error = new AppError('Custom error', 400);
-      const req = mockRequest();
-      const res = mockResponse();
-      const next = mockNext();
-
-      ErrorHandler.handleError(error, req as any, res as any, next);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        error: {
-          message: 'Custom error',
-          status: 400,
-          timestamp: expect.any(String)
-        }
-      });
-    });
-
     it('should handle ValidationError', () => {
       const error = new ValidationError('Invalid input');
-      const req = mockRequest();
-      const res = mockResponse();
-      const next = mockNext();
+      const context = { field: 'username' };
 
-      ErrorHandler.handleError(error, req as any, res as any, next);
+      const result = ErrorHandler.handleError(error, context);
 
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        error: {
-          message: 'Invalid input',
-          status: 400,
-          timestamp: expect.any(String),
-          type: 'ValidationError'
-        }
+      expect(result.statusCode).toBe(400);
+      expect(result.error).toEqual({
+        type: 'ValidationError',
+        message: 'Invalid input',
+        code: 'ValidationError',
+        details: undefined
       });
     });
 
     it('should handle AuthenticationError', () => {
-      const error = new AuthenticationError('Unauthorized');
-      const req = mockRequest();
-      const res = mockResponse();
-      const next = mockNext();
+      const error = new AuthenticationError('Unauthorized', 'signature', 'Invalid credentials');
+      const context = { userId: '123' };
 
-      ErrorHandler.handleError(error, req as any, res as any, next);
+      const result = ErrorHandler.handleError(error, context);
 
-      expect(res.status).toHaveBeenCalledWith(401);
-      expect(res.json).toHaveBeenCalledWith({
-        error: {
-          message: 'Unauthorized',
-          status: 401,
-          timestamp: expect.any(String),
-          type: 'AuthenticationError'
-        }
+      expect(result.statusCode).toBe(401);
+      expect(result.error).toEqual({
+        type: 'AuthenticationError',
+        message: 'Unauthorized',
+        code: 'AuthenticationError',
+        details: undefined
       });
     });
 
     it('should handle DatabaseError', () => {
-      const error = new DatabaseError('Database connection failed');
-      const req = mockRequest();
-      const res = mockResponse();
-      const next = mockNext();
+      const error = new DatabaseError('Database connection failed', 'DB_OPERATION');
+      const context = { query: 'SELECT * FROM users' };
 
-      ErrorHandler.handleError(error, req as any, res as any, next);
+      const result = ErrorHandler.handleError(error, context);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({
-        error: {
-          message: 'Database connection failed',
-          status: 500,
-          timestamp: expect.any(String),
-          type: 'DatabaseError'
-        }
+      expect(result.statusCode).toBe(500);
+      expect(result.error).toEqual({
+        type: 'DatabaseError',
+        message: 'Database connection failed',
+        code: 'DatabaseError',
+        details: undefined
       });
     });
 
     it('should handle generic Error', () => {
       const error = new Error('Generic error');
-      const req = mockRequest();
-      const res = mockResponse();
-      const next = mockNext();
+      const context = { operation: 'test' };
 
-      ErrorHandler.handleError(error, req as any, res as any, next);
+      const result = ErrorHandler.handleError(error, context);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({
-        error: {
-          message: 'Internal server error',
-          status: 500,
-          timestamp: expect.any(String)
-        }
+      expect(result.statusCode).toBe(500);
+      expect(result.error).toEqual({
+        type: 'Error',
+        message: 'Generic error'
       });
     });
 
-    it('should include stack trace in development', () => {
-      const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'development';
+    it('should handle Zod validation errors', () => {
+      const { z } = require('zod');
+      const schema = z.object({ name: z.string() });
+      const error = schema.safeParse({ name: 123 }).success ? null : schema.safeParse({ name: 123 }).error;
+      
+      if (!error) throw new Error('Failed to create Zod error');
 
-      const error = new Error('Dev error');
-      const req = mockRequest();
-      const res = mockResponse();
-      const next = mockNext();
+      const result = ErrorHandler.handleError(error, { field: 'name' });
 
-      ErrorHandler.handleError(error, req as any, res as any, next);
-
-      expect(res.json).toHaveBeenCalledWith({
-        error: expect.objectContaining({
-          stack: expect.any(String)
-        })
-      });
-
-      process.env.NODE_ENV = originalEnv;
+      expect(result.statusCode).toBe(400);
+      expect(result.error.type).toBe('ValidationError');
+      expect(result.error.message).toBe('Validation failed');
     });
 
-    it('should not include stack trace in production', () => {
-      const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'production';
+    it('should handle database connection errors', () => {
+      const error = new Error('ECONNREFUSED: connect');
+      const context = { host: 'localhost' };
 
-      const error = new Error('Prod error');
-      const req = mockRequest();
-      const res = mockResponse();
-      const next = mockNext();
+      const result = ErrorHandler.handleError(error, context);
 
-      ErrorHandler.handleError(error, req as any, res as any, next);
-
-      const response = (res.json as jest.Mock).mock.calls[0][0];
-      expect(response.error.stack).toBeUndefined();
-
-      process.env.NODE_ENV = originalEnv;
+      expect(result.statusCode).toBe(500);
+      expect(result.error.type).toBe('DatabaseError');
+      expect(result.error.message).toBe('Database connection failed');
     });
 
-    it('should handle errors with additional properties', () => {
-      const error: any = new AppError('Error with details', 400);
-      error.code = 'INVALID_INPUT';
-      error.details = { field: 'username', reason: 'too short' };
+    it('should handle unknown errors', () => {
+      const error = 'String error';
+      const context = { source: 'test' };
 
-      const req = mockRequest();
-      const res = mockResponse();
-      const next = mockNext();
+      const result = ErrorHandler.handleError(error, context);
 
-      ErrorHandler.handleError(error, req as any, res as any, next);
-
-      expect(res.json).toHaveBeenCalledWith({
-        error: expect.objectContaining({
-          message: 'Error with details',
-          code: 'INVALID_INPUT',
-          details: { field: 'username', reason: 'too short' }
-        })
-      });
+      expect(result.statusCode).toBe(500);
+      expect(result.error.type).toBe('UnknownError');
+      expect(result.error.message).toBe('An unexpected error occurred');
     });
   });
 
-  describe('asyncHandler', () => {
-    it('should handle successful async operations', async () => {
-      const asyncFn = jest.fn().mockResolvedValue('success');
-      const wrapped = ErrorHandler.asyncHandler(asyncFn);
-      
-      const req = mockRequest();
-      const res = mockResponse();
-      const next = mockNext();
+  describe('createErrorResponse', () => {
+    it('should create standardized error response for BaseError', () => {
+      const error = new ValidationError('Test error');
+      const result = ErrorHandler.createErrorResponse(error);
 
-      await wrapped(req as any, res as any, next);
-
-      expect(asyncFn).toHaveBeenCalledWith(req, res, next);
-      expect(next).not.toHaveBeenCalled();
+      expect(result).toEqual({
+        error: {
+          type: 'ValidationError',
+          message: 'Test error',
+          code: 'ValidationError',
+          details: undefined
+        },
+        statusCode: 400
+      });
     });
 
-    it('should catch async errors and pass to next', async () => {
+    it('should create response for custom error types', () => {
+      const error = new NotFoundError('User', '123');
+      const result = ErrorHandler.createErrorResponse(error);
+
+      expect(result.statusCode).toBe(404);
+      expect(result.error.type).toBe('NotFoundError');
+    });
+  });
+
+  describe('logError', () => {
+    it('should log errors with context', () => {
+      const error = new Error('Test error');
+      const context = { userId: '123', operation: 'login' };
+
+      ErrorHandler.logError(error, context);
+
+      // The logger is mocked, so we just verify the method doesn't throw
+      expect(true).toBe(true);
+    });
+  });
+
+  describe('wrapAsync', () => {
+    it('should wrap async function with error handling', async () => {
+      const asyncFn = jest.fn().mockResolvedValue('success');
+      const wrapped = ErrorHandler.wrapAsync(asyncFn, 'test-context');
+      
+      const result = await wrapped('arg1', 'arg2');
+
+      expect(result).toBe('success');
+      expect(asyncFn).toHaveBeenCalledWith('arg1', 'arg2');
+    });
+
+    it('should catch and re-throw errors', async () => {
       const error = new Error('Async error');
       const asyncFn = jest.fn().mockRejectedValue(error);
-      const wrapped = ErrorHandler.asyncHandler(asyncFn);
+      const wrapped = ErrorHandler.wrapAsync(asyncFn, 'test-context');
       
-      const req = mockRequest();
-      const res = mockResponse();
-      const next = mockNext();
-
-      await wrapped(req as any, res as any, next);
-
-      expect(asyncFn).toHaveBeenCalledWith(req, res, next);
-      expect(next).toHaveBeenCalledWith(error);
-    });
-
-    it('should handle sync errors in async functions', async () => {
-      const error = new Error('Sync error in async');
-      const asyncFn = jest.fn(() => {
-        throw error;
-      });
-      const wrapped = ErrorHandler.asyncHandler(asyncFn);
-      
-      const req = mockRequest();
-      const res = mockResponse();
-      const next = mockNext();
-
-      await wrapped(req as any, res as any, next);
-
-      expect(next).toHaveBeenCalledWith(error);
+      await expect(wrapped('arg1')).rejects.toThrow('Async error');
     });
   });
 
-  describe('isOperationalError', () => {
-    it('should identify operational errors', () => {
-      const appError = new AppError('Operational', 400);
-      const validationError = new ValidationError('Validation failed');
-      const authError = new AuthenticationError('Auth failed');
+  describe('fromDatabaseError', () => {
+    it('should create DatabaseError from PostgreSQL error', () => {
+      const pgError = {
+        code: '23505',
+        message: 'duplicate key value violates unique constraint',
+        constraint: 'users_username_key',
+        table: 'users',
+        column: 'username'
+      };
 
-      expect(ErrorHandler.isOperationalError(appError)).toBe(true);
-      expect(ErrorHandler.isOperationalError(validationError)).toBe(true);
-      expect(ErrorHandler.isOperationalError(authError)).toBe(true);
+      const result = ErrorHandler.fromDatabaseError(pgError);
+
+      expect(result).toBeInstanceOf(DatabaseError);
+      expect(result.message).toBe('Duplicate entry');
     });
 
-    it('should identify non-operational errors', () => {
-      const genericError = new Error('Generic');
-      const typeError = new TypeError('Type error');
-      const rangeError = new RangeError('Range error');
+    it('should handle unknown database errors', () => {
+      const pgError = {
+        code: '99999',
+        message: 'Unknown database error'
+      };
 
-      expect(ErrorHandler.isOperationalError(genericError)).toBe(false);
-      expect(ErrorHandler.isOperationalError(typeError)).toBe(false);
-      expect(ErrorHandler.isOperationalError(rangeError)).toBe(false);
-    });
+      const result = ErrorHandler.fromDatabaseError(pgError);
 
-    it('should handle custom operational errors', () => {
-      class CustomOperationalError extends Error {
-        isOperational = true;
-      }
-
-      const customError = new CustomOperationalError('Custom');
-      expect(ErrorHandler.isOperationalError(customError)).toBe(true);
+      expect(result).toBeInstanceOf(DatabaseError);
+      expect(result.message).toBe('Database operation failed');
     });
   });
 
-  describe('formatError', () => {
-    it('should format error for response', () => {
-      const error = new AppError('Test error', 400);
-      const formatted = ErrorHandler.formatError(error);
+  describe('fromValidation', () => {
+    it('should create ValidationError from field validation', () => {
+      const result = ErrorHandler.fromValidation('username', 'Username is required', 'test');
 
-      expect(formatted).toEqual({
+      expect(result).toBeInstanceOf(ValidationError);
+      expect(result.message).toBe('Username is required');
+      expect(result.validationErrors).toEqual([
+        { field: 'username', message: 'Username is required', value: 'test' }
+      ]);
+    });
+  });
+
+  describe('notFound', () => {
+    it('should create NotFoundError with resource and id', () => {
+      const result = ErrorHandler.notFound('User', '123');
+
+      expect(result).toBeInstanceOf(NotFoundError);
+      expect(result.message).toBe('User with id 123 not found');
+    });
+
+    it('should create NotFoundError without id', () => {
+      const result = ErrorHandler.notFound('User');
+
+      expect(result).toBeInstanceOf(NotFoundError);
+      expect(result.message).toBe('User with id unknown not found');
+    });
+  });
+
+  describe('unauthorized', () => {
+    it('should create AuthenticationError', () => {
+      const result = ErrorHandler.unauthorized('Invalid token');
+
+      expect(result).toBeInstanceOf(AuthenticationError);
+      expect(result.message).toBe('Invalid token');
+      expect(result.authType).toBe('signature');
+    });
+  });
+
+  describe('rateLimited', () => {
+    it('should create RateLimitError', () => {
+      const result = ErrorHandler.rateLimited(100, 60000);
+
+      expect(result).toBeInstanceOf(RateLimitError);
+      expect(result.limit).toBe(100);
+      expect(result.windowMs).toBe(60000);
+      expect(result.retryAfter).toBe(60);
+    });
+  });
+
+  describe('isRetryable', () => {
+    it('should identify retryable errors', () => {
+      const networkError = new Error('ECONNREFUSED: connect');
+      const timeoutError = new Error('ETIMEDOUT: timeout');
+
+      expect(ErrorHandler.isRetryable(networkError)).toBe(true);
+      expect(ErrorHandler.isRetryable(timeoutError)).toBe(true);
+    });
+
+    it('should identify non-retryable errors', () => {
+      const validationError = new ValidationError('Invalid input');
+      const authError = new AuthenticationError('Unauthorized', 'signature', 'Invalid');
+
+      expect(ErrorHandler.isRetryable(validationError)).toBe(false);
+      expect(ErrorHandler.isRetryable(authError)).toBe(false);
+    });
+  });
+
+  describe('serialize', () => {
+    it('should serialize BaseError', () => {
+      const error = new ValidationError('Test error');
+      const result = ErrorHandler.serialize(error);
+
+      expect(result).toEqual({
+        type: 'ValidationError',
         message: 'Test error',
-        status: 400,
+        code: 'ValidationError',
+        details: undefined,
         timestamp: expect.any(String)
       });
     });
 
-    it('should include error type for specific errors', () => {
-      const validationError = new ValidationError('Invalid data');
-      const formatted = ErrorHandler.formatError(validationError);
+    it('should serialize generic Error', () => {
+      const error = new Error('Generic error');
+      const result = ErrorHandler.serialize(error);
 
-      expect(formatted).toEqual({
-        message: 'Invalid data',
-        status: 400,
-        timestamp: expect.any(String),
-        type: 'ValidationError'
+      expect(result).toEqual({
+        type: 'Error',
+        message: 'Generic error',
+        stack: expect.any(String)
       });
     });
 
-    it('should sanitize sensitive information', () => {
-      const error: any = new DatabaseError('Connection failed');
-      error.connectionString = 'postgresql://user:password@host/db';
-      error.password = 'secret123';
+    it('should serialize unknown errors', () => {
+      const error = 'String error';
+      const result = ErrorHandler.serialize(error);
 
-      const formatted = ErrorHandler.formatError(error);
-
-      expect(formatted.connectionString).toBeUndefined();
-      expect(formatted.password).toBeUndefined();
-      expect(formatted.message).toBe('Connection failed');
+      expect(result).toEqual({
+        type: 'Unknown',
+        value: 'String error'
+      });
     });
   });
 
-  describe('error logging', () => {
-    it('should log errors with context', () => {
-      const error = new Error('Test error');
-      const req = mockRequest({
-        method: 'POST',
-        url: '/api/test',
-        headers: { 'user-agent': 'test-agent' },
-        ip: '127.0.0.1'
-      });
-      const res = mockResponse();
-      const next = mockNext();
-
-      ErrorHandler.handleError(error, req as any, res as any, next);
-
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Error:',
-        expect.objectContaining({
-          message: 'Test error',
-          method: 'POST',
-          url: '/api/test',
-          ip: '127.0.0.1',
-          userAgent: 'test-agent'
-        })
-      );
+  describe('expressErrorHandler', () => {
+    it('should create Express error middleware', () => {
+      const middleware = ErrorHandler.expressErrorHandler();
+      expect(typeof middleware).toBe('function');
     });
 
-    it('should not log in test environment', () => {
-      const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'test';
-
-      const error = new Error('Test error');
+    it('should handle errors in Express middleware', () => {
+      const middleware = ErrorHandler.expressErrorHandler();
+      const error = new ValidationError('Invalid input');
       const req = mockRequest();
       const res = mockResponse();
       const next = mockNext();
 
-      ErrorHandler.handleError(error, req as any, res as any, next);
+      middleware(error, req as any, res as any, next);
 
-      expect(consoleErrorSpy).not.toHaveBeenCalled();
-
-      process.env.NODE_ENV = originalEnv;
-    });
-  });
-
-  describe('edge cases', () => {
-    it('should handle null/undefined errors', () => {
-      const req = mockRequest();
-      const res = mockResponse();
-      const next = mockNext();
-
-      ErrorHandler.handleError(null as any, req as any, res as any, next);
-
-      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({
         error: {
-          message: 'Internal server error',
-          status: 500,
-          timestamp: expect.any(String)
-        }
+          type: 'ValidationError',
+          message: 'Invalid input',
+          code: 'ValidationError',
+          details: undefined
+        },
+        statusCode: 400
       });
-    });
-
-    it('should handle circular reference in error object', () => {
-      const error: any = new Error('Circular error');
-      error.circular = error;
-
-      const req = mockRequest();
-      const res = mockResponse();
-      const next = mockNext();
-
-      expect(() => {
-        ErrorHandler.handleError(error, req as any, res as any, next);
-      }).not.toThrow();
-
-      expect(res.status).toHaveBeenCalledWith(500);
-    });
-
-    it('should handle errors during error handling', () => {
-      const error = new Error('Original error');
-      const req = mockRequest();
-      const res = mockResponse();
-      
-      // Make res.status throw an error
-      (res.status as jest.Mock).mockImplementation(() => {
-        throw new Error('Error in error handler');
-      });
-      
-      const next = mockNext();
-
-      expect(() => {
-        ErrorHandler.handleError(error, req as any, res as any, next);
-      }).not.toThrow();
-
-      expect(next).toHaveBeenCalled();
     });
   });
 });

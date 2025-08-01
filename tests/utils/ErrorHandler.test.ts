@@ -1,6 +1,5 @@
 import { ErrorHandler, ConflictError, NetworkError } from '../../src/utils/ErrorHandler';
 import { 
-  BaseError,
   ValidationError,
   DatabaseError,
   AuthenticationError,
@@ -99,8 +98,8 @@ describe('ErrorHandler', () => {
         expect(response.statusCode).toBe(400);
         expect(response.error.type).toBe('ValidationError');
         expect(response.error.message).toBe('Validation failed');
-        expect(response.error.details?.errors).toBeDefined();
-        expect(response.error.details?.errors[0]).toMatchObject({
+        expect(response.error.details?.['errors']).toBeDefined();
+        expect(response.error.details?.['errors'][0]).toMatchObject({
           path: 'email',
           message: expect.any(String),
           code: expect.any(String)
@@ -196,7 +195,7 @@ describe('ErrorHandler', () => {
       const error = ErrorHandler.fromDatabaseError(pgError);
       expect(error.message).toBe('Foreign key violation');
       expect(error.operation).toBe('DB_OPERATION');
-      expect(error.context?.code).toBe('FK_VIOLATION');
+      expect(error.context?.['code']).toBe('FK_VIOLATION');
     });
 
     it('should handle not null violation', () => {
@@ -208,7 +207,7 @@ describe('ErrorHandler', () => {
       const error = ErrorHandler.fromDatabaseError(pgError);
       expect(error.message).toBe('Not null violation');
       expect(error.operation).toBe('DB_OPERATION');
-      expect(error.context?.code).toBe('NOT_NULL_VIOLATION');
+      expect(error.context?.['code']).toBe('NOT_NULL_VIOLATION');
     });
 
     it('should handle string too long error', () => {
@@ -220,7 +219,7 @@ describe('ErrorHandler', () => {
       const error = ErrorHandler.fromDatabaseError(pgError);
       expect(error.message).toBe('String data too long');
       expect(error.operation).toBe('DB_OPERATION');
-      expect(error.context?.code).toBe('STRING_TOO_LONG');
+      expect(error.context?.['code']).toBe('STRING_TOO_LONG');
     });
 
     it('should handle unknown database errors', () => {
@@ -232,8 +231,8 @@ describe('ErrorHandler', () => {
       const error = ErrorHandler.fromDatabaseError(pgError);
       expect(error.message).toBe('Database operation failed');
       expect(error.operation).toBe('DB_OPERATION');
-      expect(error.context?.code).toBe('DB_ERROR');
-      expect(error.context?.originalError).toBe('unknown error');
+      expect(error.context?.['code']).toBe('DB_ERROR');
+      expect(error.context?.['originalError']).toBe('unknown error');
     });
   });
 
@@ -314,7 +313,7 @@ describe('ErrorHandler', () => {
   });
 
   describe('serialize', () => {
-    it('should serialize AppError', () => {
+    it('should serialize ValidationError', () => {
       const error = new ValidationError('Test error', [{ field: 'test', message: 'Test error' }]);
       const serialized = ErrorHandler.serialize(error);
       

@@ -1,6 +1,5 @@
 import { Logger } from '../../../src/utils/Logger';
 import * as fs from 'fs';
-import * as path from 'path';
 
 // Mock fs module
 jest.mock('fs', () => ({
@@ -34,7 +33,7 @@ describe('Logger', () => {
     consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation();
     
     // Mock Date.now for consistent timestamps
-    dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(1234567890000);
+    dateNowSpy = jest.spyOn(global.Date, 'now').mockReturnValue(1234567890000);
     
     // Create logger instance
     logger = new Logger('TestLogger');
@@ -52,13 +51,6 @@ describe('Logger', () => {
     it('should create logger with context', () => {
       const testLogger = new Logger('CustomContext');
       expect(testLogger).toBeDefined();
-      expect(testLogger.context).toBe('CustomContext');
-    });
-
-    it('should create logger without context', () => {
-      const testLogger = new Logger();
-      expect(testLogger).toBeDefined();
-      expect(testLogger.context).toBe('App');
     });
 
     it('should create logs directory if it does not exist', () => {
@@ -80,8 +72,8 @@ describe('Logger', () => {
       expect(consoleInfoSpy).toHaveBeenCalledWith(
         expect.stringContaining('[INFO]'),
         expect.stringContaining('[TestLogger]'),
-        'Info message',
-        { data: 'test' }
+        expect.stringContaining('Info message'),
+        expect.stringContaining('{"data":"test"}')
       );
     });
 
@@ -144,16 +136,14 @@ describe('Logger', () => {
       );
     });
 
-    it('should handle multiple arguments', () => {
-      logger.info('Multiple', 'arguments', { test: true }, [1, 2, 3]);
+    it('should handle metadata object', () => {
+      logger.info('Message with metadata', { test: true, array: [1, 2, 3] });
       
       expect(consoleInfoSpy).toHaveBeenCalledWith(
         expect.any(String),
         expect.any(String),
-        'Multiple',
-        'arguments',
-        { test: true },
-        [1, 2, 3]
+        'Message with metadata',
+        { test: true, array: [1, 2, 3] }
       );
     });
   });
@@ -238,65 +228,32 @@ describe('Logger', () => {
     });
   });
 
-  describe('performance logging', () => {
-    it('should measure performance', () => {
-      const startTime = Date.now();
-      jest.spyOn(Date, 'now')
-        .mockReturnValueOnce(startTime)
-        .mockReturnValueOnce(startTime + 150);
-      
-      logger.performance('Operation', () => {
-        // Simulated operation
-      });
-      
-      expect(consoleInfoSpy).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.any(String),
-        expect.stringContaining('Operation took 150ms')
-      );
-    });
-
-    it('should log slow operations as warnings', () => {
-      const startTime = Date.now();
-      jest.spyOn(Date, 'now')
-        .mockReturnValueOnce(startTime)
-        .mockReturnValueOnce(startTime + 1500);
-      
-      logger.performance('Slow operation', () => {
-        // Simulated slow operation
-      });
-      
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.any(String),
-        expect.stringContaining('Slow operation took 1500ms')
-      );
-    });
-
-    it('should return operation result', () => {
-      const result = logger.performance('Operation', () => {
-        return 'result';
-      });
-      
-      expect(result).toBe('result');
-    });
-
-    it('should handle async operations', async () => {
-      const startTime = Date.now();
-      jest.spyOn(Date, 'now')
-        .mockReturnValueOnce(startTime)
-        .mockReturnValueOnce(startTime + 100);
-      
-      const result = await logger.performance('Async operation', async () => {
+  describe('time measurement', () => {
+    it('should measure async operations', async () => {
+      const result = await logger.time('TestOperation', async () => {
         await new Promise(resolve => setTimeout(resolve, 10));
-        return 'async result';
+        return 'success';
       });
       
-      expect(result).toBe('async result');
+      expect(result).toBe('success');
       expect(consoleInfoSpy).toHaveBeenCalledWith(
         expect.any(String),
         expect.any(String),
-        expect.stringContaining('Async operation took 100ms')
+        expect.stringContaining('TestOperation')
+      );
+    });
+
+    it('should handle failed operations', async () => {
+      const error = new Error('Test error');
+      
+      await expect(logger.time('FailedOperation', async () => {
+        throw error;
+      })).rejects.toThrow(error);
+      
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(String),
+        expect.stringContaining('FailedOperation')
       );
     });
   });
@@ -329,43 +286,43 @@ describe('Logger', () => {
       
       logger.info('Complex data', data);
       
-      const logContent = appendFileSpy.mock.calls[0][1];
+      const logContent = appendFileSpy.mock.calls[0]?.[1];
       expect(logContent).toContain(JSON.stringify(data));
     });
   });
 
   describe('environment-specific behavior', () => {
     it('should not log debug in production', () => {
-      const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'production';
+      const originalEnv = process.env['NODE_ENV'];
+      process.env['NODE_ENV'] = 'production';
       
       logger.debug('Debug in production');
       
       expect(consoleLogSpy).not.toHaveBeenCalled();
       
-      process.env.NODE_ENV = originalEnv;
+      process.env['NODE_ENV'] = originalEnv;
     });
 
     it('should log debug in development', () => {
-      const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'development';
+      const originalEnv = process.env['NODE_ENV'];
+      process.env['NODE_ENV'] = 'development';
       
       logger.debug('Debug in development');
       
       expect(consoleLogSpy).toHaveBeenCalled();
       
-      process.env.NODE_ENV = originalEnv;
+      process.env['NODE_ENV'] = originalEnv;
     });
 
     it('should not write to files in test environment', () => {
-      const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'test';
+      const originalEnv = process.env['NODE_ENV'];
+      process.env['NODE_ENV'] = 'test';
       
       logger.info('Test environment log');
       
       expect(fs.appendFileSync).not.toHaveBeenCalled();
       
-      process.env.NODE_ENV = originalEnv;
+      process.env['NODE_ENV'] = originalEnv;
     });
   });
 

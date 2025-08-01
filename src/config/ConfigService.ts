@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 const ConfigSchema = z.object({
-  env: z.enum(['development', 'staging', 'production']).default('development'),
+  env: z.enum(['development', 'staging', 'production', 'test']).default('development'),
   
   server: z.object({
     port: z.number().min(1).max(65535).default(3003),
@@ -170,7 +170,10 @@ class ConfigService {
         error.errors.forEach(err => {
           console.error(`  - ${err.path.join('.')}: ${err.message}`);
         });
-        process.exit(1);
+        // Don't exit in test environment
+        if (process.env['NODE_ENV'] !== 'test') {
+          process.exit(1);
+        }
       }
       throw error;
     }
@@ -249,6 +252,11 @@ class ConfigService {
         baseDefaults.database.ssl = true;
         baseDefaults.features.enableDebugMode = false;
         baseDefaults.logging.level = 'warn';
+        break;
+      case 'test':
+        baseDefaults.features.enableDebugMode = false;
+        baseDefaults.logging.level = 'error';
+        baseDefaults.logging.format = 'simple';
         break;
       case 'development':
       default:
@@ -338,7 +346,10 @@ class ConfigService {
     if (errors.length > 0) {
       console.error('Missing required configuration:');
       errors.forEach(error => console.error(`  - ${error}`));
-      process.exit(1);
+      // Don't exit in test environment
+      if (process.env['NODE_ENV'] !== 'test') {
+        process.exit(1);
+      }
     }
   }
 

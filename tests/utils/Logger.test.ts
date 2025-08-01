@@ -94,7 +94,7 @@ describe('Logger', () => {
       logger.debug('Debug message', { extra: 'data' });
       
       expect(mockConsoleLog).toHaveBeenCalledTimes(1);
-      const call = mockConsoleLog.mock.calls[0][0];
+      const call = mockConsoleLog.mock.calls[0]?.[0];
       expect(call).toContain('[DEBUG]');
       expect(call).toContain('[TestContext]');
       expect(call).toContain('Debug message');
@@ -105,21 +105,21 @@ describe('Logger', () => {
       logger.info('Info message');
       
       expect(mockConsoleLog).toHaveBeenCalledTimes(1);
-      expect(mockConsoleLog.mock.calls[0][0]).toContain('[INFO]');
+      expect(mockConsoleLog.mock.calls[0]?.[0]).toContain('[INFO]');
     });
 
     it('should log warn messages', () => {
       logger.warn('Warning message');
       
       expect(mockConsoleWarn).toHaveBeenCalledTimes(1);
-      expect(mockConsoleWarn.mock.calls[0][0]).toContain('[WARN]');
+      expect(mockConsoleWarn.mock.calls[0]?.[0]).toContain('[WARN]');
     });
 
     it('should log error messages', () => {
       logger.error('Error message');
       
       expect(mockConsoleError).toHaveBeenCalledTimes(1);
-      expect(mockConsoleError.mock.calls[0][0]).toContain('[ERROR]');
+      expect(mockConsoleError.mock.calls[0]?.[0]).toContain('[ERROR]');
     });
 
     it('should include metadata in logs', () => {
@@ -127,14 +127,14 @@ describe('Logger', () => {
       logger.info('User action', metadata);
       
       expect(mockConsoleLog).toHaveBeenCalledTimes(1);
-      expect(mockConsoleLog.mock.calls[0][0]).toContain(JSON.stringify(metadata));
+      expect(mockConsoleLog.mock.calls[0]?.[0]).toContain(JSON.stringify(metadata));
     });
 
     it('should handle undefined metadata', () => {
       logger.info('Message without metadata');
       
       expect(mockConsoleLog).toHaveBeenCalledTimes(1);
-      expect(mockConsoleLog.mock.calls[0][0]).not.toContain('{}');
+      expect(mockConsoleLog.mock.calls[0]?.[0]).not.toContain('{}');
     });
   });
 
@@ -147,7 +147,7 @@ describe('Logger', () => {
       childLogger.info('Child message');
       
       expect(mockConsoleLog).toHaveBeenCalledTimes(1);
-      expect(mockConsoleLog.mock.calls[0][0]).toContain('[Parent:Child]');
+      expect(mockConsoleLog.mock.calls[0]?.[0]).toContain('[Parent:Child]');
     });
   });
 
@@ -163,7 +163,7 @@ describe('Logger', () => {
       
       expect(result).toBe('success');
       expect(mockConsoleLog).toHaveBeenCalledTimes(1);
-      const call = mockConsoleLog.mock.calls[0][0];
+      const call = mockConsoleLog.mock.calls[0]?.[0];
       expect(call).toContain('TestOperation completed');
       expect(call).toContain('"success":true');
       expect(call).toMatch(/"duration_ms":\d+/);
@@ -179,7 +179,7 @@ describe('Logger', () => {
       })).rejects.toThrow(error);
       
       expect(mockConsoleError).toHaveBeenCalledTimes(1);
-      const call = mockConsoleError.mock.calls[0][0];
+      const call = mockConsoleError.mock.calls[0]?.[0];
       expect(call).toContain('FailedOperation failed');
       expect(call).toContain('"success":false');
       expect(call).toContain('"error":"Test error"');
@@ -203,13 +203,18 @@ describe('Logger', () => {
         path: '/api/test',
         query: { id: '123' },
         ip: '127.0.0.1',
-        get: jest.fn().mockReturnValue('Mozilla/5.0')
-      };
+        get: jest.fn().mockReturnValue('Mozilla/5.0'),
+        headers: {},
+        body: {},
+        params: {}
+      } as any;
       
       const res = {
         statusCode: 200,
-        send: jest.fn()
-      };
+        send: jest.fn(),
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn()
+      } as any;
       
       const next = jest.fn();
       
@@ -217,7 +222,7 @@ describe('Logger', () => {
       
       expect(next).toHaveBeenCalled();
       expect(mockConsoleLog).toHaveBeenCalledTimes(1);
-      expect(mockConsoleLog.mock.calls[0][0]).toContain('GET /api/test');
+      expect(mockConsoleLog.mock.calls[0]?.[0]).toContain('GET /api/test');
     });
 
     // Skip the problematic response logging tests for now
@@ -261,8 +266,8 @@ describe('Logger', () => {
         timestamp: expect.any(String),
         action: 'system.startup'
       });
-      expect(entry.userId).toBeUndefined();
-      expect(entry.resourceType).toBeUndefined();
+      expect(entry['userId']).toBeUndefined();
+      expect(entry['resourceType']).toBeUndefined();
     });
   });
 
@@ -290,8 +295,8 @@ describe('Logger', () => {
       logger.info('Test');
       const after = new Date().toISOString();
       
-      const logOutput = mockConsoleLog.mock.calls[0][0];
-      const timestampMatch = logOutput.match(/(\d{4}-\d{2}-\d{2}T[\d:.]+Z)/);
+      const logOutput = mockConsoleLog.mock.calls[0]?.[0];
+      const timestampMatch = logOutput?.match(/(\d{4}-\d{2}-\d{2}T[\d:.]+Z)/);
       expect(timestampMatch).toBeTruthy();
       
       const loggedTime = new Date(timestampMatch![1]).getTime();
@@ -310,7 +315,7 @@ describe('Logger', () => {
       const logger = new Logger('NoColorTest');
       logger.info('Test message');
       
-      const logOutput = mockConsoleLog.mock.calls[0][0];
+      const logOutput = mockConsoleLog.mock.calls[0]?.[0];
       expect(logOutput).not.toContain('\x1b[');
       
       (process.stdout as any).isTTY = originalIsTTY;
@@ -324,7 +329,7 @@ describe('Logger', () => {
       const logger = new Logger('ColorTest');
       logger.info('Test message');
       
-      const logOutput = mockConsoleLog.mock.calls[0][0];
+      const logOutput = mockConsoleLog.mock.calls[0]?.[0];
       expect(logOutput).toContain('\x1b[37m'); // White for info
       expect(logOutput).toContain('\x1b[0m'); // Reset
       
