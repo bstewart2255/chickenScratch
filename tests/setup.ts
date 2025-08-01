@@ -16,7 +16,7 @@ global.console = {
 };
 
 // Mock migration tracker for tests
-jest.mock('../scripts/migrationTracker', () => ({
+jest.mock('../scripts/MigrationTracker', () => ({
   MigrationTracker: {
     migrateFile: jest.fn().mockResolvedValue({
       success: true,
