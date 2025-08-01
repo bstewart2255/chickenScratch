@@ -17,7 +17,7 @@ var jumpToCode = (function init() {
         missingCoverageClasses.join(', ' + notSelector); // becomes `:not(a):not(b) > a, :not(a):not(b) > b`
 
     // The NodeList of matching elements
-    var missingCoverageElements = document.querySelectorAll(selector);
+    var missingCoverageElements = typeof document !== 'undefined' ? document.querySelectorAll(selector) : [];
 
     var currentIndex;
 
@@ -63,6 +63,7 @@ var jumpToCode = (function init() {
     }
 
     return function jump(event) {
+        if (typeof document === 'undefined') return;
         if (
             document.getElementById('fileSearch') === document.activeElement &&
             document.activeElement != null
@@ -84,4 +85,6 @@ var jumpToCode = (function init() {
         }
     };
 })();
-window.addEventListener('keydown', jumpToCode);
+if (typeof window !== 'undefined') {
+    window.addEventListener('keydown', jumpToCode);
+}

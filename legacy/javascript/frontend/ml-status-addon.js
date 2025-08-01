@@ -2,6 +2,8 @@
 
 // Check ML API status
 async function checkMLStatus() {
+    if (typeof document === 'undefined') return false;
+    
     const mlStatusEl = document.getElementById('mlStatus');
     const mlStatusBtn = document.getElementById('mlStatusBtn');
     
@@ -53,6 +55,8 @@ async function checkBackendMLUsage() {
 
 // Updated startRetraining function
 async function startRetraining() {
+    if (typeof document === 'undefined') return;
+    
     const progressDiv = document.getElementById('retrainProgress');
     const progressBar = document.getElementById('retrainProgressBar');
     const statusText = document.getElementById('retrainStatus');
@@ -94,7 +98,14 @@ async function startRetraining() {
     setTimeout(() => {
         startBtn.textContent = 'Close';
         startBtn.style.display = 'inline-block';
-        startBtn.onclick = closeRetrainModal;
+        startBtn.onclick = function() {
+            // Define closeRetrainModal if not already defined
+            if (typeof closeRetrainModal === 'function') {
+                closeRetrainModal();
+            } else {
+                console.log('closeRetrainModal function not defined');
+            }
+        };
     }, 1000);
     
     // Check ML status after "retraining"
@@ -102,7 +113,8 @@ async function startRetraining() {
 }
 
 // Add this to your initialization
-document.addEventListener('DOMContentLoaded', function() {
+if (typeof document !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', function() {
     // Add ML status button if not exists
     if (!document.getElementById('mlStatusBtn')) {
         const filtersDiv = document.querySelector('.filters');
@@ -121,4 +133,5 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Check ML status periodically
     setInterval(checkMLStatus, 30000); // Every 30 seconds
-});
+  });
+}

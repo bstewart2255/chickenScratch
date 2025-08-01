@@ -1,8 +1,12 @@
 // Updated API functions for signature authentication flow
 // Replace the stubbed functions in your HTML file with these implementations
 
+// Global variables that should be defined in the calling context
+let isSignUp = true; // Track which flow we're in
+let currentUsername = ''; // Store username
+
 // API URL configuration - adjust based on environment
-const API_URL = window.location.hostname === 'localhost' 
+const API_URL = typeof window !== 'undefined' && window.location.hostname === 'localhost' 
     ? 'http://localhost:3000' 
     : 'https://chickenscratch.onrender.com';
 
@@ -101,7 +105,7 @@ async function completeAuthFlow() {
                     username: currentUsername,
                     useTemporaryData: true,
                     metadata: {
-                        device: navigator.userAgent,
+                        device: typeof navigator !== 'undefined' ? navigator.userAgent : 'Node.js',
                         timestamp: Date.now(),
                         flowType: 'mobile-step-by-step'
                     }
@@ -132,7 +136,7 @@ async function completeAuthFlow() {
                     username: currentUsername,
                     useTemporaryData: true,
                     metadata: {
-                        device: navigator.userAgent,
+                        device: typeof navigator !== 'undefined' ? navigator.userAgent : 'Node.js',
                         timestamp: Date.now(),
                         flowType: 'mobile-sign-in'
                     }

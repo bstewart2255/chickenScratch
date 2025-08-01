@@ -9,22 +9,26 @@ exports.getEventPressure = exports.getEventCoordinates = exports.isBiometricTouc
  * Type guards for canvas events
  */
 function isBiometricPointerEvent(event) {
-    return event instanceof PointerEvent && 'pressure' in event;
+    return typeof PointerEvent !== 'undefined' && event instanceof PointerEvent && 'pressure' in event;
 }
 exports.isBiometricPointerEvent = isBiometricPointerEvent;
 function isBiometricTouchEvent(event) {
-    return event instanceof TouchEvent && event.touches.length > 0;
+    return typeof TouchEvent !== 'undefined' && event instanceof TouchEvent && event.touches.length > 0;
 }
 exports.isBiometricTouchEvent = isBiometricTouchEvent;
 /**
  * Helper to get coordinates from various event types
  */
 function getEventCoordinates(event, canvas) {
+    if (typeof window === 'undefined' || typeof canvas === 'undefined') {
+        return { canvas: { x: 0, y: 0 }, normalized: { x: 0, y: 0 }, client: { x: 0, y: 0 } };
+    }
+    
     const rect = canvas.getBoundingClientRect();
     const pixelRatio = window.devicePixelRatio || 1;
     let clientX;
     let clientY;
-    if (event instanceof TouchEvent) {
+    if (typeof TouchEvent !== 'undefined' && event instanceof TouchEvent) {
         const touch = event.touches[0] || event.changedTouches[0];
         clientX = touch.clientX;
         clientY = touch.clientY;
@@ -49,10 +53,10 @@ exports.getEventCoordinates = getEventCoordinates;
  * Helper to get pressure from various event types
  */
 function getEventPressure(event) {
-    if (event instanceof PointerEvent) {
+    if (typeof PointerEvent !== 'undefined' && event instanceof PointerEvent) {
         return event.pressure;
     }
-    else if (event instanceof TouchEvent) {
+    else if (typeof TouchEvent !== 'undefined' && event instanceof TouchEvent) {
         const touch = event.touches[0] || event.changedTouches[0];
         return touch.force || 0.5;
     }

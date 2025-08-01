@@ -15,7 +15,7 @@ status.metrics.convertedFiles = (status.metrics.convertedFiles || 13) + 3;
 status.metrics.typescriptFiles = (status.metrics.typescriptFiles || 13) + 3;
 
 // Add phase history
-if (\!status.phaseHistory) {
+if (!status.phaseHistory) {
   status.phaseHistory = [];
 }
 status.phaseHistory.push({

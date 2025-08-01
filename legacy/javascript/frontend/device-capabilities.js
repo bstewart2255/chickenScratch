@@ -24,7 +24,7 @@ const DeviceCapabilityDetector = {
    */
   detectPressureSupport() {
     // Check for PointerEvent pressure support
-    if ('PointerEvent' in window) {
+    if (typeof window !== 'undefined' && 'PointerEvent' in window) {
       // Modern browsers with pressure support
       if ('pressure' in PointerEvent.prototype) {
         return true;
@@ -32,12 +32,12 @@ const DeviceCapabilityDetector = {
     }
     
     // Check for webkit Force Touch (older Safari)
-    if ('Touch' in window && 'webkitForce' in Touch.prototype) {
+    if (typeof window !== 'undefined' && 'Touch' in window && 'webkitForce' in Touch.prototype) {
       return true;
     }
     
     // Check for Force Touch on iOS devices
-    if (this.isIOS() && 'Touch' in window && 'force' in Touch.prototype) {
+    if (this.isIOS() && typeof window !== 'undefined' && 'Touch' in window && 'force' in Touch.prototype) {
       return true;
     }
     
@@ -48,9 +48,9 @@ const DeviceCapabilityDetector = {
    * Detect touch support
    */
   detectTouchSupport() {
-    return 'ontouchstart' in window || 
-           navigator.maxTouchPoints > 0 || 
-           navigator.msMaxTouchPoints > 0;
+    return (typeof window !== 'undefined' && 'ontouchstart' in window) || 
+           (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0) || 
+           (typeof navigator !== 'undefined' && navigator.msMaxTouchPoints > 0);
   },
 
   /**
@@ -60,7 +60,7 @@ const DeviceCapabilityDetector = {
     // Check for touch support
     if (this.detectTouchSupport()) {
       // Check if it's primarily a touch device
-      if (navigator.maxTouchPoints > 0) {
+      if (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0) {
         // Check for stylus support
         if (this.detectStylusSupport()) {
           return 'stylus';
@@ -77,9 +77,9 @@ const DeviceCapabilityDetector = {
    */
   detectStylusSupport() {
     // Check if device reports stylus capabilities
-    if ('PointerEvent' in window) {
+    if (typeof window !== 'undefined' && 'PointerEvent' in window) {
       // This is a heuristic - actual detection happens during use
-      return navigator.maxTouchPoints > 0 && this.detectPressureSupport();
+      return typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0 && this.detectPressureSupport();
     }
     return false;
   },
@@ -90,7 +90,7 @@ const DeviceCapabilityDetector = {
   detectPointerType() {
     const types = [];
     
-    if ('PointerEvent' in window) {
+    if (typeof window !== 'undefined' && 'PointerEvent' in window) {
       types.push('pointer');
     }
     
@@ -107,7 +107,7 @@ const DeviceCapabilityDetector = {
    * Detect browser type
    */
   detectBrowser() {
-    const ua = navigator.userAgent;
+    const ua = typeof navigator !== 'undefined' ? navigator.userAgent : 'Node.js';
     
     if (ua.indexOf('Chrome') > -1 && ua.indexOf('Edg') === -1) {
       return 'Chrome';
@@ -126,8 +126,8 @@ const DeviceCapabilityDetector = {
    * Detect operating system
    */
   detectOS() {
-    const ua = navigator.userAgent;
-    const platform = navigator.platform;
+    const ua = typeof navigator !== 'undefined' ? navigator.userAgent : 'Node.js';
+    const platform = typeof navigator !== 'undefined' ? navigator.platform : 'Node.js';
     
     if (this.isIOS()) {
       if (ua.indexOf('iPad') > -1) return 'iPadOS';
@@ -145,9 +145,9 @@ const DeviceCapabilityDetector = {
   /**
    * Check if device is iOS
    */
-  isIOS() {
-    return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    isIOS() {
+    return (typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent)) ||
+           (typeof navigator !== 'undefined' && navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   },
 
   /**
@@ -198,10 +198,10 @@ const DeviceCapabilityDetector = {
   }
 };
 
-// Make it available globally if needed
-if (typeof window !== 'undefined') {
-  window.DeviceCapabilityDetector = DeviceCapabilityDetector;
-}
+  // Make it available globally if needed
+  if (typeof window !== 'undefined') {
+    window.DeviceCapabilityDetector = DeviceCapabilityDetector;
+  }
 
 // Export for module systems
 if (typeof module !== 'undefined' && module.exports) {

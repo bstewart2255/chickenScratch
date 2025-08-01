@@ -9,6 +9,7 @@ var addSorting = (function() {
 
     // returns the summary table element
     function getTable() {
+        if (typeof document === 'undefined') return null;
         return document.querySelector('.coverage-summary');
     }
     // returns the thead element of the summary table
@@ -25,6 +26,7 @@ var addSorting = (function() {
     }
 
     function onFilterInput() {
+        if (typeof document === 'undefined') return;
         const searchValue = document.getElementById('fileSearch').value;
         const rows = document.getElementsByTagName('tbody')[0].children;
         for (let i = 0; i < rows.length; i++) {
@@ -43,6 +45,7 @@ var addSorting = (function() {
 
     // loads the search box
     function addSearchBox() {
+        if (typeof document === 'undefined') return;
         var template = document.getElementById('filterTemplate');
         var templateClone = template.content.cloneNode(true);
         templateClone.getElementById('fileSearch').oninput = onFilterInput;
@@ -193,4 +196,6 @@ var addSorting = (function() {
     };
 })();
 
-window.addEventListener('load', addSorting);
+if (typeof window !== 'undefined') {
+    window.addEventListener('load', addSorting);
+}
