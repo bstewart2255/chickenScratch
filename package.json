@@ -25,6 +25,8 @@
     "test:bench": "ts-node tests/performance/biometric.bench.ts",
     "test:bench:api": "ts-node tests/performance/api.bench.ts",
     "test:ci": "jest --coverage --ci --maxWorkers=2",
+    "db:validate": "node scripts/validate-db-config.js",
+    "db:fix-user": "node scripts/fix-database-user.js",
     "db:setup": "node backend/setupDatabase.js",
     "db:migrate": "node backend/run_migrations.js",
     "db:migrate:production": "NODE_ENV=production node backend/run_migrations.js",

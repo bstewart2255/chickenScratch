@@ -226,7 +226,7 @@ export class MockWebSocket {
 
 // Test database connection helper
 export const setupTestDatabase = async (): Promise<void> => {
-  // Ensure test database configuration is set
+  // Ensure test database configuration is set - prevent any "root" user usage
   process.env['DATABASE_URL'] = 'postgresql://postgres:postgres@localhost:5432/signature_auth_test';
   process.env['DB_HOST'] = 'localhost';
   process.env['DB_PORT'] = '5432';
@@ -238,6 +238,14 @@ export const setupTestDatabase = async (): Promise<void> => {
   process.env['PGHOST'] = 'localhost';
   process.env['PGPORT'] = '5432';
   process.env['PGDATABASE'] = 'signature_auth_test';
+  
+  // Additional safeguards to prevent any "root" user usage
+  process.env['POSTGRES_USER'] = 'postgres';
+  process.env['POSTGRES_PASSWORD'] = 'postgres';
+  process.env['POSTGRES_DB'] = 'signature_auth_test';
+  
+  // Ensure NODE_ENV is set to test
+  process.env['NODE_ENV'] = 'test';
 };
 
 export const teardownTestDatabase = async (): Promise<void> => {
