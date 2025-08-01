@@ -1,0 +1,38 @@
+{
+  "backups": [
+    {
+      "filename": "backup-20250731_231406.tar.gz",
+      "timestamp": "20250731_231406",
+      "date": "2025-08-01T06:14:08Z",
+      "git_commit": "a1290ad6237456e9f1118c812c4f5087776af714",
+      "git_branch": "main",
+      "migration_phase": 14,
+      "node_version": "v22.17.0",
+      "npm_version": "10.9.2",
+      "backup_size": "2.0M",
+      "files": {
+        "database": 2,
+        "code": 1,
+        "config": 1,
+        "migration": 1
+      }
+    },
+    {
+      "filename": "backup-20250731_230820.tar.gz",
+      "timestamp": "20250731_230820",
+      "date": "2025-08-01T06:08:21Z",
+      "git_commit": "a1290ad6237456e9f1118c812c4f5087776af714",
+      "git_branch": "main",
+      "migration_phase": 14,
+      "node_version": "v22.17.0",
+      "npm_version": "10.9.2",
+      "backup_size": "2.0M",
+      "files": {
+        "database": 2,
+        "code": 1,
+        "config": 1,
+        "migration": 1
+      }
+    }
+  ]
+}

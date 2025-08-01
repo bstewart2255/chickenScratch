@@ -3,7 +3,7 @@
  * Handles signature, shape, and drawing capture with biometric data
  */
 
-import SignaturePad, { PointGroup, BasicPoint } from 'signature_pad';
+import SignaturePad, { PointGroup } from 'signature_pad';
 import { DeviceCapabilityDetector } from './DeviceCapabilityDetector';
 import type { DeviceCapabilities, StrokeData, StrokePoint } from '../src/types/core/biometric';
 
@@ -201,8 +201,10 @@ export class SignatureCapture {
     event.preventDefault();
     if (event.touches.length > 0) {
       const touch = event.touches[0];
-      const point = this.createStrokePointFromTouch(touch);
-      this.currentStrokeData = [point];
+      if (touch) {
+        const point = this.createStrokePointFromTouch(touch);
+        this.currentStrokeData = [point];
+      }
     }
   }
 
@@ -213,8 +215,10 @@ export class SignatureCapture {
     event.preventDefault();
     if (event.touches.length > 0) {
       const touch = event.touches[0];
-      const point = this.createStrokePointFromTouch(touch);
-      this.currentStrokeData.push(point);
+      if (touch) {
+        const point = this.createStrokePointFromTouch(touch);
+        this.currentStrokeData.push(point);
+      }
     }
   }
 
@@ -424,14 +428,18 @@ export class SignatureCapture {
     strokes.forEach(stroke => {
       let strokeLength = 0;
       for (let i = 1; i < stroke.length; i++) {
-        const dx = stroke[i].x - stroke[i - 1].x;
-        const dy = stroke[i].y - stroke[i - 1].y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        strokeLength += distance;
-        
-        const dt = (stroke[i] as any).time - (stroke[i - 1] as any).time;
-        if (dt > 0) {
-          speeds.push(distance / dt);
+        const current = stroke[i];
+        const previous = stroke[i - 1];
+        if (current && previous) {
+          const dx = current.x - previous.x;
+          const dy = current.y - previous.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          strokeLength += distance;
+          
+          const dt = (current as any).time - (previous as any).time;
+          if (dt > 0) {
+            speeds.push(distance / dt);
+          }
         }
       }
       totalLength += strokeLength;
@@ -466,20 +474,26 @@ export class SignatureCapture {
     
     strokes.forEach(stroke => {
       for (let i = 2; i < stroke.length; i++) {
-        const dx1 = stroke[i - 1].x - stroke[i - 2].x;
-        const dy1 = stroke[i - 1].y - stroke[i - 2].y;
-        const dx2 = stroke[i].x - stroke[i - 1].x;
-        const dy2 = stroke[i].y - stroke[i - 1].y;
+        const p1 = stroke[i - 2];
+        const p2 = stroke[i - 1];
+        const p3 = stroke[i];
         
-        const angle1 = Math.atan2(dy1, dx1);
-        const angle2 = Math.atan2(dy2, dx2);
-        let angleDiff = angle2 - angle1;
-        
-        // Normalize angle difference to [-π, π]
-        while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
-        while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
-        
-        angles.push(Math.abs(angleDiff));
+        if (p1 && p2 && p3) {
+          const dx1 = p2.x - p1.x;
+          const dy1 = p2.y - p1.y;
+          const dx2 = p3.x - p2.x;
+          const dy2 = p3.y - p2.y;
+          
+          const angle1 = Math.atan2(dy1, dx1);
+          const angle2 = Math.atan2(dy2, dx2);
+          let angleDiff = angle2 - angle1;
+          
+          // Normalize angle difference to [-π, π]
+          while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
+          while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
+          
+          angles.push(Math.abs(angleDiff));
+        }
       }
     });
     
@@ -498,10 +512,14 @@ export class SignatureCapture {
     let totalPauseTime = 0;
     
     for (let i = 1; i < this.strokeStartTimes.length; i++) {
-      const gap = this.strokeStartTimes[i] - this.strokeStartTimes[i - 1];
-      if (gap > 100) {
-        pauseCount++;
-        totalPauseTime += gap;
+      const current = this.strokeStartTimes[i];
+      const previous = this.strokeStartTimes[i - 1];
+      if (current !== undefined && previous !== undefined) {
+        const gap = current - previous;
+        if (gap > 100) {
+          pauseCount++;
+          totalPauseTime += gap;
+        }
       }
     }
     

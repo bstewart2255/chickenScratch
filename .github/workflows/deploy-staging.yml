@@ -1,0 +1,223 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [ staging ]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '18.x'
+
+jobs:
+  test:
+    name: Run CI Checks
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    name: Deploy to Staging
+    needs: test
+    runs-on: ubuntu-latest
+    environment: staging
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --production
+
+      - name: Build for production
+        run: |
+          npm run build
+          echo "Build completed at $(date)"
+
+      - name: Run database migrations
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+        run: |
+          echo "Running database migrations..."
+          npm run db:migrate
+
+      - name: Create deployment package
+        run: |
+          tar -czf deployment-package.tar.gz \
+            dist/ \
+            package.json \
+            package-lock.json \
+            backend/schema.sql \
+            backend/migrations/ \
+            .migration-status.json
+
+      - name: Upload deployment package
+        uses: actions/upload-artifact@v3
+        with:
+          name: staging-deployment-${{ github.sha }}
+          path: deployment-package.tar.gz
+          retention-days: 30
+
+      - name: Deploy to staging server
+        env:
+          STAGING_HOST: ${{ secrets.STAGING_HOST }}
+          STAGING_USER: ${{ secrets.STAGING_USER }}
+          STAGING_PATH: ${{ secrets.STAGING_PATH }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          # Setup SSH
+          mkdir -p ~/.ssh
+          echo "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H $STAGING_HOST >> ~/.ssh/known_hosts
+
+          # Create deployment directory with timestamp
+          DEPLOY_DIR="deployment-$(date +%Y%m%d-%H%M%S)"
+          
+          # Transfer and extract package
+          scp -i ~/.ssh/deploy_key deployment-package.tar.gz $STAGING_USER@$STAGING_HOST:/tmp/
+          
+          ssh -i ~/.ssh/deploy_key $STAGING_USER@$STAGING_HOST << 'ENDSSH'
+            set -e
+            
+            # Create new deployment directory
+            cd $STAGING_PATH
+            mkdir -p $DEPLOY_DIR
+            cd $DEPLOY_DIR
+            
+            # Extract deployment package
+            tar -xzf /tmp/deployment-package.tar.gz
+            rm /tmp/deployment-package.tar.gz
+            
+            # Install production dependencies
+            npm ci --production
+            
+            # Stop current application
+            pm2 stop signature-auth-staging || true
+            
+            # Update symlink to new deployment
+            cd $STAGING_PATH
+            rm -f current
+            ln -s $DEPLOY_DIR current
+            
+            # Start application with PM2
+            cd current
+            pm2 start dist/backend/server.js --name signature-auth-staging \
+              --env staging \
+              --max-memory-restart 1G \
+              --error /var/log/signature-auth/staging-error.log \
+              --output /var/log/signature-auth/staging-out.log
+            
+            # Save PM2 configuration
+            pm2 save
+            
+            # Cleanup old deployments (keep last 5)
+            cd $STAGING_PATH
+            ls -dt deployment-* | tail -n +6 | xargs rm -rf || true
+          ENDSSH
+
+      - name: Health check
+        env:
+          STAGING_URL: ${{ secrets.STAGING_URL }}
+        run: |
+          echo "Waiting for application to start..."
+          sleep 10
+          
+          # Perform health check
+          for i in {1..5}; do
+            if curl -f -s -o /dev/null -w "%{http_code}" "$STAGING_URL/health" | grep -q "200"; then
+              echo "Health check passed!"
+              exit 0
+            fi
+            echo "Health check attempt $i failed, retrying..."
+            sleep 5
+          done
+          
+          echo "Health check failed after 5 attempts"
+          exit 1
+
+      - name: Run smoke tests
+        env:
+          STAGING_URL: ${{ secrets.STAGING_URL }}
+          API_SECRET_KEY: ${{ secrets.STAGING_API_SECRET_KEY }}
+        run: |
+          # Basic API endpoint tests
+          echo "Testing API endpoints..."
+          
+          # Test health endpoint
+          curl -f "$STAGING_URL/health"
+          
+          # Test auth endpoints exist
+          curl -f -X POST "$STAGING_URL/api/register" \
+            -H "Content-Type: application/json" \
+            -d '{}' || true
+          
+          echo "Smoke tests completed"
+
+      - name: Notify deployment status
+        if: always()
+        run: |
+          if [[ "${{ job.status }}" == "success" ]]; then
+            echo "✅ Staging deployment successful!"
+            echo "Commit: ${{ github.sha }}"
+            echo "Deployed at: $(date)"
+          else
+            echo "❌ Staging deployment failed!"
+            echo "Check logs for details"
+          fi
+
+  rollback:
+    name: Rollback Staging (Manual)
+    runs-on: ubuntu-latest
+    environment: staging
+    if: failure()
+    needs: deploy
+    
+    steps:
+      - name: Rollback to previous version
+        env:
+          STAGING_HOST: ${{ secrets.STAGING_HOST }}
+          STAGING_USER: ${{ secrets.STAGING_USER }}
+          STAGING_PATH: ${{ secrets.STAGING_PATH }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          # Setup SSH
+          mkdir -p ~/.ssh
+          echo "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H $STAGING_HOST >> ~/.ssh/known_hosts
+          
+          # Perform rollback
+          ssh -i ~/.ssh/deploy_key $STAGING_USER@$STAGING_HOST << 'ENDSSH'
+            set -e
+            
+            cd $STAGING_PATH
+            
+            # Find previous deployment
+            PREVIOUS=$(ls -dt deployment-* | head -2 | tail -1)
+            
+            if [ -z "$PREVIOUS" ]; then
+              echo "No previous deployment found!"
+              exit 1
+            fi
+            
+            echo "Rolling back to: $PREVIOUS"
+            
+            # Stop current application
+            pm2 stop signature-auth-staging || true
+            
+            # Update symlink to previous deployment
+            rm -f current
+            ln -s $PREVIOUS current
+            
+            # Start application
+            cd current
+            pm2 start dist/backend/server.js --name signature-auth-staging \
+              --env staging \
+              --max-memory-restart 1G
+            
+            echo "Rollback completed!"
+          ENDSSH

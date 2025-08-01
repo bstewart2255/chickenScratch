@@ -60,7 +60,7 @@ export class ServerApp {
    */
   private setupRoutes(): void {
     // Health check endpoint
-    this.app.get('/health', (req: Request, res: Response) => {
+    this.app.get('/health', (_req: Request, res: Response) => {
       res.json({ status: 'ok', timestamp: new Date().toISOString() });
     });
 
@@ -422,17 +422,17 @@ export class ServerApp {
   };
 
   // Placeholder methods for business logic - these would be implemented with actual database operations
-  private async processUserRegistration(data: any): Promise<any> {
+  private async processUserRegistration(_data: any): Promise<any> {
     // TODO: Implement actual user registration logic
     return { userId: '123e4567-e89b-12d3-a456-426614174000', message: 'User registered successfully' };
   }
 
-  private async processBiometricEnrollment(data: any, strokeData: any): Promise<any> {
+  private async processBiometricEnrollment(_data: any, _strokeData: any): Promise<any> {
     // TODO: Implement actual biometric enrollment logic
     return { enrollmentId: '123e4567-e89b-12d3-a456-426614174001', confidence: 0.95 };
   }
 
-  private async processBiometricAuthentication(data: any, strokeData: any): Promise<any> {
+  private async processBiometricAuthentication(_data: any, _strokeData: any): Promise<any> {
     // TODO: Implement actual biometric authentication logic
     return {
       score: 0.85,
@@ -443,23 +443,23 @@ export class ServerApp {
     };
   }
 
-  private async processGetUserSignatures(params: any, query: any): Promise<any[]> {
+  private async processGetUserSignatures(_params: any, _query: any): Promise<any[]> {
     // TODO: Implement actual get signatures logic
     return [
       { id: '123e4567-e89b-12d3-a456-426614174002', biometricType: 'signature', createdAt: new Date().toISOString() }
     ];
   }
 
-  private async processDeleteSignature(params: any, body: any): Promise<void> {
+  private async processDeleteSignature(_params: any, _body: any): Promise<void> {
     // TODO: Implement actual delete signature logic
   }
 
-  private async processUpdateUserProfile(params: any, body: any): Promise<any> {
+  private async processUpdateUserProfile(params: any, _body: any): Promise<any> {
     // TODO: Implement actual update profile logic
     return { userId: params.userId, updated: true };
   }
 
-  private async processLegacySignature(data: any): Promise<any> {
+  private async processLegacySignature(_data: any): Promise<any> {
     // TODO: Implement actual legacy signature processing logic
     return { signatureId: 123, message: 'Legacy signature processed successfully' };
   }
@@ -471,7 +471,7 @@ export class ServerApp {
     this.app.listen(this.port, () => {
       this.logger.info(`Server started on port ${this.port}`, {
         port: this.port,
-        environment: process.env.NODE_ENV || 'development'
+        environment: process.env['NODE_ENV'] || 'development'
       });
     });
   }

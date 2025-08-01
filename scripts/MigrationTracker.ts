@@ -5,13 +5,12 @@ import {
   MigrationMetrics, 
   RollbackPoint, 
   MigrationStatus, 
-  PhaseHistoryEntry,
   PhaseRequirements 
 } from '../src/types/index';
 
 export class MigrationTracker {
   private statusFile: string;
-  private status: MigrationStatus;
+  private status!: MigrationStatus;
 
   private phaseRequirements: Record<number, PhaseRequirements> = {
     5: { maxUnresolvedErrors: 0 },

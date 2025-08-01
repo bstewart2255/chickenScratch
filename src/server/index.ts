@@ -10,7 +10,7 @@ async function startServer(): Promise<void> {
   
   try {
     // Get port from environment or use default
-    const port = parseInt(process.env.PORT || '3000', 10);
+    const port = parseInt(process.env['PORT'] || '3000', 10);
     
     // Create and start the server
     const server = new ServerApp(port);

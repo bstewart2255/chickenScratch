@@ -3,6 +3,77 @@
  * Matches existing runtime behavior with proper TypeScript definitions
  */
 
+// Re-export common type aliases for backward compatibility
+export type BiometricData = RawSignatureData;
+export type Point = StrokePoint;
+export type Stroke = StrokeData;
+export type BiometricBaseline = ProcessedSignature;
+
+// Feature interfaces that match the existing implementation
+export interface PressureFeatures {
+  min: number;
+  max: number;
+  mean: number;
+  variance: number;
+  changes: number[];
+  peaks: number;
+  valleys: number;
+  avg_pressure?: number;
+  max_pressure?: number;
+  has_pressure_data?: boolean;
+  _excluded_features?: string[];
+  _exclusion_reason?: string;
+}
+
+export interface TimingFeatures {
+  totalDuration: number;
+  strokeDurations: number[];
+  pauseDurations: number[];
+  rhythm: number;
+  consistency: number;
+  averageSpeed: number;
+  speedVariance: number;
+  pause_detection?: number;
+  _excluded_features?: string[];
+  _exclusion_reason?: string;
+}
+
+export interface GeometricFeatures {
+  boundingBox: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+  centroid: {
+    x: number;
+    y: number;
+  };
+  aspectRatio: number;
+  totalLength: number;
+  angles: number[];
+  curvature: number[];
+  symmetry: {
+    horizontal: number;
+    vertical: number;
+  };
+  stroke_complexity?: number;
+  _excluded_features?: string[];
+  _exclusion_reason?: string;
+}
+
+export interface SecurityFeatures {
+  anomalyScore: number;
+  authenticityScore: number;
+  confidenceLevel: number;
+  riskFactors: string[];
+  velocityConsistency: number;
+  pressureConsistency: number;
+  unnatural_pause_detection?: number;
+  _excluded_features?: string[];
+  _exclusion_reason?: string;
+}
+
 /**
  * Device capability detection results
  * Based on deviceCapability.js implementation
@@ -32,6 +103,7 @@ export interface StrokePoint {
   y: number;
   pressure: number;
   timestamp: number;
+  time?: number; // Legacy alias for timestamp
   tiltX?: number;
   tiltY?: number;
   width?: number;
@@ -140,6 +212,12 @@ export interface EnhancedFeatures {
     processingTime: number;
     algorithm: string;
   };
+  _extraction_time_ms?: number;
+  _feature_version?: string;
+  _excluded_features?: string[];
+  _exclusion_reasons?: string[];
+  _supported_features?: string[];
+  _device_capabilities?: DeviceCapabilities;
 }
 
 /**
@@ -167,6 +245,8 @@ export interface ProcessedSignature {
   imageData: string; // base64 encoded PNG
   createdAt: string;
   updatedAt?: string;
+  _supported_features?: string[];
+  _excluded_features?: string[];
 }
 
 /**

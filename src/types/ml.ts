@@ -16,6 +16,10 @@ export interface MLModel {
   featureImportance: FeatureImportance[];
 }
 
+export interface FeatureVector {
+  [key: string]: number;
+}
+
 export interface FeatureImportance {
   feature: string;
   importance: number;

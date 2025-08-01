@@ -15,11 +15,7 @@ interface ExtendedTouch extends Touch {
   // force is already defined in Touch
 }
 
-interface ExtendedTouchEvent extends TouchEvent {
-  touches: TouchList & {
-    [index: number]: ExtendedTouch;
-  };
-}
+// ExtendedTouchEvent interface removed - not used
 
 // Navigator with vendor-specific properties
 interface ExtendedNavigator extends Navigator {

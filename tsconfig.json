@@ -1,9 +1,29 @@
 {
   "compilerOptions": {
-    // Gradual migration settings
-    "allowJs": true,
+    // Enable all strict type checking options
+    "strict": true,
+    
+    // Individual strict options (all enabled by "strict": true)
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    
+    // Additional strict checks
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    
+    // Strict mode - no JavaScript allowed
+    "allowJs": false,
     "checkJs": false,
-    "strict": false,
     
     // Target and module settings
     "target": "ES2020",
@@ -13,7 +33,7 @@
     
     // Output settings
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": "./",
     "sourceMap": true,
     
     // Interop settings
@@ -34,12 +54,19 @@
     "experimentalDecorators": true,
     
     // Node.js specific
-    "types": ["node", "jest"]
+    "types": ["node", "jest"],
+    
+    // Enable iteration for ES2015+ features
+    "downlevelIteration": true
   },
   "include": [
+    "backend/**/*.ts",
+    "frontend/**/*.ts",
+    "scripts/**/*.ts",
     "src/**/*.ts"
   ],
   "exclude": [
+    "**/*.js",
     "node_modules",
     "dist",
     "coverage",

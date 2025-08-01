@@ -217,8 +217,13 @@ export function getEventCoordinates(
   
   if (event instanceof TouchEvent) {
     const touch = event.touches[0] || event.changedTouches[0];
-    clientX = touch.clientX;
-    clientY = touch.clientY;
+    if (touch) {
+      clientX = touch.clientX;
+      clientY = touch.clientY;
+    } else {
+      clientX = 0;
+      clientY = 0;
+    }
   } else {
     clientX = event.clientX;
     clientY = event.clientY;

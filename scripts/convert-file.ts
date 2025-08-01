@@ -3,7 +3,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { MigrationTracker } from './MigrationTracker';
-import { config } from '../src/config';
 
 interface ConversionOptions {
   targetDir?: string;
@@ -177,8 +176,12 @@ export class FileConverter {
         const typedParams = params.split(',').map((param: string) => {
           const trimmed = param.trim();
           if (trimmed.includes('=')) {
-            const [name, defaultValue] = trimmed.split('=');
-            return `${name.trim()}: any = ${defaultValue.trim()}`;
+            const parts = trimmed.split('=');
+            const name = parts[0];
+            const defaultValue = parts[1];
+            if (name && defaultValue) {
+              return `${name.trim()}: any = ${defaultValue.trim()}`;
+            }
           }
           return `${trimmed}: any`;
         }).join(', ');
@@ -373,6 +376,10 @@ async function main() {
   const converter = new FileConverter(options);
   
   try {
+    if (!target) {
+      throw new Error('Target path is required');
+    }
+    
     const stat = fs.statSync(target);
     
     if (stat.isDirectory()) {
@@ -395,6 +402,9 @@ async function main() {
       
     } else {
       console.log(`Converting file: ${target}`);
+      if (!target) {
+        throw new Error('Target path is required');
+      }
       const result = await converter.convertFile(target);
       
       if (result.success) {

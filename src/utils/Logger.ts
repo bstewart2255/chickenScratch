@@ -1,4 +1,3 @@
-import { z } from 'zod';
 import { configService } from '../config/ConfigService';
 
 // Log levels
@@ -9,8 +8,8 @@ export enum LogLevel {
   ERROR = 3
 }
 
-// Zod schema for log metadata - avoid infinite recursion
-const LogMetadataSchema = z.any().optional();
+// Zod schema for log metadata - avoid infinite recursion (commented out as not currently used)
+// const LogMetadataSchema = z.any().optional();
 
 // Log entry interface
 interface LogEntry {
@@ -113,7 +112,7 @@ export class Logger {
     }
 
     // Skip metadata validation to avoid infinite recursion
-    const validatedMetadata = metadata;
+    const validatedMetadata = metadata as Record<string, any> | undefined;
 
     const entry: LogEntry = {
       timestamp: new Date(),
@@ -146,7 +145,7 @@ export class Logger {
   /**
    * Send logs to external service (placeholder)
    */
-  private sendToLoggingService(entry: LogEntry): void {
+  private sendToLoggingService(_entry: LogEntry): void {
     // TODO: Implement external logging service integration
     // For now, this is a placeholder
   }
@@ -272,3 +271,6 @@ export class Logger {
     };
   }
 }
+
+// Create default logger instance
+export const logger = new Logger('App');

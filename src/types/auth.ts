@@ -1,5 +1,25 @@
 // Authentication-specific type definitions
 
+export interface DeviceInfo {
+  userAgent: string;
+  ipAddress: string;
+  deviceId?: string;
+  platform: string;
+  browser: string;
+  screenResolution?: string;
+  timezone: string;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  createdAt: Date;
+  updatedAt: Date;
+  isActive: boolean;
+}
+
 export interface AuthConfig {
   jwtSecret: string;
   jwtExpiresIn: string;

@@ -42,6 +42,7 @@ const ConfigSchema = z.object({
     enableDebugMode: z.boolean().default(false),
     enableApiLogging: z.boolean().default(true),
     enablePerformanceMonitoring: z.boolean().default(false),
+    mlApiUrl: z.string().url().optional(),
   }),
   
   biometric: z.object({
@@ -80,90 +81,96 @@ class ConfigService {
   }
 
   private loadConfig(): Config {
-    const env = process.env.NODE_ENV || 'development';
+    const env = process.env['NODE_ENV'] || 'development';
     
     // Load environment-specific defaults
     const defaults = this.getEnvironmentDefaults(env);
+    
+    // Helper function to safely access environment variables
+    const getEnv = (key: string, defaultValue?: string): string | undefined => {
+      return process.env[key] || defaultValue;
+    };
     
     // Parse environment variables
     const rawConfig = {
       env,
       server: {
-        port: process.env.PORT ? parseInt(process.env.PORT, 10) : defaults.server.port,
-        host: process.env.HOST || defaults.server.host,
-        corsOrigin: process.env.CORS_ORIGIN || defaults.server.corsOrigin,
-        maxRequestSize: process.env.MAX_REQUEST_SIZE || defaults.server.maxRequestSize,
+        port: getEnv('PORT') ? parseInt(getEnv('PORT')!, 10) : defaults.server.port,
+        host: getEnv('HOST') || defaults.server.host,
+        corsOrigin: getEnv('CORS_ORIGIN') || defaults.server.corsOrigin,
+        maxRequestSize: getEnv('MAX_REQUEST_SIZE') || defaults.server.maxRequestSize,
       },
       database: {
-        host: process.env.DB_HOST || defaults.database.host,
-        port: process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : defaults.database.port,
-        database: process.env.DB_NAME || defaults.database.database,
-        user: process.env.DB_USER || defaults.database.user,
-        password: process.env.DB_PASSWORD || defaults.database.password,
-        ssl: process.env.DB_SSL === 'true',
-        maxConnections: process.env.DB_MAX_CONNECTIONS 
-          ? parseInt(process.env.DB_MAX_CONNECTIONS, 10) 
+        host: getEnv('DB_HOST') || defaults.database.host,
+        port: getEnv('DB_PORT') ? parseInt(getEnv('DB_PORT')!, 10) : defaults.database.port,
+        database: getEnv('DB_NAME') || defaults.database.database,
+        user: getEnv('DB_USER') || defaults.database.user,
+        password: getEnv('DB_PASSWORD') || defaults.database.password,
+        ssl: getEnv('DB_SSL') === 'true',
+        maxConnections: getEnv('DB_MAX_CONNECTIONS') 
+          ? parseInt(getEnv('DB_MAX_CONNECTIONS')!, 10) 
           : defaults.database.maxConnections,
-        idleTimeoutMillis: process.env.DB_IDLE_TIMEOUT 
-          ? parseInt(process.env.DB_IDLE_TIMEOUT, 10) 
+        idleTimeoutMillis: getEnv('DB_IDLE_TIMEOUT') 
+          ? parseInt(getEnv('DB_IDLE_TIMEOUT')!, 10) 
           : defaults.database.idleTimeoutMillis,
-        connectionTimeoutMillis: process.env.DB_CONNECTION_TIMEOUT 
-          ? parseInt(process.env.DB_CONNECTION_TIMEOUT, 10) 
+        connectionTimeoutMillis: getEnv('DB_CONNECTION_TIMEOUT') 
+          ? parseInt(getEnv('DB_CONNECTION_TIMEOUT')!, 10) 
           : defaults.database.connectionTimeoutMillis,
       },
       api: {
-        baseUrl: process.env.API_BASE_URL || defaults.api.baseUrl,
-        timeout: process.env.API_TIMEOUT 
-          ? parseInt(process.env.API_TIMEOUT, 10) 
+        baseUrl: getEnv('API_BASE_URL') || defaults.api.baseUrl,
+        timeout: getEnv('API_TIMEOUT') 
+          ? parseInt(getEnv('API_TIMEOUT')!, 10) 
           : defaults.api.timeout,
-        retries: process.env.API_RETRIES 
-          ? parseInt(process.env.API_RETRIES, 10) 
+        retries: getEnv('API_RETRIES') 
+          ? parseInt(getEnv('API_RETRIES')!, 10) 
           : defaults.api.retries,
       },
       security: {
-        jwtSecret: process.env.JWT_SECRET,
-        bcryptRounds: process.env.BCRYPT_ROUNDS 
-          ? parseInt(process.env.BCRYPT_ROUNDS, 10) 
+        jwtSecret: getEnv('JWT_SECRET'),
+        bcryptRounds: getEnv('BCRYPT_ROUNDS') 
+          ? parseInt(getEnv('BCRYPT_ROUNDS')!, 10) 
           : defaults.security.bcryptRounds,
-        sessionTimeout: process.env.SESSION_TIMEOUT 
-          ? parseInt(process.env.SESSION_TIMEOUT, 10) 
+        sessionTimeout: getEnv('SESSION_TIMEOUT') 
+          ? parseInt(getEnv('SESSION_TIMEOUT')!, 10) 
           : defaults.security.sessionTimeout,
-        maxLoginAttempts: process.env.MAX_LOGIN_ATTEMPTS 
-          ? parseInt(process.env.MAX_LOGIN_ATTEMPTS, 10) 
+        maxLoginAttempts: getEnv('MAX_LOGIN_ATTEMPTS') 
+          ? parseInt(getEnv('MAX_LOGIN_ATTEMPTS')!, 10) 
           : defaults.security.maxLoginAttempts,
-        lockoutDuration: process.env.LOCKOUT_DURATION 
-          ? parseInt(process.env.LOCKOUT_DURATION, 10) 
+        lockoutDuration: getEnv('LOCKOUT_DURATION') 
+          ? parseInt(getEnv('LOCKOUT_DURATION')!, 10) 
           : defaults.security.lockoutDuration,
       },
       features: {
-        enableMLDashboard: process.env.ENABLE_ML_DASHBOARD !== 'false',
-        enableEnhancedBiometrics: process.env.ENABLE_ENHANCED_BIOMETRICS !== 'false',
-        enableDebugMode: process.env.ENABLE_DEBUG_MODE === 'true',
-        enableApiLogging: process.env.ENABLE_API_LOGGING !== 'false',
-        enablePerformanceMonitoring: process.env.ENABLE_PERFORMANCE_MONITORING === 'true',
+        enableMLDashboard: getEnv('ENABLE_ML_DASHBOARD') !== 'false',
+        enableEnhancedBiometrics: getEnv('ENABLE_ENHANCED_BIOMETRICS') !== 'false',
+        enableDebugMode: getEnv('ENABLE_DEBUG_MODE') === 'true',
+        enableApiLogging: getEnv('ENABLE_API_LOGGING') !== 'false',
+        enablePerformanceMonitoring: getEnv('ENABLE_PERFORMANCE_MONITORING') === 'true',
+        mlApiUrl: getEnv('ML_API_URL'),
       },
       biometric: {
-        minStrokeCount: process.env.MIN_STROKE_COUNT 
-          ? parseInt(process.env.MIN_STROKE_COUNT, 10) 
+        minStrokeCount: getEnv('MIN_STROKE_COUNT') 
+          ? parseInt(getEnv('MIN_STROKE_COUNT')!, 10) 
           : defaults.biometric.minStrokeCount,
-        maxStrokeCount: process.env.MAX_STROKE_COUNT 
-          ? parseInt(process.env.MAX_STROKE_COUNT, 10) 
+        maxStrokeCount: getEnv('MAX_STROKE_COUNT') 
+          ? parseInt(getEnv('MAX_STROKE_COUNT')!, 10) 
           : defaults.biometric.maxStrokeCount,
-        samplingRate: process.env.SAMPLING_RATE 
-          ? parseInt(process.env.SAMPLING_RATE, 10) 
+        samplingRate: getEnv('SAMPLING_RATE') 
+          ? parseInt(getEnv('SAMPLING_RATE')!, 10) 
           : defaults.biometric.samplingRate,
-        pressureNormalization: process.env.PRESSURE_NORMALIZATION !== 'false',
-        deviceConsistencyThreshold: process.env.DEVICE_CONSISTENCY_THRESHOLD 
-          ? parseFloat(process.env.DEVICE_CONSISTENCY_THRESHOLD) 
+        pressureNormalization: getEnv('PRESSURE_NORMALIZATION') !== 'false',
+        deviceConsistencyThreshold: getEnv('DEVICE_CONSISTENCY_THRESHOLD') 
+          ? parseFloat(getEnv('DEVICE_CONSISTENCY_THRESHOLD')!) 
           : defaults.biometric.deviceConsistencyThreshold,
       },
       logging: {
-        level: (process.env.LOG_LEVEL as any) || defaults.logging.level,
-        format: (process.env.LOG_FORMAT as any) || defaults.logging.format,
-        maxFiles: process.env.LOG_MAX_FILES 
-          ? parseInt(process.env.LOG_MAX_FILES, 10) 
+        level: (getEnv('LOG_LEVEL') as any) || defaults.logging.level,
+        format: (getEnv('LOG_FORMAT') as any) || defaults.logging.format,
+        maxFiles: getEnv('LOG_MAX_FILES') 
+          ? parseInt(getEnv('LOG_MAX_FILES')!, 10) 
           : defaults.logging.maxFiles,
-        maxFileSize: process.env.LOG_MAX_FILE_SIZE || defaults.logging.maxFileSize,
+        maxFileSize: getEnv('LOG_MAX_FILE_SIZE') || defaults.logging.maxFileSize,
       },
     };
 
@@ -183,6 +190,11 @@ class ConfigService {
   }
 
   private getEnvironmentDefaults(env: string): Config {
+    // Helper function to safely access environment variables
+    const getEnv = (key: string, defaultValue?: string): string | undefined => {
+      return process.env[key] || defaultValue;
+    };
+    
     const baseDefaults: Config = {
       env: env as 'development' | 'staging' | 'production',
       server: {
@@ -219,6 +231,7 @@ class ConfigService {
         enableDebugMode: false,
         enableApiLogging: true,
         enablePerformanceMonitoring: false,
+        mlApiUrl: undefined,
       },
       biometric: {
         minStrokeCount: 5,
@@ -238,14 +251,14 @@ class ConfigService {
     // Environment-specific overrides
     switch (env) {
       case 'production':
-        baseDefaults.server.corsOrigin = process.env.FRONTEND_URL || 'https://signature-auth.example.com';
+        baseDefaults.server.corsOrigin = getEnv('FRONTEND_URL') || 'https://signature-auth.example.com';
         baseDefaults.database.ssl = true;
         baseDefaults.features.enableDebugMode = false;
         baseDefaults.logging.level = 'error';
         baseDefaults.logging.format = 'json';
         break;
       case 'staging':
-        baseDefaults.server.corsOrigin = process.env.FRONTEND_URL || 'https://staging.signature-auth.example.com';
+        baseDefaults.server.corsOrigin = getEnv('FRONTEND_URL') || 'https://staging.signature-auth.example.com';
         baseDefaults.database.ssl = true;
         baseDefaults.features.enableDebugMode = false;
         baseDefaults.logging.level = 'warn';
@@ -337,3 +350,4 @@ class ConfigService {
 
 // Create and export singleton instance
 export const configService = ConfigService.getInstance();
+export const config = configService;

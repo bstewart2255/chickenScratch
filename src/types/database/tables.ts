@@ -52,6 +52,7 @@ export interface SignaturesTable {
   image_data?: string | null; // Base64 PNG
   quality_score?: number | null;
   is_reference: boolean;
+  is_enrollment?: boolean; // TRUE for enrollment signatures, FALSE for verification
   created_at: Date;
   updated_at?: Date | null;
   deleted_at?: Date | null; // Soft delete

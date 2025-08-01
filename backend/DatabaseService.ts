@@ -6,9 +6,8 @@ import type {
   User, 
   Signature, 
   Shape, 
-  AuthenticationAttempt,
-  DatabaseTables 
-} from '../src/types/core/database';
+  AuthenticationAttempt
+} from '../src/types/database';
 
 // Performance thresholds for query monitoring
 const QUERY_THRESHOLDS = {
@@ -31,18 +30,19 @@ class DatabaseService {
   
   constructor() {
     // Initialize connection pool with configuration
+    const dbConfig = config.getDatabase();
     this.pool = new Pool({
-      host: config.database.host,
-      port: config.database.port,
-      database: config.database.database,
-      user: config.database.user,
-      password: config.database.password,
-      ssl: config.database.ssl ? {
+      host: dbConfig.host,
+      port: dbConfig.port,
+      database: dbConfig.database,
+      user: dbConfig.user,
+      password: dbConfig.password,
+      ssl: dbConfig.ssl ? {
         rejectUnauthorized: false // Required for Render
       } : false,
-      max: config.database.maxConnections,
-      idleTimeoutMillis: config.database.idleTimeoutMillis,
-      connectionTimeoutMillis: config.database.connectionTimeoutMillis
+      max: dbConfig.maxConnections,
+      idleTimeoutMillis: dbConfig.idleTimeoutMillis,
+      connectionTimeoutMillis: dbConfig.connectionTimeoutMillis
     });
     
     // Test the connection
@@ -59,7 +59,7 @@ class DatabaseService {
       client.release();
     } catch (err) {
       logger.error('Error connecting to database:', err);
-      throw new DatabaseError('Failed to connect to database', { originalError: err });
+      throw new DatabaseError('Failed to connect to database', err as string);
     }
   }
   
@@ -137,10 +137,7 @@ class DatabaseService {
         duration_ms: duration,
         error
       });
-      throw new DatabaseError('Query execution failed', { 
-        query: text,
-        originalError: error 
-      });
+      throw new DatabaseError('Query execution failed', error as string);
     } finally {
       if (client) {
         client.release();
@@ -175,7 +172,7 @@ class DatabaseService {
         error
       });
       
-      throw new DatabaseError('Transaction failed', { originalError: error });
+      throw new DatabaseError('Transaction failed', error as string);
     } finally {
       client.release();
     }

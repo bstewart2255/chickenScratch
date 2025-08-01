@@ -9,6 +9,9 @@ import {
 } from '../types/core/errors';
 import { Logger } from './Logger';
 
+// Re-export for convenience
+export { ValidationError } from '../types/core/errors';
+
 // Additional error types not in core
 export class ConflictError extends BaseError {
   constructor(message: string, context?: Record<string, any>) {
@@ -22,14 +25,14 @@ export class NetworkError extends BaseError {
   }
 }
 
-// Zod schema for error details
-const ErrorDetailsSchema = z.object({
-  code: z.string().optional(),
-  field: z.string().optional(),
-  value: z.any().optional(),
-  constraint: z.string().optional(),
-  details: z.record(z.any()).optional()
-});
+// Zod schema for error details (commented out as not currently used)
+// const ErrorDetailsSchema = z.object({
+//   code: z.string().optional(),
+//   field: z.string().optional(),
+//   value: z.any().optional(),
+//   constraint: z.string().optional(),
+//   details: z.record(z.any()).optional()
+// });
 
 // HTTP status code mapping
 const ERROR_STATUS_MAP: Record<string, number> = {
@@ -299,7 +302,7 @@ export class ErrorHandler {
    * Express error middleware
    */
   static expressErrorHandler() {
-    return (err: any, req: any, res: any, next: any) => {
+    return (err: any, req: any, res: any, _next: any) => {
       const errorResponse = this.createErrorResponse(err);
       
       this.logError(err, {
@@ -312,5 +315,14 @@ export class ErrorHandler {
 
       res.status(errorResponse.statusCode).json(errorResponse);
     };
+  }
+
+  /**
+   * Handle error and create appropriate response
+   * This is a convenience method that combines createErrorResponse and logError
+   */
+  static handleError(error: unknown, context?: Record<string, any>) {
+    this.logError(error, context);
+    return this.createErrorResponse(error);
   }
 }

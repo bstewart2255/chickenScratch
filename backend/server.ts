@@ -3,14 +3,16 @@ import cors from 'cors';
 import { databaseService } from './DatabaseService';
 import { BiometricEngine } from './BiometricEngine';
 import { authenticationService } from './AuthenticationService';
-import { storeSignatureWithStrokeData, getSignatureData, extractStrokeData } from './update_to_stroke_storage';
+import { extractStrokeData } from './update_to_stroke_storage';
 import { config } from '../src/config/ConfigService';
 import { logger } from '../src/utils/Logger';
 import { ErrorHandler, ValidationError } from '../src/utils/ErrorHandler';
-import type { DeviceCapabilities, StrokeData } from '../src/types/core/biometric';
+import type { DeviceCapabilities } from '../src/types/core/biometric';
 
 const app = express();
-const PORT = config.server.port;
+const serverConfig = config.getServer();
+const featuresConfig = config.getFeatures();
+const PORT = serverConfig.port;
 
 // Performance monitoring thresholds
 const ENDPOINT_THRESHOLDS = {
@@ -69,7 +71,7 @@ class EndpointMonitor {
     
     // Return all endpoint stats
     const allStats: Record<string, any> = {};
-    this.metrics.forEach((metrics, endpoint) => {
+    this.metrics.forEach((_metrics, endpoint) => {
       allStats[endpoint] = this.getStats(endpoint);
     });
     return allStats;
@@ -137,8 +139,8 @@ const corsOptions: cors.CorsOptions = {
 app.use(cors(corsOptions));
 
 // Body parser middleware
-app.use(express.json({ limit: config.server.maxRequestSize }));
-app.use(express.urlencoded({ extended: true, limit: config.server.maxRequestSize }));
+app.use(express.json({ limit: serverConfig.maxRequestSize }));
+app.use(express.urlencoded({ extended: true, limit: serverConfig.maxRequestSize }));
 
 // Request timing middleware
 app.use((req: TimedRequest, res: Response, next: NextFunction) => {
@@ -186,11 +188,11 @@ setInterval(() => {
 }, 60 * 60 * 1000);
 
 // Health check endpoints
-app.get('/', (req: Request, res: Response) => {
+app.get('/', (_req: Request, res: Response) => {
   res.send('Signature Authentication API is running!');
 });
 
-app.get('/health', (req: Request, res: Response) => {
+app.get('/health', (_req: Request, res: Response) => {
   res.json({ 
     status: 'healthy',
     timestamp: new Date().toISOString(),
@@ -198,7 +200,7 @@ app.get('/health', (req: Request, res: Response) => {
   });
 });
 
-app.get('/api/health', (req: Request, res: Response) => {
+app.get('/api/health', (_req: Request, res: Response) => {
   res.json({ 
     status: 'healthy',
     timestamp: new Date().toISOString(),
@@ -208,7 +210,7 @@ app.get('/api/health', (req: Request, res: Response) => {
 });
 
 // Dashboard stats endpoint
-app.get('/api/dashboard/stats', async (req: Request, res: Response) => {
+app.get('/api/dashboard/stats', async (_req: Request, res: Response) => {
   try {
     const userCount = await databaseService.query('SELECT COUNT(*) FROM users');
     const signatureCount = await databaseService.query('SELECT COUNT(*) FROM signatures');
@@ -254,7 +256,8 @@ app.post('/api/register', async (req: Request, res: Response) => {
     // Extract features with performance tracking
     const featureStart = performance.now();
     const strokeData = extractStrokeData(signatureData);
-    const enhancedFeatures = config.features.enableEnhancedBiometrics
+    const featuresConfig = config.getFeatures();
+    const enhancedFeatures = featuresConfig.enableEnhancedBiometrics
       ? biometricEngine.extractAllFeatures(strokeData, deviceCapabilities)
       : null;
     
@@ -323,7 +326,8 @@ app.post('/api/authenticate', async (req: Request, res: Response) => {
     // Extract features from current signature
     const featureStart = performance.now();
     const strokeData = extractStrokeData(signatureData);
-    const currentFeatures = biometricEngine.extractAllFeatures(strokeData, deviceCapabilities);
+    // currentFeatures extracted but not used - keeping for potential future use
+    // const currentFeatures = biometricEngine.extractAllFeatures(strokeData, deviceCapabilities);
     
     const featureDuration = performance.now() - featureStart;
     
@@ -359,7 +363,11 @@ app.post('/api/authenticate', async (req: Request, res: Response) => {
       performanceMetrics: {
         totalDuration,
         featureExtractionDuration: featureDuration,
-        ...authResult.performanceMetrics
+        ...(authResult.performanceMetrics && typeof authResult.performanceMetrics === 'object' 
+          ? Object.fromEntries(
+              Object.entries(authResult.performanceMetrics).filter(([key]) => key !== 'totalDuration')
+            )
+          : {})
       }
     });
     
@@ -421,7 +429,7 @@ app.get('/api/get-temp-drawing/:userId/:drawingType', (req: Request, res: Respon
 });
 
 // Performance metrics endpoint
-app.get('/api/metrics/performance', (req: Request, res: Response) => {
+app.get('/api/metrics/performance', (_req: Request, res: Response) => {
   res.json({
     endpoints: endpointMonitor.getStats(),
     database: databaseService.getQueryStats(),
@@ -431,7 +439,7 @@ app.get('/api/metrics/performance', (req: Request, res: Response) => {
 });
 
 // Error handling middleware
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   logger.error('Unhandled error', { error: err });
   ErrorHandler.handleError(err, res);
 });
@@ -439,9 +447,9 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 // Start server
 app.listen(PORT, () => {
   logger.info(`Server running on port ${PORT}`, {
-    environment: process.env.NODE_ENV,
-    enableEnhancedFeatures: config.features.enableEnhancedBiometrics,
-    mlApiUrl: config.features.mlApiUrl
+    environment: process.env['NODE_ENV'],
+    enableEnhancedFeatures: featuresConfig.enableEnhancedBiometrics,
+    mlApiUrl: featuresConfig.mlApiUrl
   });
 });
 

@@ -65,7 +65,7 @@ export class ValidationError extends BaseError {
     this.validationErrors = validationErrors;
   }
 
-  public toJSON(): object {
+  public override toJSON(): object {
     return {
       ...super.toJSON(),
       validationErrors: this.validationErrors
@@ -91,7 +91,7 @@ export class DatabaseError extends BaseError {
     this.query = query;
   }
 
-  public toJSON(): object {
+  public override toJSON(): object {
     return {
       ...super.toJSON(),
       operation: this.operation,
@@ -118,7 +118,7 @@ export class AuthenticationError extends BaseError {
     this.reason = reason;
   }
 
-  public toJSON(): object {
+  public override toJSON(): object {
     return {
       ...super.toJSON(),
       authType: this.authType,
@@ -145,7 +145,7 @@ export class AuthorizationError extends BaseError {
     this.action = action;
   }
 
-  public toJSON(): object {
+  public override toJSON(): object {
     return {
       ...super.toJSON(),
       resource: this.resource,
@@ -172,7 +172,7 @@ export class BiometricError extends BaseError {
     this.biometricType = biometricType;
   }
 
-  public toJSON(): object {
+  public override toJSON(): object {
     return {
       ...super.toJSON(),
       processingStage: this.processingStage,
@@ -199,7 +199,7 @@ export class CanvasError extends BaseError {
     this.canvasId = canvasId;
   }
 
-  public toJSON(): object {
+  public override toJSON(): object {
     return {
       ...super.toJSON(),
       canvasOperation: this.canvasOperation,
@@ -265,7 +265,7 @@ export class RateLimitError extends BaseError {
     this.retryAfter = retryAfter;
   }
 
-  public toJSON(): object {
+  public override toJSON(): object {
     return {
       ...super.toJSON(),
       limit: this.limit,
@@ -291,6 +291,14 @@ export class MigrationError extends BaseError {
     super(message, 500, false, context);
     this.migrationPhase = migrationPhase;
     this.fileName = fileName;
+  }
+
+  public override toJSON(): object {
+    return {
+      ...super.toJSON(),
+      migrationPhase: this.migrationPhase,
+      fileName: this.fileName
+    };
   }
 }
 

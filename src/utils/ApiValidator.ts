@@ -133,7 +133,7 @@ export class ApiValidator {
   /**
    * Sanitize response data when validation fails
    */
-  private static sanitizeResponse<T>(data: T, schema: z.ZodSchema<T>): T {
+  private static sanitizeResponse<T>(data: T, _schema: z.ZodSchema<T>): T {
     // For now, return the original data
     // In production, you might want to implement more sophisticated sanitization
     return data;

@@ -9,7 +9,6 @@
 
 import { logger } from '../src/utils/Logger';
 import type { 
-  BiometricData, 
   EnhancedFeatures,
   Point,
   Stroke,
@@ -18,7 +17,11 @@ import type {
   PressureFeatures,
   TimingFeatures,
   GeometricFeatures,
-  SecurityFeatures
+  SecurityFeatures,
+  PressureDynamics,
+  TimingPatterns,
+  GeometricProperties,
+  SecurityIndicators
 } from '../src/types/core/biometric';
 
 // Feature name constants for consistent exclusion handling
@@ -126,15 +129,15 @@ export class BiometricEngine {
     // Validate each stroke has points
     for (let i = 0; i < strokes.length; i++) {
       const stroke = strokes[i];
-      if (!stroke || !stroke.points || !Array.isArray(stroke.points) || stroke.points.length === 0) {
+      if (!stroke || !stroke['points'] || !Array.isArray(stroke['points']) || stroke['points'].length === 0) {
         logger.warn(`Invalid stroke at index ${i}: missing or empty points array`);
         return false;
       }
       
       // Validate point structure (all points should now be in object format after normalization)
-      for (let j = 0; j < stroke.points.length; j++) {
-        const point = stroke.points[j];
-        if (!point || typeof point.x !== 'number' || typeof point.y !== 'number') {
+      for (let j = 0; j < stroke['points'].length; j++) {
+        const point = stroke['points'][j];
+        if (!point || typeof point['x'] !== 'number' || typeof point['y'] !== 'number') {
           logger.warn(`Invalid point at stroke ${i}, point ${j}: missing x/y coordinates`);
           return false;
         }
@@ -164,7 +167,7 @@ export class BiometricEngine {
       // Handle object format {x: number, y: number}
       else if (item && typeof item === 'object') {
         const obj = item as Record<string, unknown>;
-        if (typeof obj.x !== 'number' || typeof obj.y !== 'number') {
+        if (typeof obj['x'] !== 'number' || typeof obj['y'] !== 'number') {
           return false;
         }
       } else {
@@ -180,7 +183,7 @@ export class BiometricEngine {
     // If already in object format, return as is
     if (point && typeof point === 'object' && !Array.isArray(point)) {
       const obj = point as Record<string, unknown>;
-      if (typeof obj.x === 'number' && typeof obj.y === 'number') {
+      if (typeof obj['x'] === 'number' && typeof obj['y'] === 'number') {
         return point as Point;
       }
     }
@@ -188,20 +191,14 @@ export class BiometricEngine {
     // If in array format [x, y], convert to object
     if (Array.isArray(point) && point.length === 2 && 
         typeof point[0] === 'number' && typeof point[1] === 'number') {
-      return { x: point[0], y: point[1] };
+      return { x: point[0], y: point[1], pressure: 1, timestamp: Date.now() } as Point;
     }
     
     // Invalid point format
-    logger.warn('Invalid point format:', point);
+    logger.warn('Invalid point format:', point as Record<string, any>);
     return null;
   }
 
-  // Helper function to normalize an array of points
-  private normalizePoints(points: unknown[]): Point[] {
-    if (!Array.isArray(points)) return [];
-    
-    return points.map(point => this.normalizePoint(point)).filter((point): point is Point => point !== null);
-  }
 
   // Helper function to validate and normalize points (returns null if any point is invalid)
   private validateAndNormalizePoints(points: unknown[]): Point[] | null {
@@ -230,25 +227,25 @@ export class BiometricEngine {
     } else if (typeof strokeData === 'object') {
       const data = strokeData as Record<string, unknown>;
       
-      if (data.strokes && Array.isArray(data.strokes)) {
-        rawStrokes = data.strokes;
-      } else if (data.raw && Array.isArray(data.raw)) {
+      if (data['strokes'] && Array.isArray(data['strokes'])) {
+        rawStrokes = data['strokes'];
+      } else if (data['raw'] && Array.isArray(data['raw'])) {
         // Check if raw contains stroke objects or point objects
-        if (data.raw.length > 0 && this.isPointArray(data.raw)) {
+        if (data['raw'].length > 0 && this.isPointArray(data['raw'])) {
           // Raw contains point objects, wrap as single stroke
-          rawStrokes = [{ points: data.raw }];
+          rawStrokes = [{ points: data['raw'] }];
         } else {
           // Raw contains stroke objects
-          rawStrokes = data.raw;
+          rawStrokes = data['raw'];
         }
-      } else if (data.data && Array.isArray(data.data)) {
+      } else if (data['data'] && Array.isArray(data['data'])) {
         // Check if data contains stroke objects or point objects
-        if (data.data.length > 0 && this.isPointArray(data.data)) {
+        if (data['data'].length > 0 && this.isPointArray(data['data'])) {
           // Data contains point objects, wrap as single stroke
-          rawStrokes = [{ points: data.data }];
+          rawStrokes = [{ points: data['data'] }];
         } else {
           // Data contains stroke objects
-          rawStrokes = data.data;
+          rawStrokes = data['data'];
         }
       }
     }
@@ -263,9 +260,9 @@ export class BiometricEngine {
       if (stroke && typeof stroke === 'object' && !Array.isArray(stroke)) {
         const strokeObj = stroke as Record<string, unknown>;
         
-        if (strokeObj.points && Array.isArray(strokeObj.points)) {
+        if (strokeObj['points'] && Array.isArray(strokeObj['points'])) {
           // Validate and normalize the points to ensure consistent format
-          const normalizedPoints = this.validateAndNormalizePoints(strokeObj.points);
+          const normalizedPoints = this.validateAndNormalizePoints(strokeObj['points']);
           if (normalizedPoints === null) {
             logger.warn(`Invalid points in stroke at index ${index}`);
             return null;
@@ -291,16 +288,16 @@ export class BiometricEngine {
         let points: unknown[] | null = null;
         
         // Try stroke.data first (most common for point arrays)
-        if (strokeObj.data && Array.isArray(strokeObj.data) && this.isPointArray(strokeObj.data)) {
-          points = strokeObj.data;
+        if (strokeObj['data'] && Array.isArray(strokeObj['data']) && this.isPointArray(strokeObj['data'])) {
+          points = strokeObj['data'];
         }
         // Try stroke.raw (alternative point array name)
-        else if (strokeObj.raw && Array.isArray(strokeObj.raw) && this.isPointArray(strokeObj.raw)) {
-          points = strokeObj.raw;
+        else if (strokeObj['raw'] && Array.isArray(strokeObj['raw']) && this.isPointArray(strokeObj['raw'])) {
+          points = strokeObj['raw'];
         }
         // Try stroke.points (if it exists but wasn't caught above)
-        else if (strokeObj.points && Array.isArray(strokeObj.points) && this.isPointArray(strokeObj.points)) {
-          points = strokeObj.points;
+        else if (strokeObj['points'] && Array.isArray(strokeObj['points']) && this.isPointArray(strokeObj['points'])) {
+          points = strokeObj['points'];
         }
         // Don't use stroke.strokes as it likely contains other stroke objects, not points
         
@@ -314,9 +311,9 @@ export class BiometricEngine {
         }
       }
       
-      logger.warn(`Invalid stroke format at index ${index}:`, stroke);
+      logger.warn(`Invalid stroke format at index ${index}:`, stroke as Record<string, any>);
       return null;
-    }).filter((stroke): stroke is Stroke => stroke !== null && stroke.points.length > 0);
+    }).filter((stroke): stroke is Stroke => stroke !== null && stroke['points'].length > 0);
   }
 
   // Phase 1: Pressure Analysis Features
@@ -344,11 +341,11 @@ export class BiometricEngine {
       
       // Extract all pressure values
       for (const stroke of strokes) {
-        for (const point of stroke.points) {
+        for (const point of stroke['points']) {
           totalPoints++;
           // Check if pressure data exists (some devices don't support it)
-          if (typeof point.pressure === 'number' && point.pressure > 0) {
-            pressureValues.push(point.pressure);
+          if (typeof point['pressure'] === 'number' && point['pressure'] > 0) {
+            pressureValues.push(point['pressure']);
             pointsWithPressure++;
           }
         }
@@ -371,7 +368,6 @@ export class BiometricEngine {
       const avgPressure = pressureValues.reduce((a, b) => a + b, 0) / pressureValues.length;
       const maxPressure = Math.max(...pressureValues);
       const minPressure = Math.min(...pressureValues);
-      const pressureRange = maxPressure - minPressure;
       
       // Calculate standard deviation
       const pressureVariance = pressureValues.reduce((acc, val) => {
@@ -379,29 +375,29 @@ export class BiometricEngine {
       }, 0) / pressureValues.length;
       const pressureStd = Math.sqrt(pressureVariance);
       
-      // Calculate contact time ratio
-      const contactTimeRatio = pointsWithPressure / totalPoints;
       
       // Calculate pressure buildup/release rates
       let buildupRates: number[] = [];
       let releaseRates: number[] = [];
       
       for (const stroke of strokes) {
-        const strokePressures = stroke.points
-          .filter(p => typeof p.pressure === 'number')
-          .map(p => p.pressure!);
+        const strokePressures = stroke['points']
+          .filter(p => typeof p['pressure'] === 'number')
+          .map(p => p['pressure']!);
         
         if (strokePressures.length > 1) {
           // Find buildup rate (first quarter of stroke)
           const quarterPoint = Math.floor(strokePressures.length / 4);
-          if (quarterPoint > 0) {
+          if (quarterPoint > 0 && strokePressures[quarterPoint] !== undefined && strokePressures[0] !== undefined) {
             const buildupRate = (strokePressures[quarterPoint] - strokePressures[0]) / quarterPoint;
             buildupRates.push(buildupRate);
           }
           
           // Find release rate (last quarter of stroke)
           const threeQuarterPoint = Math.floor(strokePressures.length * 3 / 4);
-          if (threeQuarterPoint < strokePressures.length - 1) {
+          if (threeQuarterPoint < strokePressures.length - 1 && 
+              strokePressures[strokePressures.length - 1] !== undefined && 
+              strokePressures[threeQuarterPoint] !== undefined) {
             const releaseRate = (strokePressures[strokePressures.length - 1] - strokePressures[threeQuarterPoint]) / 
                                (strokePressures.length - 1 - threeQuarterPoint);
             releaseRates.push(Math.abs(releaseRate)); // Use absolute value for release
@@ -409,10 +405,6 @@ export class BiometricEngine {
         }
       }
       
-      const avgBuildupRate = buildupRates.length > 0 ? 
-        buildupRates.reduce((a, b) => a + b, 0) / buildupRates.length : 0;
-      const avgReleaseRate = releaseRates.length > 0 ?
-        releaseRates.reduce((a, b) => a + b, 0) / releaseRates.length : 0;
       
       const calcDuration = performance.now() - startCalc;
       if (calcDuration > 20) {
@@ -420,14 +412,15 @@ export class BiometricEngine {
       }
       
       const features: PressureFeatures = {
+        min: minPressure,
+        max: maxPressure,
+        mean: avgPressure,
+        variance: pressureStd * pressureStd,
+        changes: [], // Will be populated if needed
+        peaks: 0, // Will be calculated if needed
+        valleys: 0, // Will be calculated if needed
         avg_pressure: avgPressure,
         max_pressure: maxPressure,
-        min_pressure: minPressure,
-        pressure_std: pressureStd,
-        pressure_range: pressureRange,
-        contact_time_ratio: contactTimeRatio,
-        pressure_buildup_rate: avgBuildupRate,
-        pressure_release_rate: avgReleaseRate,
         has_pressure_data: true
       };
       
@@ -461,29 +454,31 @@ export class BiometricEngine {
       
       for (let i = 0; i < strokes.length; i++) {
         const stroke = strokes[i];
-        const points = stroke.points;
+        const points = stroke?.['points'] || [];
         
         if (points.length > 1) {
           // Calculate stroke duration
           const firstPoint = points[0];
           const lastPoint = points[points.length - 1];
           
-          if (firstPoint.time && lastPoint.time) {
-            const strokeDuration = lastPoint.time - firstPoint.time;
+          if (firstPoint?.time && lastPoint?.time) {
+            const strokeDuration = lastPoint['time'] - firstPoint['time'];
             strokeDurations.push(strokeDuration);
             
             // Calculate inter-stroke timing
             if (i > 0) {
               const prevStroke = strokes[i - 1];
-              const prevLastPoint = prevStroke.points[prevStroke.points.length - 1];
-              if (prevLastPoint.time) {
-                const interStrokeTiming = firstPoint.time - prevLastPoint.time;
-                interStrokeTimings.push(interStrokeTiming);
-                
-                // Detect pauses (inter-stroke time > 50ms considered a pause)
-                if (interStrokeTiming > 50) {
-                  pauseDurations.push(interStrokeTiming);
-                  totalPauseTime += interStrokeTiming;
+              if (prevStroke && prevStroke['points'].length > 0) {
+                const prevLastPoint = prevStroke['points'][prevStroke['points'].length - 1];
+                if (prevLastPoint?.time && firstPoint?.time) {
+                  const interStrokeTiming = firstPoint['time'] - prevLastPoint['time'];
+                  interStrokeTimings.push(interStrokeTiming);
+                  
+                  // Detect pauses (inter-stroke time > 50ms considered a pause)
+                  if (interStrokeTiming > 50) {
+                    pauseDurations.push(interStrokeTiming);
+                    totalPauseTime += interStrokeTiming;
+                  }
                 }
               }
             }
@@ -495,9 +490,9 @@ export class BiometricEngine {
             const p1 = points[j - 1];
             const p2 = points[j];
             
-            if (p1.time && p2.time) {
-              const timeDiff = p2.time - p1.time;
-              const distance = Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+            if (p1 && p2 && p1['time'] && p2['time']) {
+              const timeDiff = p2['time'] - p1['time'];
+              const distance = Math.sqrt(Math.pow(p2['x'] - p1['x'], 2) + Math.pow(p2['y'] - p1['y'], 2));
               
               // If moving very slowly (< 5 pixels in > 20ms), consider it a dwell
               if (timeDiff > 20 && distance < 5) {
@@ -515,12 +510,17 @@ export class BiometricEngine {
       
       // Calculate total drawing duration
       if (strokes.length > 0) {
-        const firstPoint = strokes[0].points[0];
+        const firstStroke = strokes[0];
         const lastStroke = strokes[strokes.length - 1];
-        const lastPoint = lastStroke.points[lastStroke.points.length - 1];
         
-        if (firstPoint.time && lastPoint.time) {
-          totalDrawingTime = lastPoint.time - firstPoint.time;
+        if (firstStroke && firstStroke['points'].length > 0 && 
+            lastStroke && lastStroke['points'].length > 0) {
+          const firstPoint = firstStroke['points'][0];
+          const lastPoint = lastStroke['points'][lastStroke['points'].length - 1];
+          
+          if (firstPoint?.time && lastPoint?.time) {
+            totalDrawingTime = lastPoint['time'] - firstPoint['time'];
+          }
         }
       }
       
@@ -534,14 +534,15 @@ export class BiometricEngine {
       // Calculate tempo variation
       const tempoVariations: number[] = [];
       for (let i = 1; i < strokeDurations.length; i++) {
-        tempoVariations.push(Math.abs(strokeDurations[i] - strokeDurations[i - 1]));
+        const current = strokeDurations[i];
+        const previous = strokeDurations[i - 1];
+        if (current !== undefined && previous !== undefined) {
+          tempoVariations.push(Math.abs(current - previous));
+        }
       }
       const tempoVariation = tempoVariations.length > 0 ?
         tempoVariations.reduce((a, b) => a + b, 0) / tempoVariations.length : 0;
       
-      // Calculate dwell time patterns
-      const totalDwellPoints = strokes.reduce((acc, stroke) => acc + ((stroke as any).dwellCount || 0), 0);
-      const avgDwellTime = strokes.reduce((acc, stroke) => acc + ((stroke as any).avgDwellTime || 0), 0) / strokes.length;
       
       const calcDuration = performance.now() - startCalc;
       if (calcDuration > 30) {
@@ -549,15 +550,14 @@ export class BiometricEngine {
       }
       
       const features: TimingFeatures = {
-        pause_detection: pauseDurations.length,
-        rhythm_consistency: rhythmConsistency,
-        tempo_variation: tempoVariation,
-        dwell_time_patterns: avgDwellTime,
-        inter_stroke_timing: interStrokeTimings.length > 0 ?
-          interStrokeTimings.reduce((a, b) => a + b, 0) / interStrokeTimings.length : 0,
-        drawing_duration_total: totalDrawingTime,
-        pause_time_ratio: totalDrawingTime > 0 ? totalPauseTime / totalDrawingTime : 0,
-        avg_stroke_duration: avgStrokeDuration
+        totalDuration: totalDrawingTime,
+        strokeDurations,
+        pauseDurations,
+        rhythm: rhythmConsistency,
+        consistency: 1 - (rhythmVariance / (avgStrokeDuration * avgStrokeDuration)), // Normalized consistency
+        averageSpeed: totalDrawingTime > 0 ? 1000 / totalDrawingTime : 0, // strokes per second
+        speedVariance: tempoVariation,
+        pause_detection: pauseDurations.length
       };
       
       this.performanceMonitor.endExtraction(Object.keys(features).length, 'Timing');
@@ -590,47 +590,62 @@ export class BiometricEngine {
       const curvatureValues: number[] = [];
       
       for (const stroke of strokes) {
-        const points = stroke.points;
+        const points = stroke['points'];
         
         if (points.length > 2) {
           // Stroke complexity (based on path length vs direct distance)
           const firstPoint = points[0];
           const lastPoint = points[points.length - 1];
-          const directDistance = Math.sqrt(
-            Math.pow(lastPoint.x - firstPoint.x, 2) + 
-            Math.pow(lastPoint.y - firstPoint.y, 2)
-          );
           
+          let directDistance = 0;
           let pathLength = 0;
-          for (let i = 1; i < points.length; i++) {
-            pathLength += Math.sqrt(
-              Math.pow(points[i].x - points[i - 1].x, 2) + 
-              Math.pow(points[i].y - points[i - 1].y, 2)
-            );
-          }
           
-          const complexity = directDistance > 0 ? pathLength / directDistance : 1;
-          complexityScores.push(complexity);
+          if (firstPoint && lastPoint) {
+            directDistance = Math.sqrt(
+              Math.pow(lastPoint['x'] - firstPoint['x'], 2) + 
+              Math.pow(lastPoint['y'] - firstPoint['y'], 2)
+            );
+            
+            for (let i = 1; i < points.length; i++) {
+              const current = points[i];
+              const previous = points[i - 1];
+              if (current && previous) {
+                pathLength += Math.sqrt(
+                  Math.pow(current['x'] - previous['x'], 2) + 
+                  Math.pow(current['y'] - previous['y'], 2)
+                );
+              }
+            }
+            
+            const complexity = directDistance > 0 ? pathLength / directDistance : 1;
+            complexityScores.push(complexity);
+          }
           
           // Tremor detection (jitter in movement)
           const jitters: number[] = [];
           for (let i = 2; i < points.length; i++) {
-            const v1 = {
-              x: points[i - 1].x - points[i - 2].x,
-              y: points[i - 1].y - points[i - 2].y
-            };
-            const v2 = {
-              x: points[i].x - points[i - 1].x,
-              y: points[i].y - points[i - 1].y
-            };
+            const p1 = points[i - 2];
+            const p2 = points[i - 1];
+            const p3 = points[i];
             
-            // Calculate angle change
-            const dot = v1.x * v2.x + v1.y * v2.y;
-            const det = v1.x * v2.y - v1.y * v2.x;
-            const angle = Math.atan2(det, dot);
-            
-            if (Math.abs(angle) > Math.PI / 6) { // More than 30 degrees
-              jitters.push(Math.abs(angle));
+            if (p1 && p2 && p3) {
+              const v1 = {
+                x: p2['x'] - p1['x'],
+                y: p2['y'] - p1['y']
+              };
+              const v2 = {
+                x: p3['x'] - p2['x'],
+                y: p3['y'] - p2['y']
+              };
+              
+              // Calculate angle change
+              const dot = v1['x'] * v2['x'] + v1['y'] * v2['y'];
+              const det = v1['x'] * v2['y'] - v1['y'] * v2['x'];
+              const angle = Math.atan2(det, dot);
+              
+              if (Math.abs(angle) > Math.PI / 6) { // More than 30 degrees
+                jitters.push(Math.abs(angle));
+              }
             }
           }
           
@@ -642,18 +657,24 @@ export class BiometricEngine {
           let angleChangeCount = 0;
           
           for (let i = 2; i < points.length; i++) {
-            const v1 = {
-              x: points[i - 1].x - points[i - 2].x,
-              y: points[i - 1].y - points[i - 2].y
-            };
-            const v2 = {
-              x: points[i].x - points[i - 1].x,
-              y: points[i].y - points[i - 1].y
-            };
+            const p1 = points[i - 2];
+            const p2 = points[i - 1];
+            const p3 = points[i];
             
-            const angle = Math.atan2(v2.y, v2.x) - Math.atan2(v1.y, v1.x);
-            totalAngleChange += Math.abs(angle);
-            angleChangeCount++;
+            if (p1 && p2 && p3) {
+              const v1 = {
+                x: p2['x'] - p1['x'],
+                y: p2['y'] - p1['y']
+              };
+              const v2 = {
+                x: p3['x'] - p2['x'],
+                y: p3['y'] - p2['y']
+              };
+              
+              const angle = Math.atan2(v2['y'], v2['x']) - Math.atan2(v1['y'], v1['x']);
+              totalAngleChange += Math.abs(angle);
+              angleChangeCount++;
+            }
           }
           
           const avgAngleChange = angleChangeCount > 0 ? totalAngleChange / angleChangeCount : 0;
@@ -665,17 +686,22 @@ export class BiometricEngine {
           let lastDirection = 0;
           
           for (let i = 1; i < points.length; i++) {
-            const dx = points[i].x - points[i - 1].x;
-            const dy = points[i].y - points[i - 1].y;
-            const direction = Math.atan2(dy, dx);
+            const current = points[i];
+            const previous = points[i - 1];
             
-            if (i > 1) {
-              const angleDiff = Math.abs(direction - lastDirection);
-              if (angleDiff > Math.PI / 4) { // More than 45 degrees
-                directionChanges++;
+            if (current && previous) {
+              const dx = current['x'] - previous['x'];
+              const dy = current['y'] - previous['y'];
+              const direction = Math.atan2(dy, dx);
+              
+              if (i > 1) {
+                const angleDiff = Math.abs(direction - lastDirection);
+                if (angleDiff > Math.PI / 4) { // More than 45 degrees
+                  directionChanges++;
+                }
               }
+              lastDirection = direction;
             }
-            lastDirection = direction;
           }
           
           directionChangeCounts.push(directionChanges);
@@ -687,18 +713,20 @@ export class BiometricEngine {
             const p2 = points[i];
             const p3 = points[i + 1];
             
-            // Calculate curvature using three-point method
-            const area = Math.abs(
-              (p2.x - p1.x) * (p3.y - p1.y) - 
-              (p3.x - p1.x) * (p2.y - p1.y)
-            ) / 2;
-            
-            const a = Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
-            const b = Math.sqrt(Math.pow(p3.x - p2.x, 2) + Math.pow(p3.y - p2.y, 2));
-            const c = Math.sqrt(Math.pow(p3.x - p1.x, 2) + Math.pow(p3.y - p1.y, 2));
-            
-            const curvature = (a * b * c) > 0 ? (4 * area) / (a * b * c) : 0;
-            curvatures.push(curvature);
+            if (p1 && p2 && p3) {
+              // Calculate curvature using three-point method
+              const area = Math.abs(
+                (p2['x'] - p1['x']) * (p3['y'] - p1['y']) - 
+                (p3['x'] - p1['x']) * (p2['y'] - p1['y'])
+              ) / 2;
+              
+              const a = Math.sqrt(Math.pow(p2['x'] - p1['x'], 2) + Math.pow(p2['y'] - p1['y'], 2));
+              const b = Math.sqrt(Math.pow(p3['x'] - p2['x'], 2) + Math.pow(p3['y'] - p2['y'], 2));
+              const c = Math.sqrt(Math.pow(p3['x'] - p1['x'], 2) + Math.pow(p3['y'] - p1['y'], 2));
+              
+              const curvature = (a * b * c) > 0 ? (4 * area) / (a * b * c) : 0;
+              curvatures.push(curvature);
+            }
           }
           
           const avgCurvature = curvatures.length > 0 ?
@@ -712,24 +740,28 @@ export class BiometricEngine {
       let totalInkLength = 0;
       
       for (const stroke of strokes) {
-        for (let i = 0; i < stroke.points.length; i++) {
-          const point = stroke.points[i];
-          minX = Math.min(minX, point.x);
-          maxX = Math.max(maxX, point.x);
-          minY = Math.min(minY, point.y);
-          maxY = Math.max(maxY, point.y);
-          
-          if (i > 0) {
-            totalInkLength += Math.sqrt(
-              Math.pow(point.x - stroke.points[i - 1].x, 2) + 
-              Math.pow(point.y - stroke.points[i - 1].y, 2)
-            );
+        for (let i = 0; i < stroke['points'].length; i++) {
+          const point = stroke['points'][i];
+          if (point) {
+            minX = Math.min(minX, point['x']);
+            maxX = Math.max(maxX, point['x']);
+            minY = Math.min(minY, point['y']);
+            maxY = Math.max(maxY, point['y']);
+            
+            if (i > 0) {
+              const previous = stroke['points'][i - 1];
+              if (previous) {
+                totalInkLength += Math.sqrt(
+                  Math.pow(point['x'] - previous['x'], 2) + 
+                  Math.pow(point['y'] - previous['y'], 2)
+                );
+              }
+            }
           }
         }
       }
       
       const boundingArea = (maxX - minX) * (maxY - minY);
-      const spatialEfficiency = boundingArea > 0 ? totalInkLength / Math.sqrt(boundingArea) : 0;
       
       // Calculate stroke overlap ratio
       // Simplified: check how many points are very close to points from other strokes
@@ -737,19 +769,19 @@ export class BiometricEngine {
       const overlapThreshold = 5; // pixels
       
       // Performance optimization: sample points for large datasets
-      const sampleRate = strokes.reduce((acc, s) => acc + s.points.length, 0) > 1000 ? 0.1 : 1;
+      const sampleRate = strokes.reduce((acc, s) => acc + s['points'].length, 0) > 1000 ? 0.1 : 1;
       
       for (let i = 0; i < strokes.length; i++) {
         for (let j = i + 1; j < strokes.length; j++) {
-          for (const p1 of strokes[i].points) {
+          for (const p1 of strokes[i]['points']) {
             if (Math.random() > sampleRate) continue; // Skip based on sample rate
             
-            for (const p2 of strokes[j].points) {
+            for (const p2 of strokes[j]['points']) {
               if (Math.random() > sampleRate) continue; // Skip based on sample rate
               
               const distance = Math.sqrt(
-                Math.pow(p1.x - p2.x, 2) + 
-                Math.pow(p1.y - p2.y, 2)
+                Math.pow(p1['x'] - p2['x'], 2) + 
+                Math.pow(p1['y'] - p2['y'], 2)
               );
               if (distance < overlapThreshold) {
                 overlapCount++;
@@ -759,8 +791,7 @@ export class BiometricEngine {
         }
       }
       
-      const totalPoints = strokes.reduce((acc, s) => acc + s.points.length, 0);
-      const overlapRatio = totalPoints > 0 ? overlapCount / totalPoints : 0;
+      const totalPoints = strokes.reduce((acc, s) => acc + s['points'].length, 0);
       
       const calcDuration = performance.now() - startCalc;
       if (calcDuration > 80) {
@@ -768,18 +799,26 @@ export class BiometricEngine {
       }
       
       const features: GeometricFeatures = {
+        boundingBox: {
+          x: minX,
+          y: minY,
+          width: maxX - minX,
+          height: maxY - minY
+        },
+        centroid: {
+          x: (minX + maxX) / 2,
+          y: (minY + maxY) / 2
+        },
+        aspectRatio: (maxX - minX) / (maxY - minY),
+        totalLength: totalInkLength,
+        angles: [], // Will be populated if needed
+        curvature: curvatureValues,
+        symmetry: {
+          horizontal: 0.5, // Placeholder
+          vertical: 0.5 // Placeholder
+        },
         stroke_complexity: complexityScores.length > 0 ?
-          complexityScores.reduce((a, b) => a + b, 0) / complexityScores.length : 1,
-        tremor_index: tremorIndices.length > 0 ?
-          tremorIndices.reduce((a, b) => a + b, 0) / tremorIndices.length : 0,
-        smoothness_index: smoothnessScores.length > 0 ?
-          smoothnessScores.reduce((a, b) => a + b, 0) / smoothnessScores.length : 1,
-        direction_changes: directionChangeCounts.length > 0 ?
-          directionChangeCounts.reduce((a, b) => a + b, 0) / directionChangeCounts.length : 0,
-        curvature_analysis: curvatureValues.length > 0 ?
-          curvatureValues.reduce((a, b) => a + b, 0) / curvatureValues.length : 0,
-        spatial_efficiency: spatialEfficiency,
-        stroke_overlap_ratio: overlapRatio
+          complexityScores.reduce((a, b) => a + b, 0) / complexityScores.length : 1
       };
       
       this.performanceMonitor.endExtraction(Object.keys(features).length, 'Geometric');
@@ -812,7 +851,7 @@ export class BiometricEngine {
       
       for (let i = 0; i < strokes.length; i++) {
         const stroke = strokes[i];
-        const points = stroke.points;
+        const points = stroke?.['points'] || [];
         
         if (points.length > 1) {
           // Check for unnatural pauses within strokes
@@ -820,11 +859,11 @@ export class BiometricEngine {
             const p1 = points[j - 1];
             const p2 = points[j];
             
-            if (p1.time && p2.time) {
-              const timeDiff = p2.time - p1.time;
+            if (p1['time'] && p2['time']) {
+              const timeDiff = p2['time'] - p1['time'];
               const distance = Math.sqrt(
-                Math.pow(p2.x - p1.x, 2) + 
-                Math.pow(p2.y - p1.y, 2)
+                Math.pow(p2['x'] - p1['x'], 2) + 
+                Math.pow(p2['y'] - p1['y'], 2)
               );
               
               // Very long pause with minimal movement (possible tracing)
@@ -838,26 +877,28 @@ export class BiometricEngine {
               // Detect unusually consistent speed (bot-like)
               if (j > 1) {
                 const p0 = points[j - 2];
-                const prevDistance = Math.sqrt(
-                  Math.pow(p1.x - p0.x, 2) + 
-                  Math.pow(p1.y - p0.y, 2)
-                );
-                const prevTimeDiff = p1.time! - p0.time!;
-                const prevSpeed = prevTimeDiff > 0 ? prevDistance / prevTimeDiff : 0;
-                
-                // Speed too consistent (less than 5% variation)
-                if (prevSpeed > 0 && Math.abs(speed - prevSpeed) / prevSpeed < 0.05) {
-                  speedAnomalies.push(1);
-                } else {
-                  speedAnomalies.push(0);
+                if (p0 && p0['time']) {
+                  const prevDistance = Math.sqrt(
+                    Math.pow(p1['x'] - p0['x'], 2) + 
+                    Math.pow(p1['y'] - p0['y'], 2)
+                  );
+                  const prevTimeDiff = p1['time'] - p0['time'];
+                  const prevSpeed = prevTimeDiff > 0 ? prevDistance / prevTimeDiff : 0;
+                  
+                  // Speed too consistent (less than 5% variation)
+                  if (prevSpeed > 0 && Math.abs(speed - prevSpeed) / prevSpeed < 0.05) {
+                    speedAnomalies.push(1);
+                  } else {
+                    speedAnomalies.push(0);
+                  }
                 }
               }
             }
             
             // Pressure anomalies
-            if (typeof p1.pressure === 'number' && typeof p2.pressure === 'number') {
+            if (p1 && p2 && typeof p1['pressure'] === 'number' && typeof p2['pressure'] === 'number') {
               // Detect sudden pressure changes
-              const pressureChange = Math.abs(p2.pressure - p1.pressure);
+              const pressureChange = Math.abs(p2['pressure'] - p1['pressure']);
               if (pressureChange > 0.5) { // More than 50% change
                 pressureAnomalies.push(pressureChange);
               }
@@ -869,11 +910,11 @@ export class BiometricEngine {
       // Calculate timing regularity (for bot detection)
       const strokeTimings: number[] = [];
       for (const stroke of strokes) {
-        if (stroke.points.length > 1) {
-          const firstPoint = stroke.points[0];
-          const lastPoint = stroke.points[stroke.points.length - 1];
-          if (firstPoint.time && lastPoint.time) {
-            strokeTimings.push(lastPoint.time - firstPoint.time);
+        if (stroke['points'].length > 1) {
+          const firstPoint = stroke['points'][0];
+          const lastPoint = stroke['points'][stroke['points'].length - 1];
+          if (firstPoint?.time && lastPoint?.time) {
+            strokeTimings.push(lastPoint['time'] - firstPoint['time']);
           }
         }
       }
@@ -894,7 +935,7 @@ export class BiometricEngine {
       // For now, check pressure consistency as proxy
       let deviceConsistencyScore = 1;
       const hasPressure = strokes.some(stroke => 
-        stroke.points.some(p => typeof p.pressure === 'number' && p.pressure > 0)
+        stroke['points'].some(p => typeof p['pressure'] === 'number' && p['pressure'] > 0)
       );
       
       if (!hasPressure) {
@@ -905,7 +946,7 @@ export class BiometricEngine {
       const authenticityFactors = [
         unnaturalPauses.length === 0 ? 1 : 0.5,
         speedAnomalies.filter(a => a === 1).length / Math.max(speedAnomalies.length, 1) < 0.3 ? 1 : 0.5,
-        pressureAnomalies.length / strokes.reduce((acc, s) => acc + s.points.length, 0) < 0.1 ? 1 : 0.5,
+        pressureAnomalies.length / strokes.reduce((acc, s) => acc + s['points'].length, 0) < 0.1 ? 1 : 0.5,
         timingRegularityScore > 0.1 ? 1 : 0.5,
         deviceConsistencyScore
       ];
@@ -919,13 +960,17 @@ export class BiometricEngine {
       }
       
       const features: SecurityFeatures = {
-        unnatural_pause_detection: unnaturalPauses.length,
-        speed_anomaly_score: speedAnomalies.filter(a => a === 1).length / Math.max(speedAnomalies.length, 1),
-        pressure_anomaly_score: pressureAnomalies.length / 
-          strokes.reduce((acc, s) => acc + s.points.length, 0),
-        timing_regularity_score: timingRegularityScore,
-        device_consistency_score: deviceConsistencyScore,
-        behavioral_authenticity_score: behavioralAuthenticityScore
+        anomalyScore: speedAnomalies.filter(a => a === 1).length / Math.max(speedAnomalies.length, 1),
+        authenticityScore: behavioralAuthenticityScore,
+        confidenceLevel: 1 - (unnaturalPauses.length / Math.max(strokes.length, 1)),
+        riskFactors: [
+          unnaturalPauses.length > 0 ? 'unnatural_pauses' : '',
+          speedAnomalies.filter(a => a === 1).length > 0 ? 'speed_anomalies' : '',
+          pressureAnomalies.length > 0 ? 'pressure_anomalies' : ''
+        ].filter(f => f !== ''),
+        velocityConsistency: 1 - timingRegularityScore,
+        pressureConsistency: 1 - (pressureAnomalies.length / Math.max(strokes.reduce((acc, s) => acc + s['points'].length, 0), 1)),
+        unnatural_pause_detection: unnaturalPauses.length
       };
       
       this.performanceMonitor.endExtraction(Object.keys(features).length, 'Security');
@@ -948,13 +993,68 @@ export class BiometricEngine {
       const geometricFeatures = this.extractGeometricFeatures(strokeData);
       const securityFeatures = this.extractSecurityFeatures(strokeData);
       
-      // Combine all features
+      // Create PressureDynamics from PressureFeatures
+      const pressureDynamics: PressureDynamics = {
+        min: pressureFeatures.min,
+        max: pressureFeatures.max,
+        mean: pressureFeatures.mean,
+        variance: pressureFeatures.variance,
+        changes: pressureFeatures.changes,
+        peaks: pressureFeatures.peaks,
+        valleys: pressureFeatures.valleys
+      };
+      
+      // Create TimingPatterns from TimingFeatures
+      const timingPatterns: TimingPatterns = {
+        totalDuration: timingFeatures.totalDuration,
+        strokeDurations: timingFeatures.strokeDurations,
+        pauseDurations: timingFeatures.pauseDurations,
+        rhythm: timingFeatures.rhythm,
+        consistency: timingFeatures.consistency,
+        averageSpeed: timingFeatures.averageSpeed,
+        speedVariance: timingFeatures.speedVariance
+      };
+      
+      // Create GeometricProperties from GeometricFeatures
+      const geometricProperties: GeometricProperties = {
+        boundingBox: geometricFeatures.boundingBox,
+        centroid: geometricFeatures.centroid,
+        aspectRatio: geometricFeatures.aspectRatio,
+        totalLength: geometricFeatures.totalLength,
+        angles: geometricFeatures.angles,
+        curvature: geometricFeatures.curvature,
+        symmetry: geometricFeatures.symmetry
+      };
+      
+      // Create SecurityIndicators from SecurityFeatures
+      const securityIndicators: SecurityIndicators = {
+        anomalyScore: securityFeatures.anomalyScore,
+        authenticityScore: securityFeatures.authenticityScore,
+        confidenceLevel: securityFeatures.confidenceLevel,
+        riskFactors: securityFeatures.riskFactors,
+        velocityConsistency: securityFeatures.velocityConsistency,
+        pressureConsistency: securityFeatures.pressureConsistency
+      };
+      
+      // Build the properly nested EnhancedFeatures structure
       const allFeatures: EnhancedFeatures = {
-        ...pressureFeatures,
-        ...timingFeatures,
-        ...geometricFeatures,
-        ...securityFeatures
-      } as EnhancedFeatures;
+        pressureDynamics,
+        timingPatterns,
+        geometricProperties,
+        securityIndicators,
+        deviceCapabilities: deviceCapabilities || {
+          supportsPressure: false,
+          supportsTouch: true,
+          supportsTilt: false,
+          maxPressure: 1.0,
+          deviceType: 'unknown'
+        },
+        metadata: {
+          version: '1.0',
+          processingTime: 0, // Will be set below
+          algorithm: 'enhanced-biometric-v1'
+        }
+      };
       
       // Aggregate excluded features from all categories
       const excludedFeatures: string[] = [];
@@ -971,16 +1071,18 @@ export class BiometricEngine {
         }
       });
       
-      // Clean up temporary exclusion data from individual categories
-      Object.keys(allFeatures).forEach(key => {
-        if (key === '_excluded_features' || key === '_exclusion_reason') {
-          delete (allFeatures as any)[key];
-        }
-      });
+      const totalTime = this.performanceMonitor.endExtraction(
+        Object.keys(pressureDynamics).length + 
+        Object.keys(timingPatterns).length + 
+        Object.keys(geometricProperties).length + 
+        Object.keys(securityIndicators).length, 
+        'All Features'
+      );
       
-      const totalTime = this.performanceMonitor.endExtraction(Object.keys(allFeatures).length, 'All Features');
+      // Update metadata with processing time
+      allFeatures.metadata.processingTime = totalTime;
       
-      // Add metadata
+      // Add optional metadata fields
       allFeatures._extraction_time_ms = totalTime;
       allFeatures._feature_version = '1.0';
       
@@ -991,10 +1093,12 @@ export class BiometricEngine {
       }
       
       // Add list of actually supported features
-      const supportedFeatures = Object.keys(allFeatures).filter(k => 
-        !k.startsWith('_') && 
-        !excludedFeatures.includes(k)
-      );
+      const supportedFeatures = [
+        ...Object.keys(pressureDynamics).filter(k => !excludedFeatures.includes(k)),
+        ...Object.keys(timingPatterns).filter(k => !excludedFeatures.includes(k)),
+        ...Object.keys(geometricProperties).filter(k => !excludedFeatures.includes(k)),
+        ...Object.keys(securityIndicators).filter(k => !excludedFeatures.includes(k))
+      ];
       allFeatures._supported_features = supportedFeatures;
       
       // Add device capabilities if provided
@@ -1014,11 +1118,56 @@ export class BiometricEngine {
       
     } catch (error) {
       logger.error('Complete feature extraction failed:', error);
+      
+      // Return default EnhancedFeatures structure with nested properties
       return {
-        ...this.getDefaultPressureFeatures(),
-        ...this.getDefaultTimingFeatures(),
-        ...this.getDefaultGeometricFeatures(),
-        ...this.getDefaultSecurityFeatures(),
+        pressureDynamics: {
+          min: 0,
+          max: 0,
+          mean: 0,
+          variance: 0,
+          changes: [],
+          peaks: 0,
+          valleys: 0
+        },
+        timingPatterns: {
+          totalDuration: 0,
+          strokeDurations: [],
+          pauseDurations: [],
+          rhythm: 0,
+          consistency: 0,
+          averageSpeed: 0,
+          speedVariance: 0
+        },
+        geometricProperties: {
+          boundingBox: { x: 0, y: 0, width: 0, height: 0 },
+          centroid: { x: 0, y: 0 },
+          aspectRatio: 1,
+          totalLength: 0,
+          angles: [],
+          curvature: [],
+          symmetry: { horizontal: 0.5, vertical: 0.5 }
+        },
+        securityIndicators: {
+          anomalyScore: 0,
+          authenticityScore: 0.5,
+          confidenceLevel: 0.5,
+          riskFactors: [],
+          velocityConsistency: 0.5,
+          pressureConsistency: 0.5
+        },
+        deviceCapabilities: deviceCapabilities || {
+          supportsPressure: false,
+          supportsTouch: true,
+          supportsTilt: false,
+          maxPressure: 1.0,
+          deviceType: 'unknown'
+        },
+        metadata: {
+          version: '1.0',
+          processingTime: 0,
+          algorithm: 'enhanced-biometric-v1'
+        },
         _extraction_error: true
       } as EnhancedFeatures;
     }
@@ -1027,45 +1176,52 @@ export class BiometricEngine {
   // Default feature values for fallback
   private getDefaultPressureFeatures(): PressureFeatures {
     return {
-      // Don't provide fallback values - these will be excluded
-      // Only has_pressure_data is always included as metadata
+      min: 0,
+      max: 0,
+      mean: 0,
+      variance: 0,
+      changes: [],
+      peaks: 0,
+      valleys: 0,
       has_pressure_data: false
     };
   }
 
   private getDefaultTimingFeatures(): TimingFeatures {
     return {
-      pause_detection: 0,
-      rhythm_consistency: 0,
-      tempo_variation: 0,
-      dwell_time_patterns: 0,
-      inter_stroke_timing: 0,
-      drawing_duration_total: 0,
-      pause_time_ratio: 0,
-      avg_stroke_duration: 0
+      totalDuration: 0,
+      strokeDurations: [],
+      pauseDurations: [],
+      rhythm: 0,
+      consistency: 0,
+      averageSpeed: 0,
+      speedVariance: 0,
+      pause_detection: 0
     };
   }
 
   private getDefaultGeometricFeatures(): GeometricFeatures {
     return {
-      stroke_complexity: 1,
-      tremor_index: 0,
-      smoothness_index: 1,
-      direction_changes: 0,
-      curvature_analysis: 0,
-      spatial_efficiency: 0,
-      stroke_overlap_ratio: 0
+      boundingBox: { x: 0, y: 0, width: 0, height: 0 },
+      centroid: { x: 0, y: 0 },
+      aspectRatio: 1,
+      totalLength: 0,
+      angles: [],
+      curvature: [],
+      symmetry: { horizontal: 0.5, vertical: 0.5 },
+      stroke_complexity: 1
     };
   }
 
   private getDefaultSecurityFeatures(): SecurityFeatures {
     return {
-      unnatural_pause_detection: 0,
-      speed_anomaly_score: 0,
-      pressure_anomaly_score: 0,
-      timing_regularity_score: 0.5,
-      device_consistency_score: 0.5,
-      behavioral_authenticity_score: 0.5
+      anomalyScore: 0,
+      authenticityScore: 0.5,
+      confidenceLevel: 0.5,
+      riskFactors: [],
+      velocityConsistency: 0.5,
+      pressureConsistency: 0.5,
+      unnatural_pause_detection: 0
     };
   }
   

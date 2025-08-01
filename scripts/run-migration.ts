@@ -1,11 +1,9 @@
 #!/usr/bin/env ts-node
 
 import * as fs from 'fs';
-import * as path from 'path';
 import { execSync } from 'child_process';
 import { MigrationTracker } from './MigrationTracker';
 import FileConverter from './convert-file';
-import { config } from '../src/config';
 
 interface MigrationPhase {
   id: number;
