@@ -4,59 +4,61 @@
 // Replace the stubbed functions in your HTML file with these implementations
 
 // Global variables that should be defined in the calling context
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 let isSignUp = true; // Track which flow we're in
 // let currentUsername = ''; // Store username - commented out as not used
 
 // API URL configuration - adjust based on environment
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const API_URL = typeof window !== 'undefined' && window.location.hostname === 'localhost' 
     ? 'http://localhost:3000' 
     : 'https://chickenscratch.onrender.com';
 
 // 1. Check username availability (for sign-up) or existence (for sign-in)
 // async function _checkUsernameAvailability(username) {
-    try {
-        if (isSignUp) {
-            // For sign-up: check if username is available
-            const response = await fetch(`${API_URL}/api/check-username`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username })
-            });
-            
-            if (!response.ok) {
-                if (response.status === 409) {
-                    throw new Error('Username already taken, please choose another');
-                }
-                throw new Error('Error checking username availability');
-            }
-            
-            const data = await response.json();
-            return data;
-        } else {
-            // For sign-in: check if username exists
-            const response = await fetch(`${API_URL}/api/check-user-exists`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username })
-            });
-            
-            if (!response.ok) {
-                if (response.status === 404) {
-                    throw new Error('Username does not exist, please sign up first');
-                }
-                throw new Error('Error checking username');
-            }
-            
-            const data = await response.json();
-            return data;
-        }
-    } catch (error) {
-        if (error.message.includes('fetch')) {
-            throw new Error('Connection error, please try again');
-        }
-        throw error;
-    }
-}
+//     try {
+//         if (isSignUp) {
+//             // For sign-up: check if username is available
+//             const response = await fetch(`${API_URL}/api/check-username`, {
+//                 method: 'POST',
+//                 headers: { 'Content-Type': 'application/json' },
+//                 body: JSON.stringify({ username })
+//             });
+//             
+//             if (!response.ok) {
+//                 if (response.status === 409) {
+//                     throw new Error('Username already taken, please choose another');
+//                 }
+//                 throw new Error('Error checking username availability');
+//             }
+//             
+//             const data = await response.json();
+//             return data;
+//         } else {
+//             // For sign-in: check if username exists
+//             const response = await fetch(`${API_URL}/api/check-user-exists`, {
+//                 method: 'POST',
+//                 headers: { 'Content-Type': 'application/json' },
+//                 body: JSON.stringify({ username })
+//             });
+//             
+//             if (!response.ok) {
+//                 if (response.status === 404) {
+//                     throw new Error('Username does not exist, please sign up first');
+//                 }
+//                 throw new Error('Error checking username');
+//             }
+//             
+//             const data = await response.json();
+//             return data;
+//         }
+//     } catch (error) {
+//         if (error.message.includes('fetch')) {
+//             throw new Error('Connection error, please try again');
+//         }
+//         throw error;
+//     }
+// }
 
 // 2. Save individual drawing/signature steps during the flow
 // async function _saveDrawingData(drawingData) {
