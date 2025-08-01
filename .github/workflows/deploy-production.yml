@@ -71,7 +71,7 @@ jobs:
           echo "backup_file=${BACKUP_FILE}.gz" >> $GITHUB_OUTPUT
 
       - name: Upload backup artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: production-backup-${{ github.sha }}
           path: "*.gz"
@@ -123,7 +123,7 @@ jobs:
             DEPLOY_TIME
 
       - name: Upload deployment package
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: production-deployment-${{ github.sha }}
           path: deployment-package.tar.gz
