@@ -1,5 +1,5 @@
 const { createCanvas } = require('canvas');
-// const { Pool } = require('pg');
+const pool = require('./db.js');
 
 /**
  * Generate a base64 image from stroke data
@@ -326,6 +326,7 @@ function getStrokeDataStats(strokeData) {
 
 /**
  * API endpoint helper to serve images from stroke data
+ * @private
  */
 function _createImageEndpoint(app) {
     app.get('/api/signature/:id/image', async (req, res) => {
@@ -366,8 +367,7 @@ function _createImageEndpoint(app) {
                 });
                 
                 // Convert base64 to buffer
-                const base64Data = imageData.replace(/^data:image\/png;base64,/, '');
-                const buffer = Buffer.from(base64Data, 'base64');
+                const buffer = Buffer.from(imageData.replace(/^data:image\/png;base64,/, ''), 'base64');
                 
                 res.setHeader('Content-Type', 'image/png');
                 res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour

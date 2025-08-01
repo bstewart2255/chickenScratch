@@ -1,4 +1,4 @@
-/* global window, navigator, PointerEvent, Touch, TouchEvent */
+/* global window, navigator, PointerEvent, Touch */
 
 /**
  * Device Capability Detection Module

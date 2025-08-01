@@ -54,7 +54,7 @@ async function checkBackendMLUsage() {
 }
 
 // Updated startRetraining function
-async function _startRetraining() {
+// async function _startRetraining() {
     const progressDiv = document.getElementById('retrainProgress');
     const progressBar = document.getElementById('retrainProgressBar');
     const statusText = document.getElementById('retrainStatus');

@@ -595,7 +595,7 @@ async function compareSignatures(signature1, signature2, metrics1, metrics2, use
 
 // Helper function to insert signatures with fallback for is_enrollment column
 async function insertSignatureWithFallback(pool, signatureData) {
-    const { userId, strokeData, signature, mlFeatures, isEnrollment } = signatureData;
+    const { userId, strokeData, mlFeatures, isEnrollment } = signatureData;
     
     try {
         // Try with is_enrollment column first
@@ -1131,7 +1131,7 @@ app.post('/login', async (req, res) => {
         };
 
         // Helper function to add features to collection
-        function addFeaturesToCollection(componentType, componentName, features) {
+        const addFeaturesToCollection = (componentType, componentName, features) => {
             if (!features || typeof features !== 'object') return;
             
             if (componentType === 'signature') {
@@ -1143,7 +1143,7 @@ app.post('/login', async (req, res) => {
             }
             
             enhancedFeaturesCollection._total_components_processed++;
-        }
+        };
 
         // Get user
         const userResult = await pool.query(
@@ -3784,7 +3784,7 @@ function extractDeviceType(userAgent) {
 }
 
 // Global error handler - must be last middleware
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
     console.error('Unhandled error:', err);
     console.error('Error stack:', err.stack);
     
