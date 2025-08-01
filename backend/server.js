@@ -3,17 +3,25 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const { Pool } = require('pg');
 const { storeSignatureWithStrokeData, getSignatureData, extractStrokeData } = require('./update_to_stroke_storage');
+const { configService } = require('../src/config/ConfigService');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const config = configService.get();
+const PORT = config.server.port;
 
 // Database connection
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL || 
-      `postgresql://${process.env.DB_USER || 'postgres'}:${process.env.DB_PASSWORD}@${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || '5432'}/${process.env.DB_NAME || 'signatureauth'}`,
-    ssl: {
+    host: config.database.host,
+    port: config.database.port,
+    database: config.database.database,
+    user: config.database.user,
+    password: config.database.password,
+    ssl: config.database.ssl ? {
         rejectUnauthorized: false
-    }
+    } : false,
+    max: config.database.maxConnections,
+    idleTimeoutMillis: config.database.idleTimeoutMillis,
+    connectionTimeoutMillis: config.database.connectionTimeoutMillis
 });
 
 // Update CORS configuration
@@ -75,8 +83,8 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Body parser middleware - IMPORTANT: Must be before routes
-app.use(express.json({ limit: '10mb' })); // Increase limit for drawing data
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: config.server.maxRequestSize }));
+app.use(express.urlencoded({ extended: true, limit: config.server.maxRequestSize }));
 
 // Request logging middleware
 app.use((req, res, next) => {
@@ -150,7 +158,7 @@ const EnhancedFeatureExtractor = require('./enhanced-feature-extraction');
 const ComponentSpecificFeatures = require('./component-specific-features');
 
 // Feature flag for enhanced features (can be controlled via environment variable)
-const ENABLE_ENHANCED_FEATURES = process.env.ENABLE_ENHANCED_FEATURES !== 'false'; // Default to true
+const ENABLE_ENHANCED_FEATURES = config.features.enableEnhancedBiometrics;
 
 // Helper function to calculate all ML features from signature data
 function calculateMLFeatures(signatureData) {
@@ -3779,7 +3787,7 @@ app.use((err, req, res, next) => {
         error: 'Internal server error',
         message: err.message || 'An unexpected error occurred',
         // Include more details in development
-        ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+        ...(config.env === 'development' && { stack: err.stack })
     });
 });
 

@@ -1,7 +1,8 @@
 const axios = require('axios');
 const chalk = require('chalk');
+const { configService } = require('./src/config/ConfigService');
 
-const API_URL = process.env.API_URL || 'http://localhost:3000';
+const API_URL = configService.getApi().baseUrl;
 const TEST_USERNAME = process.env.TEST_USER || 'test15';
 
 async function testMLDashboardFixes() {

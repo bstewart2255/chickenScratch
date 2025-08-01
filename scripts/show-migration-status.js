@@ -12,106 +12,173 @@ if (!fs.existsSync(migrationStatusPath)) {
   process.exit(1);
 }
 
+// Helper function to format date
+const formatDate = (dateStr) => {
+  if (!dateStr) return 'N/A';
+  return new Date(dateStr).toLocaleString();
+};
+
+// Helper function to get phase name
+const getPhaseInfo = (phaseNum) => {
+  const phaseNames = {
+    1: 'Pre-Migration Validation',
+    2: 'Migration Tracker Setup',
+    3: 'TypeScript & ESLint Setup',
+    4: 'Strict Compiler Profile',
+    5: 'MigrationTracker Implementation',
+    6: 'Type System Foundation',
+    7: 'Configuration System',
+    8: 'Shared Utilities',
+    9: 'Backend Migration',
+    10: 'Frontend Migration',
+    11: 'Testing Suite',
+    12: 'CI/CD Pipeline',
+    13: 'Database Migrations',
+    14: 'Build & Monitoring',
+    15: 'Backup & Rollback',
+    16: 'Enable Strict Mode',
+    17: 'Final Validation'
+  };
+  return phaseNames[phaseNum] || `Phase ${phaseNum}`;
+};
+
+// Helper function to get status icon
+const getStatusIcon = (status) => {
+  switch (status) {
+    case 'completed': return '✅';
+    case 'in_progress': return '🔄';
+    case 'failed': return '❌';
+    case 'not_started': return '⏹️';
+    default: return '❓';
+  }
+};
+
 try {
   const status = JSON.parse(fs.readFileSync(migrationStatusPath, 'utf8'));
   
-  console.log('\n🔄 TypeScript Migration Status v' + status.version);
+  console.log('\n🔄 TypeScript Migration Status v2.0');
   console.log('=' + '='.repeat(50));
   
-  // Overview
-  console.log('\n📊 Overview:');
-  console.log(`   Start Date: ${new Date(status.startDate).toLocaleString()}`);
-  console.log(`   Current Phase: ${status.currentPhase} of ${Object.keys(status.phases).length}`);
+  // Current Phase and Status
+  console.log('\n📊 Current Status:');
+  console.log(`   Phase: ${status.currentPhase} - ${getPhaseInfo(status.currentPhase)}`);
+  console.log(`   Status: ${getStatusIcon(status.phaseStatus)} ${status.phaseStatus}`);
+  console.log(`   Last Updated: ${formatDate(status.lastUpdated)}`);
   
-  // Progress bar
-  const totalPhases = Object.keys(status.phases).length;
-  const completedPhases = Object.values(status.phases).filter(p => p.status === 'completed').length;
-  const progressPercentage = Math.round((completedPhases / totalPhases) * 100);
-  const progressBarLength = 30;
-  const filledLength = Math.round(progressBarLength * (completedPhases / totalPhases));
-  const progressBar = '█'.repeat(filledLength) + '░'.repeat(progressBarLength - filledLength);
-  
-  console.log(`   Progress: [${progressBar}] ${progressPercentage}%`);
-  
-  // Metrics
-  console.log('\n📈 Metrics:');
-  console.log(`   Total Files: ${status.metrics.totalFiles}`);
-  console.log(`   Migrated Files: ${status.metrics.migratedFiles}`);
-  console.log(`   Errors: ${status.metrics.errorCount}`);
-  console.log(`   Tests Passing: ${status.metrics.testsPassing ? '✅' : '❌'}`);
-  
-  // Phase details
-  console.log('\n📋 Phase Details:');
-  Object.entries(status.phases).forEach(([phaseNum, phase]) => {
-    let statusIcon = '⏹️';
-    if (phase.status === 'completed') statusIcon = '✅';
-    else if (phase.status === 'in-progress') statusIcon = '🔄';
-    else if (phase.status === 'failed') statusIcon = '❌';
+  // Migration Metrics
+  if (status.metrics) {
+    console.log('\n📈 Migration Metrics:');
+    console.log(`   Total Files: ${status.metrics.totalFiles || 0}`);
+    console.log(`   JavaScript Files: ${status.metrics.jsFiles || 0}`);
+    console.log(`   TypeScript Files: ${status.metrics.tsFiles || 0}`);
+    console.log(`   Converted Files: ${status.metrics.convertedFiles || 0}`);
+    console.log(`   Coverage: ${status.metrics.coverage || 0}%`);
     
-    console.log(`\n   ${statusIcon} Phase ${phaseNum}: ${phase.name}`);
-    console.log(`      Status: ${phase.status}`);
-    
-    if (phase.startDate) {
-      console.log(`      Started: ${new Date(phase.startDate).toLocaleString()}`);
-    }
-    
-    if (phase.endDate) {
-      console.log(`      Completed: ${new Date(phase.endDate).toLocaleString()}`);
-      const duration = new Date(phase.endDate) - new Date(phase.startDate);
-      const hours = Math.floor(duration / (1000 * 60 * 60));
-      const minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
-      console.log(`      Duration: ${hours}h ${minutes}m`);
-    }
-    
-    if (phase.files && phase.files.length > 0) {
-      console.log(`      Files: ${phase.files.length} migrated`);
-    }
-    
-    if (phase.errors && phase.errors.length > 0) {
-      console.log(`      ⚠️  Errors: ${phase.errors.length}`);
-      phase.errors.forEach(error => {
-        console.log(`         - ${error}`);
-      });
-    }
-  });
-  
-  // Performance comparison
-  if (status.metrics.currentPerformance.apiResponseTime !== null) {
-    console.log('\n🚀 Performance Comparison:');
-    const perf = status.metrics.currentPerformance;
-    const baseline = status.metrics.performanceBaseline;
-    
-    const formatPerf = (current, base, unit) => {
-      if (current === null) return 'N/A';
-      const diff = ((current - base) / base * 100).toFixed(1);
-      const icon = current > base * 1.1 ? '⚠️' : '✅';
-      return `${current}${unit} (${diff > 0 ? '+' : ''}${diff}%) ${icon}`;
-    };
-    
-    console.log(`   API Response: ${formatPerf(perf.apiResponseTime, baseline.apiResponseTime, 'ms')}`);
-    console.log(`   Auth Processing: ${formatPerf(perf.authProcessingTime, baseline.authProcessingTime, 'ms')}`);
-    console.log(`   Feature Extraction: ${formatPerf(perf.featureExtractionTime, baseline.featureExtractionTime, 'ms')}`);
-    console.log(`   Memory Usage: ${formatPerf(perf.memoryUsage, baseline.memoryUsage, 'MB')}`);
+    // Progress bar for coverage
+    const coverage = status.metrics.coverage || 0;
+    const progressBarLength = 30;
+    const filledLength = Math.round(progressBarLength * (coverage / 100));
+    const progressBar = '█'.repeat(filledLength) + '░'.repeat(progressBarLength - filledLength);
+    console.log(`   Progress: [${progressBar}] ${coverage}%`);
   }
   
-  // Git tags
-  if (Object.keys(status.gitTags).length > 0) {
-    console.log('\n🏷️  Git Tags:');
-    Object.entries(status.gitTags).forEach(([tag, date]) => {
-      if (date) {
-        console.log(`   ${tag}: ${new Date(date).toLocaleString()}`);
-      } else {
-        console.log(`   ${tag}: pending`);
+  // Error Tracking
+  if (status.errors && status.errors.length > 0) {
+    const unresolvedErrors = status.errors.filter(e => !e.resolved);
+    const resolvedErrors = status.errors.filter(e => e.resolved);
+    
+    console.log('\n⚠️  Error Summary:');
+    console.log(`   Total Errors: ${status.errors.length}`);
+    console.log(`   Unresolved: ${unresolvedErrors.length}`);
+    console.log(`   Resolved: ${resolvedErrors.length}`);
+    
+    // Error breakdown by phase
+    const errorsByPhase = {};
+    status.errors.forEach(error => {
+      if (!errorsByPhase[error.phase]) {
+        errorsByPhase[error.phase] = { total: 0, unresolved: 0 };
+      }
+      errorsByPhase[error.phase].total++;
+      if (!error.resolved) {
+        errorsByPhase[error.phase].unresolved++;
       }
     });
+    
+    console.log('\n   Errors by Phase:');
+    Object.entries(errorsByPhase).forEach(([phase, counts]) => {
+      console.log(`     Phase ${phase}: ${counts.total} total (${counts.unresolved} unresolved)`);
+    });
+    
+    // Show recent unresolved errors
+    if (unresolvedErrors.length > 0) {
+      console.log('\n   Recent Unresolved Errors:');
+      unresolvedErrors.slice(-5).forEach(error => {
+        console.log(`     - [${error.errorType}] ${error.fileName}: ${error.message}`);
+        console.log(`       ID: ${error.id} | Time: ${formatDate(error.timestamp)}`);
+      });
+      if (unresolvedErrors.length > 5) {
+        console.log(`     ... and ${unresolvedErrors.length - 5} more`);
+      }
+    }
+  } else {
+    console.log('\n✅ No errors recorded');
   }
   
-  // Rollback points
+  // Phase History
+  if (status.phaseHistory && status.phaseHistory.length > 0) {
+    console.log('\n📋 Phase History:');
+    const recentHistory = status.phaseHistory.slice(-5);
+    recentHistory.forEach(entry => {
+      const duration = entry.endTime 
+        ? ` (${Math.round((new Date(entry.endTime) - new Date(entry.startTime)) / 60000)} min)`
+        : ' (in progress)';
+      console.log(`   ${getStatusIcon(entry.status)} Phase ${entry.phase}: ${entry.status}${duration}`);
+    });
+    if (status.phaseHistory.length > 5) {
+      console.log(`   ... and ${status.phaseHistory.length - 5} more`);
+    }
+  }
+  
+  // Rollback Points
   if (status.rollbackPoints && status.rollbackPoints.length > 0) {
     console.log('\n🔄 Rollback Points:');
-    status.rollbackPoints.forEach(point => {
-      console.log(`   - ${point.tag} (Phase ${point.phase}): ${new Date(point.date).toLocaleString()}`);
+    const recentRollbacks = status.rollbackPoints.slice(-3);
+    recentRollbacks.forEach(point => {
+      console.log(`   - ${point.description}`);
+      console.log(`     ID: ${point.id} | Phase: ${point.phase} | Commit: ${point.gitCommit.substring(0, 7)}`);
+      console.log(`     Time: ${formatDate(point.timestamp)}`);
     });
+    if (status.rollbackPoints.length > 3) {
+      console.log(`   ... and ${status.rollbackPoints.length - 3} more`);
+    }
+  }
+  
+  // Check if can proceed to next phase
+  const nextPhase = status.currentPhase + 1;
+  if (nextPhase <= 17) {
+    console.log(`\n🎯 Next Phase: ${nextPhase} - ${getPhaseInfo(nextPhase)}`);
+    
+    // Simple phase requirements check
+    const unresolvedCount = status.errors ? status.errors.filter(e => !e.resolved).length : 0;
+    const coverage = status.metrics ? status.metrics.coverage : 0;
+    
+    const requirements = [];
+    if (nextPhase >= 6) requirements.push('Create type system foundation');
+    if (nextPhase >= 9) requirements.push('30% coverage minimum');
+    if (nextPhase >= 10) requirements.push('50% coverage minimum');
+    if (nextPhase >= 16) requirements.push('All errors resolved');
+    
+    if (requirements.length > 0) {
+      console.log('   Requirements:');
+      requirements.forEach(req => console.log(`     - ${req}`));
+    }
+  }
+  
+  // Original status compatibility
+  if (status.phases) {
+    console.log('\n📊 Legacy Phase Status:');
+    const completedPhases = Object.values(status.phases).filter(p => p.status === 'completed').length;
+    console.log(`   Completed: ${completedPhases} of ${Object.keys(status.phases).length} phases`);
   }
   
   console.log('\n' + '='.repeat(52) + '\n');

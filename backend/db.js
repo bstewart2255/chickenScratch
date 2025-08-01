@@ -1,12 +1,21 @@
 const { Pool } = require('pg');
+const { configService } = require('../src/config/ConfigService');
+
+const config = configService.get();
 
 // Use the Internal Database URL from Render
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 
-    `postgresql://${process.env.DB_USER || 'postgres'}:${process.env.DB_PASSWORD}@${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || '5432'}/${process.env.DB_NAME || 'signatureauth'}`,
-  ssl: {
+  host: config.database.host,
+  port: config.database.port,
+  database: config.database.database,
+  user: config.database.user,
+  password: config.database.password,
+  ssl: config.database.ssl ? {
     rejectUnauthorized: false // Required for Render
-  }
+  } : false,
+  max: config.database.maxConnections,
+  idleTimeoutMillis: config.database.idleTimeoutMillis,
+  connectionTimeoutMillis: config.database.connectionTimeoutMillis
 });
 
 // Test the connection
