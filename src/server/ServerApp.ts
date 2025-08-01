@@ -49,7 +49,7 @@ export class ServerApp {
     this.app.use(express.urlencoded({ extended: true }));
 
     // Logging middleware
-    this.app.use(Logger.httpLogger());
+    this.app.use(Logger.httpLogger() as any);
 
     // Request validation middleware
     this.app.use(this.validateRequestId);

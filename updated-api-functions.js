@@ -1,11 +1,11 @@
-/* global window, navigator */
+/* global window */
 
 // Updated API functions for signature authentication flow
 // Replace the stubbed functions in your HTML file with these implementations
 
 // Global variables that should be defined in the calling context
 let isSignUp = true; // Track which flow we're in
-let currentUsername = ''; // Store username
+// let currentUsername = ''; // Store username - commented out as not used
 
 // API URL configuration - adjust based on environment
 const API_URL = typeof window !== 'undefined' && window.location.hostname === 'localhost' 

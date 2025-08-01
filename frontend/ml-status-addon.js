@@ -1,4 +1,4 @@
-/* global document, API_URL, closeRetrainModal */
+/* global document, API_URL */
 
 // ML Status Functions to add to ml-dashboard.html
 

@@ -1,4 +1,5 @@
 import { configService } from '../config/ConfigService';
+import type { Request, Response, NextFunction } from 'express';
 
 // Log levels
 export enum LogLevel {
@@ -223,31 +224,31 @@ export class Logger {
   static httpLogger() {
     const logger = new Logger('HTTP');
     
-    return (req: any, res: any, next: any) => {
+    return (req: Request, res: Response, next: NextFunction) => {
       const startTime = Date.now();
       
       // Log request
-      logger.info(`${req.method} ${req.path}`, {
-        query: req.query,
-        ip: req.ip,
-        userAgent: req.get('user-agent')
+      logger.info(`${req.method} ${(req as any).path || req.url}`, {
+        query: (req as any).query,
+        ip: (req as any).ip,
+        userAgent: (req as any).get?.('user-agent')
       });
       
       // Capture response
-      const originalSend = res.send;
-      res.send = function(data: any) {
-        res.send = originalSend;
+      const originalSend = (res as any).send;
+      (res as any).send = function(data: unknown) {
+        (res as any).send = originalSend;
         
         const duration = Date.now() - startTime;
-        const level = res.statusCode >= 400 ? LogLevel.WARN : LogLevel.INFO;
+        const level = (res as any).statusCode >= 400 ? LogLevel.WARN : LogLevel.INFO;
         
-        logger.writeLog(level, `${req.method} ${req.path} ${res.statusCode}`, {
+        logger.writeLog(level, `${req.method} ${(req as any).path || req.url} ${(res as any).statusCode}`, {
           duration_ms: duration,
-          status: res.statusCode,
-          size: data ? data.length : 0
+          status: (res as any).statusCode,
+          size: data ? (data as any).length : 0
         });
         
-        return res.send(data);
+        return (res as any).send(data);
       };
       
       next();

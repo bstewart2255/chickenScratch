@@ -1,5 +1,5 @@
 const { createCanvas } = require('canvas');
-const pool = require('./db.js');
+// Database connection removed as it's not used in this file
 
 /**
  * Generate a base64 image from stroke data

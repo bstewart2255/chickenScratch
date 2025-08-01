@@ -269,7 +269,8 @@ export class ApiClient {
    * Clear authentication token
    */
   clearAuthToken() {
-    const { Authorization, ...rest } = this.headers as any;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { Authorization: _auth, ...rest } = this.headers as any;
     this.headers = rest;
   }
 

@@ -91,6 +91,9 @@ class ConfigService {
       return process.env[key] || defaultValue;
     };
     
+    // Parse DATABASE_URL if provided
+    const databaseConfig = this.parseDatabaseConfig(getEnv, defaults.database);
+    
     // Parse environment variables
     const rawConfig = {
       env,
@@ -100,23 +103,7 @@ class ConfigService {
         corsOrigin: getEnv('CORS_ORIGIN') || defaults.server.corsOrigin,
         maxRequestSize: getEnv('MAX_REQUEST_SIZE') || defaults.server.maxRequestSize,
       },
-      database: {
-        host: getEnv('DB_HOST') || defaults.database.host,
-        port: getEnv('DB_PORT') ? parseInt(getEnv('DB_PORT')!, 10) : defaults.database.port,
-        database: getEnv('DB_NAME') || defaults.database.database,
-        user: getEnv('DB_USER') || defaults.database.user,
-        password: getEnv('DB_PASSWORD') || defaults.database.password,
-        ssl: getEnv('DB_SSL') === 'true',
-        maxConnections: getEnv('DB_MAX_CONNECTIONS') 
-          ? parseInt(getEnv('DB_MAX_CONNECTIONS')!, 10) 
-          : defaults.database.maxConnections,
-        idleTimeoutMillis: getEnv('DB_IDLE_TIMEOUT') 
-          ? parseInt(getEnv('DB_IDLE_TIMEOUT')!, 10) 
-          : defaults.database.idleTimeoutMillis,
-        connectionTimeoutMillis: getEnv('DB_CONNECTION_TIMEOUT') 
-          ? parseInt(getEnv('DB_CONNECTION_TIMEOUT')!, 10) 
-          : defaults.database.connectionTimeoutMillis,
-      },
+      database: databaseConfig,
       api: {
         baseUrl: getEnv('API_BASE_URL') || defaults.api.baseUrl,
         timeout: getEnv('API_TIMEOUT') 
@@ -272,6 +259,58 @@ class ConfigService {
     }
 
     return baseDefaults;
+  }
+
+  private parseDatabaseConfig(
+    getEnv: (key: string, defaultValue?: string) => string | undefined,
+    defaults: Config['database']
+  ): Config['database'] {
+    // Check if DATABASE_URL is provided
+    const databaseUrl = getEnv('DATABASE_URL');
+    
+    if (databaseUrl) {
+      try {
+        const url = new URL(databaseUrl);
+        return {
+          host: url.hostname,
+          port: url.port ? parseInt(url.port, 10) : defaults.port,
+          database: url.pathname.slice(1), // Remove leading slash
+          user: url.username,
+          password: url.password,
+          ssl: url.protocol === 'postgresql:' || url.protocol === 'postgres:',
+          maxConnections: getEnv('DB_MAX_CONNECTIONS') 
+            ? parseInt(getEnv('DB_MAX_CONNECTIONS')!, 10) 
+            : defaults.maxConnections,
+          idleTimeoutMillis: getEnv('DB_IDLE_TIMEOUT') 
+            ? parseInt(getEnv('DB_IDLE_TIMEOUT')!, 10) 
+            : defaults.idleTimeoutMillis,
+          connectionTimeoutMillis: getEnv('DB_CONNECTION_TIMEOUT') 
+            ? parseInt(getEnv('DB_CONNECTION_TIMEOUT')!, 10) 
+            : defaults.connectionTimeoutMillis,
+        };
+      } catch (error) {
+        console.warn('Failed to parse DATABASE_URL, falling back to individual environment variables:', error);
+      }
+    }
+    
+    // Fall back to individual environment variables
+    return {
+      host: getEnv('DB_HOST') || defaults.host,
+      port: getEnv('DB_PORT') ? parseInt(getEnv('DB_PORT')!, 10) : defaults.port,
+      database: getEnv('DB_NAME') || defaults.database,
+      user: getEnv('DB_USER') || defaults.user,
+      password: getEnv('DB_PASSWORD') || defaults.password,
+      ssl: getEnv('DB_SSL') === 'true',
+      maxConnections: getEnv('DB_MAX_CONNECTIONS') 
+        ? parseInt(getEnv('DB_MAX_CONNECTIONS')!, 10) 
+        : defaults.maxConnections,
+      idleTimeoutMillis: getEnv('DB_IDLE_TIMEOUT') 
+        ? parseInt(getEnv('DB_IDLE_TIMEOUT')!, 10) 
+        : defaults.idleTimeoutMillis,
+      connectionTimeoutMillis: getEnv('DB_CONNECTION_TIMEOUT') 
+        ? parseInt(getEnv('DB_CONNECTION_TIMEOUT')!, 10) 
+        : defaults.connectionTimeoutMillis,
+    };
   }
 
   private validateRequiredConfig(): void {

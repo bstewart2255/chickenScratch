@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { Request, Response, NextFunction } from 'express';
 import { ErrorHandler } from './ErrorHandler';
 import { Logger } from './Logger';
 
@@ -69,11 +70,11 @@ export class ApiValidator {
   /**
    * Create Express middleware for request validation
    */
-  static validateMiddleware<T>(schema: z.ZodSchema<T>, context: string) {
-    return (req: any, res: any, next: any) => {
+  static validateMiddleware<T extends Record<string, unknown>>(schema: z.ZodSchema<T>, context: string) {
+    return (req: Request, res: Response, next: NextFunction) => {
       try {
         const validatedData = this.validateRequest(schema, req.body, context);
-        req.validatedBody = validatedData;
+        (req as any).validatedBody = validatedData;
         next();
       } catch (error) {
         const errorResponse = ErrorHandler.createErrorResponse(error);
@@ -85,11 +86,11 @@ export class ApiValidator {
   /**
    * Create Express middleware for query parameter validation
    */
-  static validateQuery<T>(schema: z.ZodSchema<T>, context: string) {
-    return (req: any, res: any, next: any) => {
+  static validateQuery<T extends Record<string, unknown>>(schema: z.ZodSchema<T>, context: string) {
+    return (req: Request, res: Response, next: NextFunction) => {
       try {
         const validatedData = this.validateRequest(schema, req.query, context);
-        req.validatedQuery = validatedData;
+        (req as any).validatedQuery = validatedData;
         next();
       } catch (error) {
         const errorResponse = ErrorHandler.createErrorResponse(error);
@@ -101,11 +102,11 @@ export class ApiValidator {
   /**
    * Create Express middleware for URL parameter validation
    */
-  static validateParams<T>(schema: z.ZodSchema<T>, context: string) {
-    return (req: any, res: any, next: any) => {
+  static validateParams<T extends Record<string, unknown>>(schema: z.ZodSchema<T>, context: string) {
+    return (req: Request, res: Response, next: NextFunction) => {
       try {
         const validatedData = this.validateRequest(schema, req.params, context);
-        req.validatedParams = validatedData;
+        (req as any).validatedParams = validatedData;
         next();
       } catch (error) {
         const errorResponse = ErrorHandler.createErrorResponse(error);
