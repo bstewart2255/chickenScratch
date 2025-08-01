@@ -8,13 +8,19 @@
  * Based on deviceCapability.js implementation
  */
 export interface DeviceCapabilities {
-  touch: boolean;
-  pressure: boolean;
-  tilt: boolean;
-  precision: 'high' | 'medium' | 'low';
-  pointerType: 'mouse' | 'pen' | 'touch' | 'unknown';
-  maxPressure: number;
-  timestamp: string;
+  supportsPressure: boolean;
+  supportsTouch: boolean;
+  inputMethod: 'mouse' | 'touch' | 'stylus';
+  pointerTypes: string[];
+  browser: string;
+  os: string;
+  devicePixelRatio: number;
+  canvasSupport: {
+    basic: boolean;
+    webgl: boolean;
+    webgl2: boolean;
+    offscreenCanvas: boolean;
+  };
 }
 
 /**
@@ -47,9 +53,14 @@ export interface StrokeData {
   startTime: number;
   endTime: number;
   duration: number;
-  deviceType: 'mouse' | 'pen' | 'touch';
+  deviceType: 'mouse' | 'pen' | 'touch' | 'stylus';
   color?: string;
   width?: number;
+  pressure?: {
+    min: number;
+    max: number;
+    average: number;
+  };
 }
 
 /**
