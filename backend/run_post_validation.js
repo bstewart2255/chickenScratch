@@ -9,7 +9,7 @@ async function runPostValidation() {
     try {
         // Read the post-validation SQL file
         const sqlFile = path.join(__dirname, 'phase2', 'post_validation_queries.sql');
-        const sqlContent = await fs.readFile(sqlFile, 'utf8');
+        // const sqlContent = await fs.readFile(sqlFile, 'utf8'); // Unused variable removed
         
         // Run key post-validation queries manually
         const keyQueries = [

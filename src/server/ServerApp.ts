@@ -148,8 +148,8 @@ export class ServerApp {
     try {
       const validatedData = req.validatedBody;
       this.logger.info('User registration request', {
-        email: validatedData.email,
-        username: validatedData.username
+        email: validatedData?.['email'],
+        username: validatedData?.['username']
       });
 
       // Process registration logic here
@@ -184,12 +184,12 @@ export class ServerApp {
     try {
       const validatedData = req.validatedBody;
       this.logger.info('Biometric enrollment request', {
-        userId: validatedData.userId,
-        biometricType: validatedData.biometricType
+        userId: validatedData?.['userId'],
+        biometricType: validatedData?.['biometricType']
       });
 
       // Convert and validate biometric data
-      const strokeData = DataFormatConverter.parseStrokeData(validatedData.biometricData);
+      const strokeData = DataFormatConverter.parseStrokeData(validatedData?.['biometricData']);
       if (strokeData.length === 0) {
         throw ErrorHandler.fromValidation('biometricData', 'Invalid stroke data');
       }
@@ -225,12 +225,12 @@ export class ServerApp {
     try {
       const validatedData = req.validatedBody;
       this.logger.info('Biometric authentication request', {
-        userId: validatedData.userId,
-        biometricType: validatedData.biometricType
+        userId: validatedData?.['userId'],
+        biometricType: validatedData?.['biometricType']
       });
 
       // Convert and validate biometric data
-      const strokeData = DataFormatConverter.parseStrokeData(validatedData.biometricData);
+      const strokeData = DataFormatConverter.parseStrokeData(validatedData?.['biometricData']);
       if (strokeData.length === 0) {
         throw ErrorHandler.fromValidation('biometricData', 'Invalid stroke data');
       }
@@ -265,8 +265,8 @@ export class ServerApp {
       const validatedQuery = req.validatedQuery;
       
       this.logger.info('Get user signatures request', {
-        userId: validatedParams.userId,
-        limit: validatedQuery.limit
+        userId: validatedParams?.['userId'],
+        limit: validatedQuery?.['limit']
       });
 
       // Process get signatures logic here
@@ -303,8 +303,8 @@ export class ServerApp {
       const validatedBody = req.validatedBody;
       
       this.logger.info('Delete signature request', {
-        signatureId: validatedParams.signatureId,
-        userId: validatedBody.userId
+        signatureId: validatedParams?.['signatureId'],
+        userId: validatedBody?.['userId']
       });
 
       // Process delete logic here
@@ -339,7 +339,7 @@ export class ServerApp {
       const validatedBody = req.validatedBody;
       
       this.logger.info('Update user profile request', {
-        userId: validatedParams.userId
+        userId: validatedParams?.['userId']
       });
 
       // Process update logic here

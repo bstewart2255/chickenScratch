@@ -1,9 +1,13 @@
+import { Request } from 'express';
+
 declare global {
   namespace Express {
     interface Request {
-      validatedBody?: any;
-      validatedQuery?: any;
-      validatedParams?: any;
+      validatedBody?: Record<string, unknown>;
+      validatedQuery?: Record<string, unknown>;
+      validatedParams?: Record<string, unknown>;
     }
   }
-} 
+}
+
+export {}; 

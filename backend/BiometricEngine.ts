@@ -195,7 +195,7 @@ export class BiometricEngine {
     }
     
     // Invalid point format
-    logger.warn('Invalid point format:', point as Record<string, any>);
+    logger.warn('Invalid point format:', point as Record<string, unknown>);
     return null;
   }
 
@@ -311,7 +311,7 @@ export class BiometricEngine {
         }
       }
       
-      logger.warn(`Invalid stroke format at index ${index}:`, stroke as Record<string, any>);
+      logger.warn(`Invalid stroke format at index ${index}:`, stroke as Record<string, unknown>);
       return null;
     }).filter((stroke): stroke is Stroke => stroke !== null && stroke['points'].length > 0);
   }
@@ -506,8 +506,8 @@ export class BiometricEngine {
           }
           
           // Store dwell pattern info
-          (stroke as any).dwellCount = dwellPoints.length;
-          (stroke as any).avgDwellTime = dwellPoints.length > 0 ? 
+          (stroke as unknown as Record<string, unknown>)['dwellCount'] = dwellPoints.length;
+          (stroke as unknown as Record<string, unknown>)['avgDwellTime'] = dwellPoints.length > 0 ? 
             dwellPoints.reduce((a, b) => a + b, 0) / dwellPoints.length : 0;
         }
       }

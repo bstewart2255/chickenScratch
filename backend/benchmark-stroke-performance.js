@@ -446,7 +446,7 @@ async function benchmarkMemoryUsage() {
     
     // Get baseline memory
     global.gc && global.gc(); // Force garbage collection if available
-    const baselineMemory = process.memoryUsage();
+    // const baselineMemory = process.memoryUsage(); // Unused variable removed
     
     console.log(`${colors.cyan}Loading ${signatures} signatures:${colors.reset}`);
     

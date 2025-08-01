@@ -3,7 +3,8 @@ import { logger } from '../src/utils/Logger';
 import { config } from '../src/config/ConfigService';
 import type { 
   BiometricData, 
-  BiometricBaseline 
+  BiometricBaseline,
+  BiometricMetrics
 } from '../src/types/core/biometric';
 
 // Performance thresholds
@@ -50,13 +51,15 @@ export class AuthenticationService {
     const defaultMLUrl = process.env['NODE_ENV'] === 'production' 
       ? 'https://chickenscratch-ml.onrender.com'
       : 'http://localhost:5002';
-    this.mlApiUrl = process.env['ML_API_URL'] || (config.get() as any).features?.mlApiUrl || defaultMLUrl;
+    const configData = config.get() as Record<string, unknown>;
+    const features = configData['features'] as Record<string, unknown> | undefined;
+    this.mlApiUrl = process.env['ML_API_URL'] || (features?.['mlApiUrl'] as string) || defaultMLUrl;
   }
   
   // Enhanced ML-based signature comparison that respects excluded features
   async compareSignaturesEnhanced(
-    storedMetrics: any, // TODO: Define proper metric type
-    currentMetrics: any, // TODO: Define proper metric type
+    storedMetrics: BiometricMetrics,
+    currentMetrics: BiometricMetrics,
     baseline: BiometricBaseline,
     username: string
   ): Promise<AuthenticationResult> {
@@ -184,7 +187,7 @@ export class AuthenticationService {
       }
       
     } catch (error) {
-      logger.error('Enhanced ML comparison error:', error as Record<string, any>);
+      logger.error('Enhanced ML comparison error:', error as Record<string, unknown>);
       // Fallback to standard comparison
       return this.compareSignaturesML(storedMetrics, currentMetrics, username);
     }
@@ -192,8 +195,8 @@ export class AuthenticationService {
   
   // ML-based signature comparison using the trained model
   async compareSignaturesML(
-    storedMetrics: any, // TODO: Define proper metric type
-    currentMetrics: any, // TODO: Define proper metric type
+    storedMetrics: BiometricMetrics,
+    currentMetrics: BiometricMetrics,
     username: string
   ): Promise<AuthenticationResult> {
     const startTime = performance.now();
@@ -336,7 +339,7 @@ export class AuthenticationService {
       }
       
     } catch (error) {
-      logger.error('ML comparison error:', error as Record<string, any>);
+      logger.error('ML comparison error:', error as Record<string, unknown>);
       
       const totalDuration = performance.now() - startTime;
       this.trackAuthMetrics(username, totalDuration);
@@ -354,8 +357,8 @@ export class AuthenticationService {
   
   // Compare multiple signatures and return average score
   async compareMultipleSignaturesML(
-    storedSignatures: Array<{ metrics?: BiometricData }>,
-    currentMetrics: BiometricData,
+    storedSignatures: Array<{ metrics?: BiometricMetrics }>,
+    currentMetrics: BiometricMetrics,
     username: string
   ): Promise<AuthenticationResult> {
     const startTime = performance.now();
@@ -374,7 +377,7 @@ export class AuthenticationService {
     // Compare against each stored signature
     const results = await Promise.all(
       storedSignatures.map(stored => 
-        this.compareSignaturesML(stored.metrics || {} as BiometricData, currentMetrics, username)
+        this.compareSignaturesML(stored.metrics || {} as BiometricMetrics, currentMetrics, username)
       )
     );
     

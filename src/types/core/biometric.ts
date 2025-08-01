@@ -9,6 +9,33 @@ export type Point = StrokePoint;
 export type Stroke = StrokeData;
 export type BiometricBaseline = ProcessedSignature;
 
+/**
+ * Biometric metrics interface for authentication comparison
+ * Contains the calculated metrics used by AuthenticationService
+ */
+export interface BiometricMetrics {
+  stroke_count?: number;
+  total_points?: number;
+  total_duration_ms?: number;
+  avg_velocity?: number;
+  max_velocity?: number;
+  width?: number;
+  height?: number;
+  area?: number;
+  aspect_ratio?: number;
+  avg_points_per_stroke?: number;
+  velocity_std?: number;
+  min_velocity?: number;
+  center_x?: number;
+  center_y?: number;
+  avg_stroke_length?: number;
+  total_length?: number;
+  length_variation?: number;
+  avg_stroke_duration?: number;
+  duration_variation?: number;
+  [key: string]: unknown; // Allow additional properties
+}
+
 // Feature interfaces that match the existing implementation
 export interface PressureFeatures {
   min: number;

@@ -309,7 +309,7 @@ async function processAllShapes() {
             log(`\nBatch ${stats.batchCount}: Processing ${shapes.length} shapes...`, 'INFO');
             
             // Process the batch
-            const batchResults = await processBatch(shapes);
+            await processBatch(shapes);
             
             // Update progress
             const progress = ((stats.processedCount / stats.totalRecords) * 100).toFixed(1);
