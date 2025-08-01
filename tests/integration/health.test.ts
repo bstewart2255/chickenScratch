@@ -1,13 +1,13 @@
 import request from 'supertest';
-import { app } from '../../backend/server';
-import { DatabaseService } from '../../backend/services/DatabaseService';
+import app from '../../backend/server';
+import { DatabaseService } from '../../backend/DatabaseService';
 
 describe('Health Check API Integration Tests', () => {
   let dbService: DatabaseService;
 
   beforeAll(async () => {
-    dbService = new DatabaseService();
-    await dbService.connect();
+    // DatabaseService is initialized automatically in the app
+    // No need to create a new instance for tests
   });
 
   afterAll(async () => {

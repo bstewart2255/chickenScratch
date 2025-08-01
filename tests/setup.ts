@@ -3,7 +3,7 @@
 
 // Set test environment
 process.env['NODE_ENV'] = 'test';
-process.env['DATABASE_URL'] = 'postgresql://test:test@localhost:5432/signature_auth_test';
+process.env['DATABASE_URL'] = process.env['DATABASE_URL'] || 'postgresql://postgres:postgres@localhost:5432/signature_auth_test';
 
 // Mock console methods to reduce noise during tests
 global.console = {

@@ -1,6 +1,6 @@
 import request from 'supertest';
-import { app } from '../../backend/server';
-import { DatabaseService } from '../../backend/services/DatabaseService';
+import app from '../../backend/server';
+import { DatabaseService } from '../../backend/DatabaseService';
 import { TestDataGenerator } from '../helpers/generators';
 import { setupTestDatabase, teardownTestDatabase } from '../helpers/mocks';
 

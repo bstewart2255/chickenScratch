@@ -55,10 +55,12 @@ export class TestDataGenerator {
     }
 
     return {
+      id: this.generateUniqueId(),
       points,
       startTime,
       endTime: startTime + pointCount * 50,
-      strokeType: 'drawing' as const
+      duration: pointCount * 50,
+      deviceType: 'pen' as const
     };
   }
 
@@ -153,24 +155,30 @@ export class TestDataGenerator {
     return [
       // Single point stroke
       {
+        id: this.generateUniqueId(),
         points: [this.generatePoint()],
         startTime: Date.now(),
         endTime: Date.now(),
-        strokeType: 'signature' as const
+        duration: 0,
+        deviceType: 'pen' as const
       },
       // Very long stroke
       {
+        id: this.generateUniqueId(),
         points: Array(1000).fill(null).map((_, i) => this.generatePoint({ x: i })),
         startTime: Date.now(),
         endTime: Date.now() + 10000,
-        strokeType: 'drawing' as const
+        duration: 10000,
+        deviceType: 'pen' as const
       },
       // Zero pressure stroke
       {
+        id: this.generateUniqueId(),
         points: Array(10).fill(null).map(() => this.generatePoint({ pressure: 0 })),
         startTime: Date.now(),
         endTime: Date.now() + 1000,
-        strokeType: 'shape' as const
+        duration: 1000,
+        deviceType: 'touch' as const
       }
     ];
   }

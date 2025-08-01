@@ -33,7 +33,7 @@ describe('Logger', () => {
     consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation();
     
     // Mock Date.now for consistent timestamps
-    dateNowSpy = jest.spyOn(global.Date, 'now').mockReturnValue(1234567890000);
+    dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(1234567890000);
     
     // Create logger instance
     logger = new Logger('TestLogger');
