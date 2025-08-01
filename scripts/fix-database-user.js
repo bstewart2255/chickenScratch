@@ -8,7 +8,6 @@
  */
 
 const fs = require('fs');
-const path = require('path');
 
 function fixDatabaseUser() {
   console.log('🔧 Fixing Database User Configuration...\n');
@@ -60,7 +59,6 @@ function fixDatabaseUser() {
       try {
         let content = fs.readFileSync(filePath, 'utf8');
         let fileFixes = 0;
-        let originalContent = content;
 
         replacements.forEach(({ pattern, replacement, description }) => {
           const matches = content.match(pattern);
