@@ -23,7 +23,7 @@ if (useTypeScriptServer) {
   console.log('📦 Starting legacy JavaScript server...');
   
   // Import and start the legacy server
-  const legacyServer = require('./server');
+  const _legacyServer = require('./server');
   
   // The legacy server will start automatically when imported
   // This maintains backward compatibility

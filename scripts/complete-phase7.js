@@ -8,7 +8,7 @@ async function completePhase7() {
     tracker.updatePhaseStatus(7, 'completed');
     
     // Update metrics based on ConfigService implementation
-    const metrics = {
+    const _metrics = {
         filesConverted: tracker.getMetrics().filesConverted + 1,
         configSystemImplemented: true,
         processEnvReferences: 4, // Updated main files: server.js, db.js, test files

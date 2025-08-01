@@ -337,7 +337,7 @@ async function main() {
         await runner.runMigrations(true);
         break;
       
-      case 'rollback':
+      case 'rollback': {
         const migrationId = process.argv[3];
         if (!migrationId) {
           console.error('Please specify migration ID to rollback');
@@ -345,6 +345,7 @@ async function main() {
         }
         await runner.rollbackMigration(migrationId);
         break;
+      }
       
       case 'status':
         await runner.showStatus();

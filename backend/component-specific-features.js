@@ -647,8 +647,8 @@ const ComponentSpecificFeatures = {
     const overallBounds = this.calculateStrokeDataBounds(strokeData);
     const minX = overallBounds.minX;
     const maxX = overallBounds.maxX;
-    const minY = overallBounds.minY;
-    const maxY = overallBounds.maxY;
+    const _minY = overallBounds.minY;
+    const _maxY = overallBounds.maxY;
     
     const centerX = (minX + maxX) / 2;
     

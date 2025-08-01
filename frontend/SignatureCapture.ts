@@ -470,7 +470,7 @@ export class SignatureCapture {
     
     // Angular variation (simplified)
     let angularVariation = 0;
-    let angles: number[] = [];
+    const angles: number[] = [];
     
     strokes.forEach(stroke => {
       for (let i = 2; i < stroke.length; i++) {

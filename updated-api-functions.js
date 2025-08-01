@@ -1,3 +1,5 @@
+/* global window, navigator */
+
 // Updated API functions for signature authentication flow
 // Replace the stubbed functions in your HTML file with these implementations
 
@@ -11,7 +13,7 @@ const API_URL = typeof window !== 'undefined' && window.location.hostname === 'l
     : 'https://chickenscratch.onrender.com';
 
 // 1. Check username availability (for sign-up) or existence (for sign-in)
-async function checkUsernameAvailability(username) {
+async function _checkUsernameAvailability(username) {
     try {
         if (isSignUp) {
             // For sign-up: check if username is available
@@ -57,7 +59,7 @@ async function checkUsernameAvailability(username) {
 }
 
 // 2. Save individual drawing/signature steps during the flow
-async function saveDrawingData(drawingData) {
+async function _saveDrawingData(drawingData) {
     try {
         // Extract metrics from the signature pad data if available
         const metrics = {
@@ -92,7 +94,7 @@ async function saveDrawingData(drawingData) {
 }
 
 // 3. Complete the authentication flow (sign-up or sign-in)
-async function completeAuthFlow() {
+async function _completeAuthFlow() {
     try {
         if (isSignUp) {
             // Complete sign-up using temporary data
@@ -170,7 +172,7 @@ async function completeAuthFlow() {
 }
 
 // Optional: Add this function to clear temporary data if needed
-async function clearTemporaryData(username) {
+async function _clearTemporaryData(username) {
     try {
         const response = await fetch(`${API_URL}/api/temp-drawings/${username}`, {
             method: 'DELETE'

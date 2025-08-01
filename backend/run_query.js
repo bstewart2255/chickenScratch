@@ -22,7 +22,7 @@ async function runQuery() {
     } else {
       console.log('sig_pressure | shape_pressure');
       console.log('-------------|---------------');
-      result.rows.forEach((row, index) => {
+      result.rows.forEach((row, _index) => {
         console.log(`${row.sig_pressure || 'NULL'} | ${row.shape_pressure || 'NULL'}`);
       });
     }

@@ -1,8 +1,7 @@
 const express = require('express');
 const cors = require('cors');
-const bodyParser = require('body-parser');
 const { Pool } = require('pg');
-const { storeSignatureWithStrokeData, getSignatureData, extractStrokeData } = require('./update_to_stroke_storage');
+const { getSignatureData, extractStrokeData } = require('./update_to_stroke_storage');
 const { configService } = require('../src/config/ConfigService');
 
 const app = express();
@@ -522,7 +521,7 @@ function extractSignatureFeatures(signatureDataUrl) {
 }
 
 // Import ML comparison functions
-const { compareSignaturesML, compareMultipleSignaturesML, compareSignaturesEnhanced } = require('./mlComparison');
+const { compareSignaturesML, compareSignaturesEnhanced } = require('./mlComparison');
 
 // Legacy comparison function (kept for fallback)
 function compareSignaturesLegacy(signature1, signature2) {
@@ -1008,7 +1007,7 @@ app.post('/login', async (req, res) => {
         bodyKeys: Object.keys(req.body)
     });
     
-    let { username, signature, shapes, drawings, deviceInfo, useTemporaryData, metadata } = req.body;
+    let { username, signature, shapes, drawings, useTemporaryData, metadata } = req.body;
     
     // If using temporary data from mobile flow
     if (useTemporaryData && username) {
@@ -1413,7 +1412,7 @@ app.post('/login', async (req, res) => {
                 hasConnectDots: !!drawings.connect_dots
             });
             
-            const { compareDrawings, extractStrokeDataFromSignaturePad: extractStrokeDataFromDrawingModule } = require('./drawingVerification');
+            const { extractStrokeDataFromSignaturePad } = require('./drawingVerification');
             
             const storedDrawingsResult = await pool.query(
                 'SELECT drawing_type, metrics, enhanced_features FROM drawings WHERE user_id = $1 AND drawing_type = ANY($2::text[])',
@@ -2998,29 +2997,33 @@ function calculateStructuralAccuracy(metrics, drawingType) {
     const pointCount = metrics.pointCount || 0;
     
     switch(drawingType) {
-        case 'face':
+        case 'face': {
             // A face typically has 3-7 strokes
             const faceStrokeScore = Math.min(100, (strokeCount / 5) * 100);
             const facePointScore = Math.min(100, (pointCount / 50) * 100);
             return Math.round((faceStrokeScore + facePointScore) / 2);
+        }
             
-        case 'star':
+        case 'star': {
             // A 5-pointed star typically has 1-2 strokes
             const starStrokeScore = strokeCount >= 1 ? 80 : 20;
             const starPointScore = Math.min(100, (pointCount / 30) * 100);
             return Math.round((starStrokeScore + starPointScore) / 2);
+        }
             
-        case 'house':
+        case 'house': {
             // A house typically has 4-8 strokes
             const houseStrokeScore = Math.min(100, (strokeCount / 6) * 100);
             const housePointScore = Math.min(100, (pointCount / 60) * 100);
             return Math.round((houseStrokeScore + housePointScore) / 2);
+        }
             
-        case 'connect_dots':
+        case 'connect_dots': {
             // Connect dots should be efficient
             const efficiency = strokeCount > 0 ? Math.max(0, 100 - (strokeCount - 1) * 20) : 0;
             const completeness = Math.min(100, (pointCount / 20) * 100);
             return Math.round((efficiency + completeness) / 2);
+        }
             
         default:
             return 50;
@@ -3327,7 +3330,7 @@ app.get('/api/user/:username/component-performance/:type', async (req, res) => {
         const userId = userResult.rows[0].id;
         
         switch (type) {
-            case 'signature':
+            case 'signature': {
                 // Get signature performance over time
                 const signaturePerf = await pool.query(
                     `SELECT 
@@ -3346,8 +3349,9 @@ app.get('/api/user/:username/component-performance/:type', async (req, res) => {
                     performance: signaturePerf.rows
                 });
                 break;
+            }
                 
-            case 'shapes':
+            case 'shapes': {
                 // Shape performance would need to be extracted from auth attempts
                 // For now, return a placeholder
                 res.json({
@@ -3356,8 +3360,9 @@ app.get('/api/user/:username/component-performance/:type', async (req, res) => {
                     message: 'Shape-specific performance tracking coming soon'
                 });
                 break;
+            }
                 
-            case 'drawings':
+            case 'drawings': {
                 // Get drawing performance from auth attempts
                 const drawingPerf = await pool.query(
                     `SELECT 
@@ -3374,6 +3379,7 @@ app.get('/api/user/:username/component-performance/:type', async (req, res) => {
                     performance: drawingPerf.rows
                 });
                 break;
+            }
                 
             default:
                 res.status(400).json({ error: 'Invalid component type' });

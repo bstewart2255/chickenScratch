@@ -1,3 +1,5 @@
+/* global window, PointerEvent, TouchEvent */
+
 "use strict";
 /**
  * Canvas API type augmentations and interfaces

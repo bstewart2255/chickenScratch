@@ -139,7 +139,7 @@ module.exports = createServer;
   console.log('-'.repeat(30));
 
   // Test that we can import and use types
-  const { SignatureData, AuthAttempt, FeatureVector } = require('../src/types');
+  const { SignatureData: _SignatureData, AuthAttempt: _AuthAttempt, FeatureVector: _FeatureVector } = require('../src/types');
   
   const testSignature: SignatureData = {
     userId: 'test-user',
@@ -179,7 +179,7 @@ module.exports = createServer;
   console.log('\n📋 Test 5: Utility Functions');
   console.log('-'.repeat(30));
 
-  const { extractFeatures, validateSignature, generateId, formatBytes } = require('../src/utils');
+  const { extractFeatures: _extractFeatures, validateSignature, generateId, formatBytes } = require('../src/utils');
   
   const testId = generateId();
   console.log(`✅ generateId() - Generated ID: ${testId}`);
@@ -203,7 +203,7 @@ module.exports = createServer;
   
   // Add some errors and resolve them
   const error1 = tracker.addError('backend/server.js', 'type_error', 'Missing type annotation');
-  const error2 = tracker.addError('frontend/app.js', 'import_error', 'Invalid import statement');
+  const _error2 = tracker.addError('frontend/app.js', 'import_error', 'Invalid import statement');
   
   tracker.resolveError(error1, 'Added proper type annotation');
   

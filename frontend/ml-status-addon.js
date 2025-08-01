@@ -1,3 +1,5 @@
+/* global document, API_URL, closeRetrainModal */
+
 // ML Status Functions to add to ml-dashboard.html
 
 // Check ML API status
@@ -52,7 +54,7 @@ async function checkBackendMLUsage() {
 }
 
 // Updated startRetraining function
-async function startRetraining() {
+async function _startRetraining() {
     const progressDiv = document.getElementById('retrainProgress');
     const progressBar = document.getElementById('retrainProgressBar');
     const statusText = document.getElementById('retrainStatus');

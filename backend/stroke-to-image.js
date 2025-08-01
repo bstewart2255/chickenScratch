@@ -1,4 +1,5 @@
 const { createCanvas } = require('canvas');
+// const { Pool } = require('pg');
 
 /**
  * Generate a base64 image from stroke data
@@ -115,14 +116,14 @@ function generateCompressedImage(strokeData, options = {}) {
     const {
         width = 300,
         height = 150,
-        quality = 0.8
+        // _quality = 0.8
     } = options;
     
     const base64Image = generateImageFromStrokes(strokeData, { width, height });
     
     // Convert base64 to buffer
     const base64Data = base64Image.replace(/^data:image\/png;base64,/, '');
-    const buffer = Buffer.from(base64Data, 'base64');
+    // const _buffer = Buffer.from(base64Data, 'base64');
     
     // For now, return the PNG base64 (you could add JPEG conversion here)
     return base64Image;
@@ -326,7 +327,7 @@ function getStrokeDataStats(strokeData) {
 /**
  * API endpoint helper to serve images from stroke data
  */
-function createImageEndpoint(app) {
+function _createImageEndpoint(app) {
     app.get('/api/signature/:id/image', async (req, res) => {
         try {
             const { id } = req.params;

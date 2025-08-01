@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const fs = require('fs').promises;
-const path = require('path');
+// const path = require('path');
 const { spawn } = require('child_process');
 
 class AutoTestRunner {

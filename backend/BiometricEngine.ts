@@ -336,17 +336,17 @@ export class BiometricEngine {
       
       const strokes = this.extractStrokes(strokeData);
       const pressureValues: number[] = [];
-      let totalPoints = 0;
-      let pointsWithPressure = 0;
+      // let _totalPoints = 0;
+      // let _pointsWithPressure = 0;
       
       // Extract all pressure values
       for (const stroke of strokes) {
         for (const point of stroke['points']) {
-          totalPoints++;
+          // _totalPoints++;
           // Check if pressure data exists (some devices don't support it)
           if (typeof point['pressure'] === 'number' && point['pressure'] > 0) {
             pressureValues.push(point['pressure']);
-            pointsWithPressure++;
+            // _pointsWithPressure++;
           }
         }
       }
@@ -377,8 +377,8 @@ export class BiometricEngine {
       
       
       // Calculate pressure buildup/release rates
-      let buildupRates: number[] = [];
-      let releaseRates: number[] = [];
+      const buildupRates: number[] = [];
+      const releaseRates: number[] = [];
       
       for (const stroke of strokes) {
         const strokePressures = stroke['points']
@@ -451,7 +451,7 @@ export class BiometricEngine {
       const strokeDurations: number[] = [];
       const interStrokeTimings: number[] = [];
       let totalDrawingTime = 0;
-      let totalPauseTime = 0;
+      // const _totalPauseTime = 0;
       
       // Calculate timing features with performance tracking
       const startCalc = performance.now();
@@ -481,7 +481,7 @@ export class BiometricEngine {
                   // Detect pauses (inter-stroke time > 50ms considered a pause)
                   if (interStrokeTiming > 50) {
                     pauseDurations.push(interStrokeTiming);
-                    totalPauseTime += interStrokeTiming;
+                    // _totalPauseTime += interStrokeTiming;
                   }
                 }
               }
@@ -769,7 +769,7 @@ export class BiometricEngine {
       
       // Calculate stroke overlap ratio
       // Simplified: check how many points are very close to points from other strokes
-      let overlapCount = 0;
+      // let _overlapCount = 0;
       const overlapThreshold = 5; // pixels
       
       // Performance optimization: sample points for large datasets
@@ -792,7 +792,7 @@ export class BiometricEngine {
                 Math.pow(p1['y'] - p2['y'], 2)
               );
               if (distance < overlapThreshold) {
-                overlapCount++;
+                // _overlapCount++;
               }
             }
           }

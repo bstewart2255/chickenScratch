@@ -1,7 +1,7 @@
 require('dotenv').config();
 const { Pool } = require('pg');
-const fs = require('fs');
-const path = require('path');
+// const fs = require('fs');
+// const path = require('path');
 
 // Database connection (same as server.js)
 const pool = new Pool({

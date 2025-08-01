@@ -159,8 +159,8 @@ try {
     console.log(`\n🎯 Next Phase: ${nextPhase} - ${getPhaseInfo(nextPhase)}`);
     
     // Simple phase requirements check
-    const unresolvedCount = status.errors ? status.errors.filter(e => !e.resolved).length : 0;
-    const coverage = status.metrics ? status.metrics.coverage : 0;
+    const _unresolvedCount = status.errors ? status.errors.filter(e => !e.resolved).length : 0;
+    const _coverage = status.metrics ? status.metrics.coverage : 0;
     
     const requirements = [];
     if (nextPhase >= 6) requirements.push('Create type system foundation');
