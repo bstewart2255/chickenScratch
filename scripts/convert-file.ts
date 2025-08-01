@@ -95,7 +95,7 @@ export class FileConverter {
       
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      const errorId = this.tracker.addError(filePath, 'conversion_error', errorMessage);
+      // const errorId = this.tracker.addError(filePath, 'conversion_error', errorMessage); // Unused variable
       result.errors.push(errorMessage);
       console.error(`❌ Failed to convert ${filePath}: ${errorMessage}`);
     }
@@ -165,14 +165,14 @@ export class FileConverter {
     return convertedContent;
   }
 
-  private addTypeAnnotations(content: string, filePath: string): string {
+  private addTypeAnnotations(content: string, _filePath: string): string {
     // Add basic type annotations based on file content
     let converted = content;
 
     // Convert function parameters to typed parameters
     converted = converted.replace(
       /function\s+(\w+)\s*\(([^)]*)\)/g,
-      (match, funcName, params) => {
+      (_match, funcName, params) => {
         const typedParams = params.split(',').map((param: string) => {
           const trimmed = param.trim();
           if (trimmed.includes('=')) {
@@ -192,13 +192,13 @@ export class FileConverter {
     // Convert arrow functions
     converted = converted.replace(
       /(\w+)\s*=>\s*{/g,
-      (match, param) => `${param}: any => {`
+      (_match, param) => `${param}: any => {`
     );
 
     // Add return types for functions
     converted = converted.replace(
       /function\s+(\w+)\s*\([^)]*\)\s*{/g,
-      (match, funcName) => `${match}: any {`
+      (match, _funcName) => `${match}: any {`
     );
 
     return converted;
@@ -208,7 +208,7 @@ export class FileConverter {
     // Convert require statements to import statements
     return content.replace(
       /const\s+(\w+)\s*=\s*require\s*\(\s*['"`]([^'"`]+)['"`]\s*\)/g,
-      (match, varName, modulePath) => {
+      (_match, varName, modulePath) => {
         // Handle different types of imports
         if (modulePath.startsWith('.')) {
           // Relative import
@@ -225,11 +225,11 @@ export class FileConverter {
     // Convert module.exports to export statements
     return content.replace(
       /module\.exports\s*=\s*(\w+)/g,
-      (match, exportName) => `export default ${exportName};`
+      (_match, exportName) => `export default ${exportName};`
     );
   }
 
-  private addTypeImports(content: string, filePath: string): string {
+  private addTypeImports(content: string, _filePath: string): string {
     // Add type imports based on file content
     const typeImports: string[] = [];
     
@@ -256,7 +256,7 @@ export class FileConverter {
     // Add return types to functions
     return content.replace(
       /function\s+(\w+)\s*\([^)]*\)\s*{/g,
-      (match, funcName) => `${match}: any {`
+      (match, _funcName) => `${match}: any {`
     );
   }
 

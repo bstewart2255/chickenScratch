@@ -15,7 +15,8 @@ interface MigrationFile {
   checksum: string;
 }
 
-interface MigrationLog {
+/*
+interface MigrationLog { // Unused interface
   id: string;
   name: string;
   applied_at: Date;
@@ -24,6 +25,7 @@ interface MigrationLog {
   success: boolean;
   error_message?: string;
 }
+*/
 
 class DatabaseMigrationRunner {
   private pool: Pool;

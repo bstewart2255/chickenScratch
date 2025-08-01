@@ -3,11 +3,11 @@ import { config } from '../src/config/ConfigService';
 import { logger } from '../src/utils/Logger';
 import { DatabaseError } from '../src/types/core/errors';
 import type { 
-  User, 
-  Signature, 
-  Shape, 
-  AuthenticationAttempt
-} from '../src/types/database';
+  UsersTable as User, 
+  SignaturesTable as Signature, 
+  SignaturesTable as Shape, 
+  AuthLogsTable as AuthenticationAttempt
+} from '../src/types/database/tables';
 
 // Performance thresholds for query monitoring
 const QUERY_THRESHOLDS = {
@@ -58,7 +58,7 @@ class DatabaseService {
       logger.info('✅ Connected to PostgreSQL database');
       client.release();
     } catch (err) {
-      logger.error('Error connecting to database:', err);
+      logger.error('Error connecting to database:', { error: String(err) });
       throw new DatabaseError('Failed to connect to database', err as string);
     }
   }
@@ -195,12 +195,12 @@ class DatabaseService {
     return result.rows[0] || null;
   }
   
-  async createUser(username: string, email?: string): Promise<User> {
+  async createUser(username: string, email?: string): Promise<User | null> {
     const result = await this.query<User>(
       'INSERT INTO users (username, email) VALUES ($1, $2) RETURNING *',
       [username, email]
     );
-    return result.rows[0];
+    return result.rows[0] || null;
   }
   
   async getSignatures(userId: number): Promise<Signature[]> {
@@ -215,13 +215,13 @@ class DatabaseService {
     userId: number, 
     strokeData: any,
     enhancedFeatures?: any
-  ): Promise<Signature> {
+  ): Promise<Signature | null> {
     const result = await this.query<Signature>(
       `INSERT INTO signatures (user_id, stroke_data, enhanced_features) 
        VALUES ($1, $2, $3) RETURNING *`,
       [userId, JSON.stringify(strokeData), enhancedFeatures ? JSON.stringify(enhancedFeatures) : null]
     );
-    return result.rows[0];
+    return result.rows[0] || null;
   }
   
   async getShapes(userId: number): Promise<Shape[]> {
@@ -238,7 +238,7 @@ class DatabaseService {
     strokeData: any,
     componentFeatures?: any,
     enhancedFeatures?: any
-  ): Promise<Shape> {
+  ): Promise<Shape | null> {
     const result = await this.query<Shape>(
       `INSERT INTO shapes (user_id, shape_type, stroke_data, component_features, enhanced_features) 
        VALUES ($1, $2, $3, $4, $5) RETURNING *`,
@@ -250,7 +250,7 @@ class DatabaseService {
         enhancedFeatures ? JSON.stringify(enhancedFeatures) : null
       ]
     );
-    return result.rows[0];
+    return result.rows[0] || null;
   }
   
   async createAuthenticationAttempt(
@@ -258,14 +258,14 @@ class DatabaseService {
     success: boolean,
     score: number,
     details?: any
-  ): Promise<AuthenticationAttempt> {
+  ): Promise<AuthenticationAttempt | null> {
     const result = await this.query<AuthenticationAttempt>(
       `INSERT INTO authentication_attempts 
        (user_id, success, score, attempt_details, created_at) 
        VALUES ($1, $2, $3, $4, NOW()) RETURNING *`,
       [userId, success, score, details ? JSON.stringify(details) : null]
     );
-    return result.rows[0];
+    return result.rows[0] || null;
   }
   
   // Get query performance statistics

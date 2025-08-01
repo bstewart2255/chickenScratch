@@ -388,17 +388,21 @@ export class BiometricEngine {
         if (strokePressures.length > 1) {
           // Find buildup rate (first quarter of stroke)
           const quarterPoint = Math.floor(strokePressures.length / 4);
-          if (quarterPoint > 0 && strokePressures[quarterPoint] !== undefined && strokePressures[0] !== undefined) {
-            const buildupRate = (strokePressures[quarterPoint] - strokePressures[0]) / quarterPoint;
+          const quarterPointPressure = strokePressures[quarterPoint];
+          const firstPressure = strokePressures[0];
+          if (quarterPoint > 0 && quarterPointPressure !== undefined && firstPressure !== undefined) {
+            const buildupRate = (quarterPointPressure - firstPressure) / quarterPoint;
             buildupRates.push(buildupRate);
           }
           
           // Find release rate (last quarter of stroke)
           const threeQuarterPoint = Math.floor(strokePressures.length * 3 / 4);
+          const lastPressure = strokePressures[strokePressures.length - 1];
+          const threeQuarterPressure = strokePressures[threeQuarterPoint];
           if (threeQuarterPoint < strokePressures.length - 1 && 
-              strokePressures[strokePressures.length - 1] !== undefined && 
-              strokePressures[threeQuarterPoint] !== undefined) {
-            const releaseRate = (strokePressures[strokePressures.length - 1] - strokePressures[threeQuarterPoint]) / 
+              lastPressure !== undefined && 
+              threeQuarterPressure !== undefined) {
+            const releaseRate = (lastPressure - threeQuarterPressure) / 
                                (strokePressures.length - 1 - threeQuarterPoint);
             releaseRates.push(Math.abs(releaseRate)); // Use absolute value for release
           }
@@ -428,7 +432,7 @@ export class BiometricEngine {
       return features;
       
     } catch (error) {
-      logger.error('Pressure feature extraction failed:', error);
+      logger.error('Pressure feature extraction failed:', { error: String(error) });
       return this.getDefaultPressureFeatures();
     }
   }
@@ -564,7 +568,7 @@ export class BiometricEngine {
       return features;
       
     } catch (error) {
-      logger.error('Timing feature extraction failed:', error);
+      logger.error('Timing feature extraction failed:', { error: String(error) });
       return this.getDefaultTimingFeatures();
     }
   }
@@ -761,7 +765,7 @@ export class BiometricEngine {
         }
       }
       
-      const boundingArea = (maxX - minX) * (maxY - minY);
+      // const boundingArea = (maxX - minX) * (maxY - minY); // Unused variable
       
       // Calculate stroke overlap ratio
       // Simplified: check how many points are very close to points from other strokes
@@ -772,11 +776,15 @@ export class BiometricEngine {
       const sampleRate = strokes.reduce((acc, s) => acc + s['points'].length, 0) > 1000 ? 0.1 : 1;
       
       for (let i = 0; i < strokes.length; i++) {
+        const strokeI = strokes[i];
+        const pointsI = strokeI?.['points'] || [];
         for (let j = i + 1; j < strokes.length; j++) {
-          for (const p1 of strokes[i]['points']) {
+          const strokeJ = strokes[j];
+          const pointsJ = strokeJ?.['points'] || [];
+          for (const p1 of pointsI) {
             if (Math.random() > sampleRate) continue; // Skip based on sample rate
             
-            for (const p2 of strokes[j]['points']) {
+            for (const p2 of pointsJ) {
               if (Math.random() > sampleRate) continue; // Skip based on sample rate
               
               const distance = Math.sqrt(
@@ -791,7 +799,7 @@ export class BiometricEngine {
         }
       }
       
-      const totalPoints = strokes.reduce((acc, s) => acc + s['points'].length, 0);
+      // const totalPoints = strokes.reduce((acc, s) => acc + s['points'].length, 0); // Unused variable
       
       const calcDuration = performance.now() - startCalc;
       if (calcDuration > 80) {
@@ -825,7 +833,7 @@ export class BiometricEngine {
       return features;
       
     } catch (error) {
-      logger.error('Geometric feature extraction failed:', error);
+      logger.error('Geometric feature extraction failed:', { error: String(error) });
       return this.getDefaultGeometricFeatures();
     }
   }
@@ -859,7 +867,7 @@ export class BiometricEngine {
             const p1 = points[j - 1];
             const p2 = points[j];
             
-            if (p1['time'] && p2['time']) {
+            if (p1 && p2 && p1['time'] && p2['time']) {
               const timeDiff = p2['time'] - p1['time'];
               const distance = Math.sqrt(
                 Math.pow(p2['x'] - p1['x'], 2) + 
@@ -877,7 +885,7 @@ export class BiometricEngine {
               // Detect unusually consistent speed (bot-like)
               if (j > 1) {
                 const p0 = points[j - 2];
-                if (p0 && p0['time']) {
+                if (p0 && p1 && p0['time'] && p1['time']) {
                   const prevDistance = Math.sqrt(
                     Math.pow(p1['x'] - p0['x'], 2) + 
                     Math.pow(p1['y'] - p0['y'], 2)
@@ -977,7 +985,7 @@ export class BiometricEngine {
       return features;
       
     } catch (error) {
-      logger.error('Security feature extraction failed:', error);
+      logger.error('Security feature extraction failed:', { error: String(error) });
       return this.getDefaultSecurityFeatures();
     }
   }
@@ -1045,9 +1053,17 @@ export class BiometricEngine {
         deviceCapabilities: deviceCapabilities || {
           supportsPressure: false,
           supportsTouch: true,
-          supportsTilt: false,
-          maxPressure: 1.0,
-          deviceType: 'unknown'
+          inputMethod: 'mouse',
+          pointerTypes: ['mouse'],
+          browser: 'unknown',
+          os: 'unknown',
+          devicePixelRatio: 1,
+          canvasSupport: {
+            basic: true,
+            webgl: false,
+            webgl2: false,
+            offscreenCanvas: false
+          }
         },
         metadata: {
           version: '1.0',
@@ -1117,7 +1133,7 @@ export class BiometricEngine {
       return allFeatures;
       
     } catch (error) {
-      logger.error('Complete feature extraction failed:', error);
+      logger.error('Complete feature extraction failed:', { error: String(error) });
       
       // Return default EnhancedFeatures structure with nested properties
       return {

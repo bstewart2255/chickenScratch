@@ -7,9 +7,9 @@ import { extractStrokeData } from './update_to_stroke_storage';
 import { config } from '../src/config/ConfigService';
 import { logger } from '../src/utils/Logger';
 import { ErrorHandler, ValidationError } from '../src/utils/ErrorHandler';
-import type { DeviceCapabilities } from '../src/types/core/biometric';
+// import type { DeviceCapabilities } from '../src/types/core/biometric'; // Unused import
 
-const app = express();
+const app: express.Application = express();
 const serverConfig = config.getServer();
 const featuresConfig = config.getFeatures();
 const PORT = serverConfig.port;
@@ -227,7 +227,7 @@ app.get('/api/dashboard/stats', async (_req: Request, res: Response) => {
       }
     });
   } catch (error) {
-    logger.error('Dashboard stats error:', error);
+    logger.error('Dashboard stats error:', { error: String(error) });
     res.status(500).json({ error: 'Failed to fetch stats' });
   }
 });
@@ -250,7 +250,10 @@ app.post('/api/register', async (req: Request, res: Response) => {
     if (!user) {
       // Create new user
       user = await databaseService.createUser(username, email);
-      logger.info('New user created', { userId: user.user_id, username });
+      if (!user) {
+        throw new Error('Failed to create user');
+      }
+      logger.info('New user created', { userId: user.id, username });
     }
     
     // Extract features with performance tracking
@@ -269,19 +272,22 @@ app.post('/api/register', async (req: Request, res: Response) => {
       });
     }
     
-    // Store signature
-    const signature = await databaseService.createSignature(
-      user.user_id,
-      strokeData,
-      enhancedFeatures
-    );
+          // Store signature
+      const signature = await databaseService.createSignature(
+        parseInt(user.id),
+        strokeData,
+        enhancedFeatures
+      );
+      if (!signature) {
+        throw new Error('Failed to create signature');
+      }
     
     const totalDuration = performance.now() - startTime;
     
     res.json({
       success: true,
-      userId: user.user_id,
-      signatureId: signature.signature_id,
+      userId: user.id,
+      signatureId: signature.id,
       performanceMetrics: {
         totalDuration,
         featureExtractionDuration: featureDuration
@@ -318,33 +324,33 @@ app.post('/api/authenticate', async (req: Request, res: Response) => {
     }
     
     // Get stored signatures
-    const storedSignatures = await databaseService.getSignatures(user.user_id);
+    const storedSignatures = await databaseService.getSignatures(parseInt(user.id));
     if (storedSignatures.length === 0) {
       throw new ValidationError('No signatures on file for user');
     }
     
     // Extract features from current signature
     const featureStart = performance.now();
-    const strokeData = extractStrokeData(signatureData);
+    // const strokeData = extractStrokeData(signatureData); // Unused variable
     // currentFeatures extracted but not used - keeping for potential future use
     // const currentFeatures = biometricEngine.extractAllFeatures(strokeData, deviceCapabilities);
     
     const featureDuration = performance.now() - featureStart;
     
     // Get the most recent signature's features as baseline
-    const baseline = storedSignatures[0].enhanced_features || {};
+    const baseline = storedSignatures[0]?.enhanced_features || {};
     
     // Compare signatures
     const authResult = await authenticationService.compareSignaturesEnhanced(
-      storedSignatures[0].stroke_data as any,
+      storedSignatures[0]?.signature_data as any,
       signatureData,
-      baseline,
+      baseline as any,
       username
     );
     
     // Log authentication attempt
     await databaseService.createAuthenticationAttempt(
-      user.user_id,
+      parseInt(user.id),
       authResult.success,
       authResult.score,
       {
