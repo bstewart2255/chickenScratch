@@ -10,6 +10,68 @@ export type Stroke = StrokeData;
 export type BiometricBaseline = ProcessedSignature;
 
 /**
+ * Test-specific biometric data interface
+ * Used for test data generation and validation
+ */
+export interface TestBiometricData {
+  id: string;
+  userId: string;
+  strokes: StrokeData[];
+  features: BiometricFeatures;
+  type: 'signature' | 'shape' | 'drawing';
+  createdAt: string;
+  deviceInfo: DeviceCapabilities;
+}
+
+/**
+ * Biometric features for test data
+ */
+export interface BiometricFeatures {
+  strokeCount: number;
+  totalDuration: number;
+  avgPressure: number;
+  avgSpeed: number;
+  strokeLengths: number[];
+  pauseDurations: number[];
+  directionChanges: number;
+  pressureVariance: number;
+  accelerationPatterns: number[];
+}
+
+/**
+ * Registration data for biometric authentication
+ */
+export interface RegistrationData {
+  username: string;
+  email: string;
+  signatureData: TestBiometricData;
+  shapeData: TestBiometricData;
+  drawingData: TestBiometricData;
+  deviceCapabilities: DeviceCapabilities;
+}
+
+/**
+ * Authentication data for biometric verification
+ */
+export interface AuthenticationData {
+  username: string;
+  biometricData: TestBiometricData;
+  type: 'signature' | 'shape' | 'drawing';
+  deviceCapabilities: DeviceCapabilities;
+}
+
+/**
+ * User interface for test data
+ */
+export interface User {
+  id: string;
+  username: string;
+  email: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
  * Biometric metrics interface for authentication comparison
  * Contains the calculated metrics used by AuthenticationService
  */

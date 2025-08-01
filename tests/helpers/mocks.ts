@@ -226,10 +226,31 @@ export class MockWebSocket {
 
 // Test database connection helper
 export const setupTestDatabase = async (): Promise<void> => {
-  // Mock database setup
-  process.env['DATABASE_URL'] = 'postgresql://test:test@localhost:5432/signature_auth_test';
+  // Ensure test database configuration is set
+  process.env['DATABASE_URL'] = 'postgresql://postgres:postgres@localhost:5432/signature_auth_test';
+  process.env['DB_HOST'] = 'localhost';
+  process.env['DB_PORT'] = '5432';
+  process.env['DB_NAME'] = 'signature_auth_test';
+  process.env['DB_USER'] = 'postgres';
+  process.env['DB_PASSWORD'] = 'postgres';
+  process.env['PGUSER'] = 'postgres';
+  process.env['PGPASSWORD'] = 'postgres';
+  process.env['PGHOST'] = 'localhost';
+  process.env['PGPORT'] = '5432';
+  process.env['PGDATABASE'] = 'signature_auth_test';
 };
 
 export const teardownTestDatabase = async (): Promise<void> => {
-  // Mock database cleanup
+  // Clean up test database configuration
+  delete process.env['DATABASE_URL'];
+  delete process.env['DB_HOST'];
+  delete process.env['DB_PORT'];
+  delete process.env['DB_NAME'];
+  delete process.env['DB_USER'];
+  delete process.env['DB_PASSWORD'];
+  delete process.env['PGUSER'];
+  delete process.env['PGPASSWORD'];
+  delete process.env['PGHOST'];
+  delete process.env['PGPORT'];
+  delete process.env['PGDATABASE'];
 };

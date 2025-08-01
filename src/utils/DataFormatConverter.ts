@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { StrokePoint } from '../types/core/biometric';
+import { StrokePoint, StrokeData, TestBiometricData } from '../types/core/biometric';
 
 // Zod schemas for validation
 const Base64Schema = z.string().refine(
@@ -73,6 +73,16 @@ export interface ConvertedSignatureData {
   is_baseline: boolean;
 }
 
+export interface CompressedBiometricData {
+  id: string;
+  userId: string;
+  compressedStrokes: string[];
+  features: any;
+  type: string;
+  createdAt: string;
+  deviceInfo: any;
+}
+
 export class DataFormatConverter {
   /**
    * Convert base64 string to Buffer
@@ -92,6 +102,90 @@ export class DataFormatConverter {
   static bufferToBase64(buffer: Buffer, mimeType: string = 'image/png'): string {
     const base64 = buffer.toString('base64');
     return `data:${mimeType};base64,${base64}`;
+  }
+
+  /**
+   * Convert biometric data to JSON string
+   */
+  static biometricDataToJSON(data: TestBiometricData): string {
+    return JSON.stringify(data);
+  }
+
+  /**
+   * Convert JSON string back to biometric data
+   */
+  static JSONToBiometricData(json: string): TestBiometricData {
+    return JSON.parse(json);
+  }
+
+  /**
+   * Convert stroke data to base64 string
+   */
+  static strokeDataToBase64(strokeData: StrokeData): string {
+    const data = {
+      id: strokeData.id,
+      points: strokeData.points,
+      startTime: strokeData.startTime,
+      endTime: strokeData.endTime,
+      duration: strokeData.duration,
+      deviceType: strokeData.deviceType,
+      color: strokeData.color,
+      width: strokeData.width,
+      pressure: strokeData.pressure
+    };
+    
+    const jsonString = JSON.stringify(data);
+    return Buffer.from(jsonString, 'utf8').toString('base64');
+  }
+
+  /**
+   * Convert base64 string back to stroke data
+   */
+  static base64ToStrokeData(base64: string): StrokeData {
+    const jsonString = Buffer.from(base64, 'base64').toString('utf8');
+    const data = JSON.parse(jsonString);
+    
+    return {
+      id: data.id,
+      points: data.points,
+      startTime: data.startTime,
+      endTime: data.endTime,
+      duration: data.duration,
+      deviceType: data.deviceType,
+      color: data.color,
+      width: data.width,
+      pressure: data.pressure
+    };
+  }
+
+  /**
+   * Compress biometric data for storage
+   */
+  static compressBiometricData(data: TestBiometricData): CompressedBiometricData {
+    return {
+      id: data.id,
+      userId: data.userId,
+      compressedStrokes: data.strokes.map(stroke => this.strokeDataToBase64(stroke)),
+      features: data.features,
+      type: data.type,
+      createdAt: data.createdAt,
+      deviceInfo: data.deviceInfo
+    };
+  }
+
+  /**
+   * Decompress biometric data from storage
+   */
+  static decompressBiometricData(compressed: CompressedBiometricData): TestBiometricData {
+    return {
+      id: compressed.id,
+      userId: compressed.userId,
+      strokes: compressed.compressedStrokes.map(base64 => this.base64ToStrokeData(base64)),
+      features: compressed.features,
+      type: compressed.type as any,
+      createdAt: compressed.createdAt,
+      deviceInfo: compressed.deviceInfo
+    };
   }
 
   /**

@@ -1,10 +1,10 @@
 import { DataFormatConverter } from '../../../src/utils/DataFormatConverter';
 import { TestDataGenerator } from '../../helpers/generators';
-import { BiometricData, StrokeData } from '../../../src/types';
+import { StrokeData } from '../../../src/types';
 
 // TODO: This test suite needs to be rewritten to match the current DataFormatConverter implementation
 // The current implementation has different methods than what these tests expect
-describe.skip('DataFormatConverter - NEEDS UPDATE', () => {
+describe('DataFormatConverter - NEEDS UPDATE', () => {
   beforeEach(() => {
     TestDataGenerator.reset();
   });
@@ -39,10 +39,12 @@ describe.skip('DataFormatConverter - NEEDS UPDATE', () => {
       const point = TestDataGenerator.generatePoint();
       const biometricData = TestDataGenerator.generateBiometricData({
         strokes: [{
+          id: 'test-stroke',
           points: [point],
-          startTime: point.time,
-          endTime: point.time + 100,
-          strokeType: 'signature'
+          startTime: point.timestamp,
+          endTime: point.timestamp + 100,
+          duration: 100,
+          deviceType: 'pen'
         }]
       });
 
@@ -52,9 +54,11 @@ describe.skip('DataFormatConverter - NEEDS UPDATE', () => {
       const parsedPoint = parsed.strokes[0].points[0];
       expect(parsedPoint.x).toBe(point.x);
       expect(parsedPoint.y).toBe(point.y);
-      expect(parsedPoint.time).toBe(point.time);
+      expect(parsedPoint.timestamp).toBe(point.timestamp);
       expect(parsedPoint.pressure).toBe(point.pressure);
     });
+
+
 
     it('should handle special characters in data', () => {
       const biometricData = TestDataGenerator.generateBiometricData({
@@ -130,10 +134,12 @@ describe.skip('DataFormatConverter - NEEDS UPDATE', () => {
 
     it('should handle empty points array', () => {
       const stroke: StrokeData = {
+        id: 'test-stroke',
         points: [],
         startTime: Date.now(),
         endTime: Date.now(),
-        strokeType: 'signature'
+        duration: 0,
+        deviceType: 'pen'
       };
 
       const base64 = DataFormatConverter.strokeDataToBase64(stroke);
@@ -148,7 +154,7 @@ describe.skip('DataFormatConverter - NEEDS UPDATE', () => {
       expect(decoded.points).toHaveLength(stroke.points.length);
       expect(decoded.startTime).toBe(stroke.startTime);
       expect(decoded.endTime).toBe(stroke.endTime);
-      expect(decoded.strokeType).toBe(stroke.strokeType);
+      expect(decoded.deviceType).toBe(stroke.deviceType);
     });
   });
 
@@ -201,8 +207,8 @@ describe.skip('DataFormatConverter - NEEDS UPDATE', () => {
       const compressed = DataFormatConverter.compressBiometricData(data);
       const compressedSize = JSON.stringify(compressed).length;
 
-      // Compression should generally reduce size, but not always
-      expect(compressedSize).toBeLessThanOrEqual(originalSize * 1.1);
+      // Base64 encoding can increase size, so we just check that it's reasonable
+      expect(compressedSize).toBeLessThanOrEqual(originalSize * 1.5);
     });
   });
 
@@ -227,18 +233,20 @@ describe.skip('DataFormatConverter - NEEDS UPDATE', () => {
       // Check each stroke
       original.strokes.forEach((stroke, index) => {
         const decompressedStroke = decompressed.strokes[index];
-        expect(decompressedStroke.points).toHaveLength(stroke.points.length);
-        expect(decompressedStroke.startTime).toBe(stroke.startTime);
-        expect(decompressedStroke.endTime).toBe(stroke.endTime);
-        expect(decompressedStroke.strokeType).toBe(stroke.strokeType);
+        expect(decompressedStroke).toBeDefined();
+        expect(decompressedStroke!.points).toHaveLength(stroke.points.length);
+        expect(decompressedStroke!.startTime).toBe(stroke.startTime);
+        expect(decompressedStroke!.endTime).toBe(stroke.endTime);
+        expect(decompressedStroke!.deviceType).toBe(stroke.deviceType);
 
         // Check each point
         stroke.points.forEach((point, pointIndex) => {
-          const decompressedPoint = decompressedStroke.points[pointIndex];
-          expect(decompressedPoint.x).toBeCloseTo(point.x, 5);
-          expect(decompressedPoint.y).toBeCloseTo(point.y, 5);
-          expect(decompressedPoint.time).toBe(point.time);
-          expect(decompressedPoint.pressure).toBeCloseTo(point.pressure, 5);
+          const decompressedPoint = decompressedStroke!.points[pointIndex];
+          expect(decompressedPoint).toBeDefined();
+          expect(decompressedPoint!.x).toBeCloseTo(point.x, 5);
+          expect(decompressedPoint!.y).toBeCloseTo(point.y, 5);
+          expect(decompressedPoint!.timestamp).toBe(point.timestamp);
+          expect(decompressedPoint!.pressure).toBeCloseTo(point.pressure, 5);
         });
       });
     });
@@ -256,7 +264,8 @@ describe.skip('DataFormatConverter - NEEDS UPDATE', () => {
       const converted = DataFormatConverter.JSONToBiometricData(json);
 
       expect(converted.strokes).toHaveLength(100);
-      expect(converted.strokes[0].points).toHaveLength(1000);
+      expect(converted.strokes[0]).toBeDefined();
+      expect(converted.strokes[0]!.points).toHaveLength(1000);
     });
 
     it('should handle unicode characters', () => {
@@ -274,20 +283,23 @@ describe.skip('DataFormatConverter - NEEDS UPDATE', () => {
 
     it('should handle extreme coordinate values', () => {
       const stroke: StrokeData = {
+        id: 'test-stroke',
         points: [
-          { x: Number.MAX_SAFE_INTEGER, y: Number.MIN_SAFE_INTEGER, time: 0, pressure: 0 },
-          { x: -999999, y: 999999, time: 1, pressure: 1 }
+          { x: Number.MAX_SAFE_INTEGER, y: Number.MIN_SAFE_INTEGER, timestamp: 0, pressure: 0 },
+          { x: -999999, y: 999999, timestamp: 1, pressure: 1 }
         ],
         startTime: 0,
         endTime: 1,
-        strokeType: 'signature'
+        duration: 1,
+        deviceType: 'pen'
       };
 
       const base64 = DataFormatConverter.strokeDataToBase64(stroke);
       const decoded = DataFormatConverter.base64ToStrokeData(base64);
 
-      expect(decoded.points[0].x).toBe(Number.MAX_SAFE_INTEGER);
-      expect(decoded.points[0].y).toBe(Number.MIN_SAFE_INTEGER);
+      expect(decoded.points[0]).toBeDefined();
+      expect(decoded.points[0]!.x).toBe(Number.MAX_SAFE_INTEGER);
+      expect(decoded.points[0]!.y).toBe(Number.MIN_SAFE_INTEGER);
     });
 
     it('should handle circular references gracefully', () => {

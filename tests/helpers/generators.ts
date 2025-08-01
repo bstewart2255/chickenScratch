@@ -1,5 +1,5 @@
 import { 
-  BiometricData, 
+  TestBiometricData, 
   User, 
   DeviceCapabilities,
   StrokeData,
@@ -35,7 +35,7 @@ export class TestDataGenerator {
     return {
       x: Math.random() * 500,
       y: Math.random() * 300,
-      time: Date.now(),
+      timestamp: Date.now(),
       pressure: Math.random(),
       ...overrides
     };
@@ -49,7 +49,7 @@ export class TestDataGenerator {
       points.push({
         x: 100 + i * 10 + (Math.random() - 0.5) * 5,
         y: 100 + Math.sin(i * 0.5) * 50 + (Math.random() - 0.5) * 5,
-        time: startTime + i * 50,
+        timestamp: startTime + i * 50,
         pressure: 0.5 + Math.random() * 0.5
       });
     }
@@ -79,7 +79,7 @@ export class TestDataGenerator {
     };
   }
 
-  static generateBiometricData(overrides: Partial<BiometricData> = {}): BiometricData {
+  static generateBiometricData(overrides: Partial<TestBiometricData> = {}): TestBiometricData {
     const strokes = [
       this.generateStrokeData(),
       this.generateStrokeData(),
@@ -100,15 +100,19 @@ export class TestDataGenerator {
 
   static generateDeviceCapabilities(overrides: Partial<DeviceCapabilities> = {}): DeviceCapabilities {
     return {
-      hasTouchSupport: true,
-      hasPressureSupport: true,
-      hasPointerSupport: true,
-      maxTouchPoints: 10,
+      supportsPressure: true,
+      supportsTouch: true,
+      inputMethod: 'touch',
       pointerTypes: ['touch', 'pen', 'mouse'],
-      pixelRatio: 2,
-      screenSize: { width: 1920, height: 1080 },
-      userAgent: 'Mozilla/5.0 Test Browser',
-      platform: 'Test Platform',
+      browser: 'Mozilla/5.0 Test Browser',
+      os: 'Test Platform',
+      devicePixelRatio: 2,
+      canvasSupport: {
+        basic: true,
+        webgl: true,
+        webgl2: true,
+        offscreenCanvas: false
+      },
       ...overrides
     };
   }
@@ -183,7 +187,7 @@ export class TestDataGenerator {
     ];
   }
 
-  static generatePerformanceTestData(size: 'small' | 'medium' | 'large'): BiometricData[] {
+  static generatePerformanceTestData(size: 'small' | 'medium' | 'large'): TestBiometricData[] {
     const counts = {
       small: 10,
       medium: 100,

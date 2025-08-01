@@ -14,6 +14,10 @@ process.env['DB_NAME'] = 'signature_auth_test';
 process.env['DB_USER'] = 'postgres';
 process.env['DB_PASSWORD'] = 'postgres';
 process.env['PGUSER'] = 'postgres';
+process.env['PGPASSWORD'] = 'postgres';
+process.env['PGHOST'] = 'localhost';
+process.env['PGPORT'] = '5432';
+process.env['PGDATABASE'] = 'signature_auth_test';
 
 // Mock console methods to reduce noise during tests
 global.console = {
