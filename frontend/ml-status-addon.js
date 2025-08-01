@@ -55,53 +55,53 @@ async function checkBackendMLUsage() {
 
 // Updated startRetraining function
 // async function _startRetraining() {
-    const progressDiv = document.getElementById('retrainProgress');
-    const progressBar = document.getElementById('retrainProgressBar');
-    const statusText = document.getElementById('retrainStatus');
-    const startBtn = document.getElementById('startRetrainBtn');
-    
-    progressDiv.style.display = 'block';
-    startBtn.style.display = 'none';
-    
-    // Simulate retraining process
-    const steps = [
-        { progress: 10, status: 'Exporting signature data from database...' },
-        { progress: 30, status: 'Preparing training data...' },
-        { progress: 50, status: 'Training Random Forest model...' },
-        { progress: 70, status: 'Evaluating model performance...' },
-        { progress: 90, status: 'Saving model artifacts...' },
-        { progress: 100, status: 'Retraining complete!' }
-    ];
-    
-    for (const step of steps) {
-        progressBar.style.width = step.progress + '%';
-        statusText.textContent = step.status;
-        await new Promise(resolve => setTimeout(resolve, 1500));
-    }
-    
-    // Show completion message with instructions
-    statusText.innerHTML = `
-        <div style="text-align: left; font-size: 14px; line-height: 1.6;">
-            <strong>✅ Simulation Complete!</strong><br><br>
-            To actually retrain the model:<br>
-            1. SSH to your server<br>
-            2. Navigate to: <code>cd ml-model</code><br>
-            3. Run: <code>./retrain_model.sh</code><br><br>
-            Or locally:<br>
-            <code>cd ml-model && ./retrain_model.sh</code>
-        </div>
-    `;
-    
-    // Update button to close
-    setTimeout(() => {
-        startBtn.textContent = 'Close';
-        startBtn.style.display = 'inline-block';
-        startBtn.onclick = closeRetrainModal;
-    }, 1000);
-    
-    // Check ML status after "retraining"
-    checkMLStatus();
-}
+//     const progressDiv = document.getElementById('retrainProgress');
+//     const progressBar = document.getElementById('retrainProgressBar');
+//     const statusText = document.getElementById('retrainStatus');
+//     const startBtn = document.getElementById('startRetrainBtn');
+//     
+//     progressDiv.style.display = 'block';
+//     startBtn.style.display = 'none';
+//     
+//     // Simulate retraining process
+//     const steps = [
+//         { progress: 10, status: 'Exporting signature data from database...' },
+//         { progress: 30, status: 'Preparing training data...' },
+//         { progress: 50, status: 'Training Random Forest model...' },
+//         { progress: 70, status: 'Evaluating model performance...' },
+//         { progress: 90, status: 'Saving model artifacts...' },
+//         { progress: 100, status: 'Retraining complete!' }
+//     ];
+//     
+//     for (const step of steps) {
+//         progressBar.style.width = step.progress + '%';
+//         statusText.textContent = step.status;
+//         await new Promise(resolve => setTimeout(resolve, 1500));
+//     }
+//     
+//     // Show completion message with instructions
+//     statusText.innerHTML = `
+//         <div style="text-align: left; font-size: 14px; line-height: 1.6;">
+//             <strong>✅ Simulation Complete!</strong><br><br>
+//             To actually retrain the model:<br>
+//             1. SSH to your server<br>
+//             2. Navigate to: <code>cd ml-model</code><br>
+//             3. Run: <code>./retrain_model.sh</code><br><br>
+//             Or locally:<br>
+//             <code>cd ml-model && ./retrain_model.sh</code>
+//         </div>
+//     `;
+//     
+//     // Update button to close
+//     setTimeout(() => {
+//         startBtn.textContent = 'Close';
+//         startBtn.style.display = 'inline-block';
+//         startBtn.onclick = closeRetrainModal;
+//     }, 1000);
+//     
+//     // Check ML status after "retraining"
+//     checkMLStatus();
+// }
 
 // Add this to your initialization
 document.addEventListener('DOMContentLoaded', function() {

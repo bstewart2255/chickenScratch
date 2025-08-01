@@ -1,6 +1,6 @@
 require('dotenv').config();
 // const fs = require('fs').promises; // Unused import removed
-const path = require('path');
+// const path = require('path'); // Unused import removed
 const pool = require('./db.js');
 
 async function runPostValidation() {
