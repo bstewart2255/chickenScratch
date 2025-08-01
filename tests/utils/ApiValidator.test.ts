@@ -1,6 +1,7 @@
 import { ApiValidator } from '../../src/utils/ApiValidator';
 import { z } from 'zod';
 import { ErrorHandler } from '../../src/utils/ErrorHandler';
+import { mockRequest, mockResponse, mockNext } from '../helpers/mocks';
 
 // Mock Logger to prevent console output during tests
 jest.mock('../../src/utils/Logger', () => ({
@@ -110,11 +111,11 @@ describe('ApiValidator', () => {
 
     it('should validate request body and add to req.validatedBody', () => {
       const middleware = ApiValidator.validateMiddleware(testSchema, 'test-context');
-      const req: any = { body: { name: 'John Doe', age: 30 } };
-      const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
-      const next = jest.fn();
+      const req = mockRequest({ body: { name: 'John Doe', age: 30 } });
+      const res = mockResponse();
+      const next = mockNext();
       
-      middleware(req, res, next);
+      middleware(req as any, res as any, next);
       
       expect(req.validatedBody).toEqual({ name: 'John Doe', age: 30 });
       expect(next).toHaveBeenCalled();
@@ -123,11 +124,11 @@ describe('ApiValidator', () => {
 
     it('should return error response for invalid body', () => {
       const middleware = ApiValidator.validateMiddleware(testSchema, 'test-context');
-      const req: any = { body: { name: 'J', age: -5 } };
-      const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
-      const next = jest.fn();
+      const req = mockRequest({ body: { name: 'J', age: -5 } });
+      const res = mockResponse();
+      const next = mockNext();
       
-      middleware(req, res, next);
+      middleware(req as any, res as any, next);
       
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({
@@ -153,10 +154,10 @@ describe('ApiValidator', () => {
     it('should validate query parameters and add to req.validatedQuery', () => {
       const middleware = ApiValidator.validateQuery(testSchema, 'test-context');
       const req: any = { query: { name: 'John Doe', age: '30' } };
-      const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
-      const next = jest.fn();
+      const res = mockResponse();
+      const next = mockNext();
       
-      middleware(req, res, next);
+      middleware(req as any, res as any, next);
       
       expect(req.validatedQuery).toEqual({ name: 'John Doe', age: 30 });
       expect(next).toHaveBeenCalled();
@@ -165,10 +166,10 @@ describe('ApiValidator', () => {
     it('should handle string numbers in query params', () => {
       const middleware = ApiValidator.validateQuery(testSchema, 'test-context');
       const req: any = { query: { name: 'John Doe', age: '30' } };
-      const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
-      const next = jest.fn();
+      const res = mockResponse();
+      const next = mockNext();
       
-      middleware(req, res, next);
+      middleware(req as any, res as any, next);
       
       expect(req.validatedQuery.age).toBe(30); // Should be converted to number
       expect(next).toHaveBeenCalled();
@@ -185,10 +186,10 @@ describe('ApiValidator', () => {
     it('should validate URL parameters and add to req.validatedParams', () => {
       const middleware = ApiValidator.validateParams(testSchema, 'test-context');
       const req: any = { params: { name: 'John Doe', age: '30' } };
-      const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
-      const next = jest.fn();
+      const res = mockResponse();
+      const next = mockNext();
       
-      middleware(req, res, next);
+      middleware(req as any, res as any, next);
       
       expect(req.validatedParams).toEqual({ name: 'John Doe', age: 30 });
       expect(next).toHaveBeenCalled();
@@ -207,11 +208,11 @@ describe('ApiValidator', () => {
       // This is a private method, so we test it indirectly through validateRequestSafe
       const middleware = ApiValidator.validateMiddleware(testSchema, 'test-context');
       const req: any = { body: sensitiveData };
-      const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
-      const next = jest.fn();
+      const res = mockResponse();
+      const next = mockNext();
       
       // This should trigger validation error and log sanitized data
-      middleware(req, res, next);
+      middleware(req as any, res as any, next);
       
       expect(res.status).toHaveBeenCalledWith(400);
       expect(next).not.toHaveBeenCalled();

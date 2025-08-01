@@ -127,8 +127,8 @@ describe('Runtime Validation Integration', () => {
       );
 
       expect(validatedResponse).toEqual(response);
-      expect(validatedResponse.data.enrollmentId).toBe(enrollmentResult.enrollmentId);
-      expect(validatedResponse.data.confidence).toBe(enrollmentResult.confidence);
+      expect(validatedResponse.data?.enrollmentId).toBe(enrollmentResult.enrollmentId);
+      expect(validatedResponse.data?.confidence).toBe(enrollmentResult.confidence);
     });
 
     it('should handle invalid biometric enrollment request with proper error handling', () => {
@@ -266,7 +266,7 @@ describe('Runtime Validation Integration', () => {
       expect(convertedError).toBeInstanceOf(DatabaseError);
       expect(convertedError.message).toBe('Duplicate entry');
       expect(convertedError.operation).toBe('DB_OPERATION');
-      expect(convertedError.context?.code).toBe('DUPLICATE_ENTRY');
+      expect(convertedError.context?.['code']).toBe('DUPLICATE_ENTRY');
 
       const errorResponse = ErrorHandler.createErrorResponse(convertedError);
       expect(errorResponse.statusCode).toBe(500);
@@ -426,7 +426,7 @@ describe('Runtime Validation Integration', () => {
       );
 
       expect(validatedResponse).toEqual(responseData);
-      expect(validatedResponse.data.userId).toBe(processedData.id);
+      expect(validatedResponse.data?.userId).toBe(processedData.id);
     });
 
     it('should handle validation failures at all boundaries', () => {

@@ -1,6 +1,6 @@
 import { BiometricEngine } from '../../../../backend/BiometricEngine';
 import { TestDataGenerator } from '../../../helpers/generators';
-import { BiometricData, StrokeData, Point } from '../../../../src/types/index';
+import { StrokeData, Point } from '../../../../src/types/index';
 
 describe('BiometricEngine', () => {
   let engine: BiometricEngine;
@@ -13,7 +13,7 @@ describe('BiometricEngine', () => {
   describe('extractFeatures', () => {
     it('should extract features from valid biometric data', () => {
       const biometricData = TestDataGenerator.generateBiometricData();
-      const features = engine.extractFeatures(biometricData);
+      const features = engine.extractAllFeatures(biometricData);
 
       expect(features).toBeDefined();
       expect(features.strokeCount).toBeGreaterThan(0);
@@ -32,7 +32,7 @@ describe('BiometricEngine', () => {
         strokes: []
       });
       
-      const features = engine.extractFeatures(biometricData);
+      const features = engine.extractAllFeatures(biometricData);
       
       expect(features.strokeCount).toBe(0);
       expect(features.totalDuration).toBe(0);
@@ -47,13 +47,13 @@ describe('BiometricEngine', () => {
       const biometricData = TestDataGenerator.generateBiometricData({
         strokes: [{
           points: [singlePoint],
-          startTime: singlePoint.time,
-          endTime: singlePoint.time,
+          startTime: singlePoint.time || Date.now(),
+          endTime: singlePoint.time || Date.now(),
           strokeType: 'signature'
         }]
       });
 
-      const features = engine.extractFeatures(biometricData);
+      const features = engine.extractAllFeatures(biometricData);
       
       expect(features.strokeCount).toBe(1);
       expect(features.avgPressure).toBe(singlePoint.pressure);
@@ -76,7 +76,7 @@ describe('BiometricEngine', () => {
         }]
       });
 
-      const features = engine.extractFeatures(biometricData);
+      const features = engine.extractAllFeatures(biometricData);
       expect(features.strokeLengths[0]).toBeCloseTo(5, 2);
     });
 
@@ -85,7 +85,7 @@ describe('BiometricEngine', () => {
         strokes: TestDataGenerator.generateEdgeCaseStrokes()
       });
 
-      const features = engine.extractFeatures(biometricData);
+      const features = engine.extractAllFeatures(biometricData);
       
       expect(features.avgPressure).toBeGreaterThanOrEqual(0);
       expect(features.avgPressure).toBeLessThanOrEqual(1);
