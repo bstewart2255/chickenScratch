@@ -1,4 +1,4 @@
-import { DatabaseService } from '../../../../backend/DatabaseService';
+import { DatabaseService, databaseService } from '../../../../backend/DatabaseService';
 import { TestDataGenerator } from '../../../helpers/generators';
 import { Pool } from 'pg';
 

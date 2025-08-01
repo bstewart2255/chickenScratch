@@ -287,6 +287,24 @@ export class ApiClient {
   setApiUrl(url: string) {
     this.baseUrl = url;
   }
+
+  /**
+   * Health check endpoint
+   */
+  async healthCheck() {
+    return this.request('/api/health', {
+      method: 'GET'
+    });
+  }
+
+  /**
+   * Get user data by ID
+   */
+  async getUserData(userId: string) {
+    return this.request(`/api/users/${userId}`, {
+      method: 'GET'
+    });
+  }
 }
 
 // Export singleton instance for convenience
