@@ -44,11 +44,11 @@ class DatabaseService {
     }
     
     // Additional check for environment contamination
-    if (!process.env.DB_USER && !process.env.PGUSER && process.env.USER === 'root') {
+    if (!process.env['DB_USER'] && !process.env['PGUSER'] && process.env['USER'] === 'root') {
       logger.warn('⚠️  WARNING: OS user is root and no explicit DB_USER is set', {
-        OS_USER: process.env.USER,
-        DB_USER: process.env.DB_USER || 'not set',
-        PGUSER: process.env.PGUSER || 'not set'
+        OS_USER: process.env['USER'],
+        DB_USER: process.env['DB_USER'] || 'not set',
+        PGUSER: process.env['PGUSER'] || 'not set'
       });
     }
     
