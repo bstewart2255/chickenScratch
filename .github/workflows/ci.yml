@@ -16,6 +16,16 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x, 20.x]
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/signature_auth_test
+      NODE_ENV: test
+      API_SECRET_KEY: test-secret-key
+      PGUSER: postgres
+      DB_USER: postgres
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_NAME: signature_auth_test
+      DB_PASSWORD: postgres
     services:
       postgres:
         image: postgres:14
@@ -85,27 +95,9 @@ jobs:
         run: npm run type-check
 
       - name: Check database configuration
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/signature_auth_test
-          PGUSER: postgres
-          DB_USER: postgres
-          DB_HOST: localhost
-          DB_PORT: 5432
-          DB_NAME: signature_auth_test
-          DB_PASSWORD: postgres
         run: npm run db:check-config
 
       - name: Run tests with coverage
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/signature_auth_test
-          NODE_ENV: test
-          API_SECRET_KEY: test-secret-key
-          PGUSER: postgres
-          DB_USER: postgres
-          DB_HOST: localhost
-          DB_PORT: 5432
-          DB_NAME: signature_auth_test
-          DB_PASSWORD: postgres
         run: npm run test:coverage
 
       - name: Upload coverage reports
