@@ -85,10 +85,13 @@ function validateEnvironment() {
   const effectiveUser = process.env.DB_USER || 
                        process.env.PGUSER || 
                        (process.env.DATABASE_URL ? new URL(process.env.DATABASE_URL).username : null) ||
-                       process.env.USER ||
-                       'postgres';
+                       'postgres'; // Default to postgres instead of process.env.USER
 
   console.log(`\n📋 Effective database user: ${effectiveUser}`);
+  console.log(`📋 OS USER: ${process.env.USER || 'not set'}`);
+  console.log(`📋 DB_USER: ${process.env.DB_USER || 'not set'}`);
+  console.log(`📋 PGUSER: ${process.env.PGUSER || 'not set'}`);
+  console.log(`📋 DATABASE_URL user: ${process.env.DATABASE_URL ? new URL(process.env.DATABASE_URL).username : 'not set'}`);
 
   if (effectiveUser === 'root') {
     console.error('\n❌ CRITICAL: Database will attempt to connect as "root" user!');

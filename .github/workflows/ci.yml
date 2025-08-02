@@ -76,13 +76,49 @@ jobs:
             echo "✅ DB_NAME is correct for test environment"
           fi
           echo ""
-          echo "=== Checking for root user ==="
-          if [[ "$USER" == "root" ]]; then
-            echo "WARNING: OS USER is root"
-          fi
-          if [[ "$DB_USER" == "root" ]] || [[ "$PGUSER" == "root" ]] || [[ "$POSTGRES_USER" == "root" ]]; then
-            echo "ERROR: Database user is set to root!"
+          echo "=== Root User Check ==="
+          echo "Checking if any database user variables are set to 'root':"
+          if [[ "$DB_USER" == "root" ]]; then
+            echo "❌ ERROR: DB_USER is set to 'root'"
             exit 1
+          elif [[ "$DB_USER" != "" ]]; then
+            echo "✅ DB_USER is set to '$DB_USER' (not root)"
+          else
+            echo "⚠️  DB_USER is not set"
+          fi
+          
+          if [[ "$PGUSER" == "root" ]]; then
+            echo "❌ ERROR: PGUSER is set to 'root'"
+            exit 1
+          elif [[ "$PGUSER" != "" ]]; then
+            echo "✅ PGUSER is set to '$PGUSER' (not root)"
+          else
+            echo "⚠️  PGUSER is not set"
+          fi
+          
+          if [[ "$POSTGRES_USER" == "root" ]]; then
+            echo "❌ ERROR: POSTGRES_USER is set to 'root'"
+            exit 1
+          elif [[ "$POSTGRES_USER" != "" ]]; then
+            echo "✅ POSTGRES_USER is set to '$POSTGRES_USER' (not root)"
+          else
+            echo "⚠️  POSTGRES_USER is not set"
+          fi
+          
+          echo ""
+          echo "=== DATABASE_URL Analysis ==="
+          if [[ -n "$DATABASE_URL" ]]; then
+            if echo "$DATABASE_URL" | grep -q "://root@"; then
+              echo "❌ ERROR: DATABASE_URL contains 'root' user!"
+              exit 1
+            else
+              echo "✅ DATABASE_URL does not contain 'root' user"
+              # Extract username from DATABASE_URL
+              USERNAME=$(echo "$DATABASE_URL" | sed -n 's/.*:\/\/\([^:]*\):.*/\1/p')
+              echo "📋 DATABASE_URL username: $USERNAME"
+            fi
+          else
+            echo "⚠️  DATABASE_URL is not set"
           fi
 
       - name: Setup Node.js ${{ matrix.node-version }}
