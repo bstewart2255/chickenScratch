@@ -78,14 +78,22 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Check database configuration
-        run: npm run db:check-config
-
       - name: Run linter
         run: npm run lint
 
       - name: Run type check (permissive)
         run: npm run type-check
+
+      - name: Check database configuration
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/signature_auth_test
+          PGUSER: postgres
+          DB_USER: postgres
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: signature_auth_test
+          DB_PASSWORD: postgres
+        run: npm run db:check-config
 
       - name: Run tests with coverage
         env:
