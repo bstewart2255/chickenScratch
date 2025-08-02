@@ -279,6 +279,14 @@ class ConfigService {
     if (databaseUrl) {
       try {
         const url = new URL(databaseUrl);
+        
+        // CRITICAL: Prevent root user from DATABASE_URL
+        if (url.username === 'root') {
+          console.error('❌ ERROR: DATABASE_URL contains "root" user!');
+          console.error('Please update your DATABASE_URL to use a non-root user (e.g., "postgres")');
+          process.exit(1);
+        }
+        
         return {
           host: url.hostname,
           port: url.port ? parseInt(url.port, 10) : defaults.port,
@@ -302,11 +310,20 @@ class ConfigService {
     }
     
     // Fall back to individual environment variables
+    const user = getEnv('DB_USER') || getEnv('PGUSER') || defaults.user;
+    
+    // CRITICAL: Prevent root user from individual variables
+    if (user === 'root') {
+      console.error('❌ ERROR: Database user is set to "root"!');
+      console.error('Please set DB_USER or PGUSER to a non-root user (e.g., "postgres")');
+      process.exit(1);
+    }
+    
     return {
       host: getEnv('DB_HOST') || defaults.host,
       port: getEnv('DB_PORT') ? parseInt(getEnv('DB_PORT')!, 10) : defaults.port,
       database: getEnv('DB_NAME') || defaults.database,
-      user: getEnv('DB_USER') || defaults.user,
+      user: user,
       password: getEnv('DB_PASSWORD') || defaults.password,
       ssl: getEnv('DB_SSL') === 'true',
       maxConnections: getEnv('DB_MAX_CONNECTIONS') 

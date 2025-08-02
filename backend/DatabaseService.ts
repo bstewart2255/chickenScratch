@@ -32,17 +32,6 @@ class DatabaseService {
     // Initialize connection pool with configuration
     const dbConfig = config.getDatabase();
     
-    // Validate database user is not 'root'
-    if (dbConfig.user === 'root') {
-      const error = new Error('Database connection attempted with "root" user is not allowed');
-      logger.error('❌ CRITICAL: Attempted to connect as root user', {
-        user: dbConfig.user,
-        host: dbConfig.host,
-        database: dbConfig.database
-      });
-      throw error;
-    }
-    
     // Additional check for environment contamination
     if (!process.env['DB_USER'] && !process.env['PGUSER'] && process.env['USER'] === 'root') {
       logger.warn('⚠️  WARNING: OS user is root and no explicit DB_USER is set', {
@@ -50,6 +39,35 @@ class DatabaseService {
         DB_USER: process.env['DB_USER'] || 'not set',
         PGUSER: process.env['PGUSER'] || 'not set'
       });
+    }
+    
+    // CRITICAL: Validate database user is not 'root'
+    if (dbConfig.user === 'root') {
+      logger.error('❌ CRITICAL: Database user is set to "root"!', {
+        user: dbConfig.user,
+        host: dbConfig.host,
+        database: dbConfig.database,
+        DATABASE_URL: process.env['DATABASE_URL'] ? 'set' : 'not set',
+        DB_USER: process.env['DB_USER'] || 'not set',
+        PGUSER: process.env['PGUSER'] || 'not set'
+      });
+      throw new DatabaseError('Database user cannot be "root". Please set DB_USER or PGUSER to a non-root user (e.g., "postgres")', 'CONFIG_ERROR');
+    }
+    
+    // Additional validation for DATABASE_URL if present
+    if (process.env['DATABASE_URL']) {
+      try {
+        const url = new URL(process.env['DATABASE_URL']);
+        if (url.username === 'root') {
+          logger.error('❌ CRITICAL: DATABASE_URL contains "root" user!', {
+            DATABASE_URL: process.env['DATABASE_URL'].replace(/\/\/.*@/, '//***:***@'), // Mask credentials
+            parsed_user: url.username
+          });
+          throw new DatabaseError('DATABASE_URL contains "root" user. Please update to use a non-root user', 'CONFIG_ERROR');
+        }
+      } catch (error) {
+        logger.warn('Could not parse DATABASE_URL for validation', { error: String(error) });
+      }
     }
     
     this.pool = new Pool({

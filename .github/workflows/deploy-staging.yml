@@ -37,11 +37,36 @@ jobs:
           npm run build
           echo "Build completed at $(date)"
 
+      - name: Debug Database Configuration
+        run: |
+          echo "=== Database Configuration Debug ==="
+          echo "DATABASE_URL (from vars): ${{ vars.DATABASE_URL }}"
+          echo "STAGING_DATABASE_URL (from secrets): ${{ secrets.STAGING_DATABASE_URL }}"
+          echo "DB_USER: ${DB_USER:-Not set}"
+          echo "PGUSER: ${PGUSER:-Not set}"
+          echo "USER: ${USER:-Not set}"
+
+      - name: Validate Database Configuration
+        run: |
+          if [[ -z "${{ vars.DATABASE_URL }}" ]]; then
+            echo "❌ ERROR: DATABASE_URL variable is not set!"
+            echo "Please set the DATABASE_URL variable in your repository settings"
+            exit 1
+          fi
+          
+          if echo "${{ vars.DATABASE_URL }}" | grep -q "://root@"; then
+            echo "❌ ERROR: DATABASE_URL contains 'root' user!"
+            exit 1
+          fi
+          
+          echo "✅ Database configuration validated"
+
       - name: Run database migrations
         env:
-          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+          DATABASE_URL: ${{ vars.DATABASE_URL }}
         run: |
           echo "Running database migrations..."
+          echo "Using DATABASE_URL: $DATABASE_URL"
           npm run db:migrate
 
       - name: Create deployment package
