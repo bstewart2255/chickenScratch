@@ -31,6 +31,27 @@ class DatabaseService {
   constructor() {
     // Initialize connection pool with configuration
     const dbConfig = config.getDatabase();
+    
+    // Validate database user is not 'root'
+    if (dbConfig.user === 'root') {
+      const error = new Error('Database connection attempted with "root" user is not allowed');
+      logger.error('❌ CRITICAL: Attempted to connect as root user', {
+        user: dbConfig.user,
+        host: dbConfig.host,
+        database: dbConfig.database
+      });
+      throw error;
+    }
+    
+    // Additional check for environment contamination
+    if (!process.env.DB_USER && !process.env.PGUSER && process.env.USER === 'root') {
+      logger.warn('⚠️  WARNING: OS user is root and no explicit DB_USER is set', {
+        OS_USER: process.env.USER,
+        DB_USER: process.env.DB_USER || 'not set',
+        PGUSER: process.env.PGUSER || 'not set'
+      });
+    }
+    
     this.pool = new Pool({
       host: dbConfig.host,
       port: dbConfig.port,

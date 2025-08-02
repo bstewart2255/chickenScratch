@@ -35,6 +35,31 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Debug Environment Variables
+        run: |
+          echo "=== OS Environment ==="
+          echo "USER: $USER"
+          echo "HOME: $HOME"
+          echo "SHELL: $SHELL"
+          echo ""
+          echo "=== Database Environment Variables ==="
+          echo "DATABASE_URL: ${DATABASE_URL:-Not set}"
+          echo "DB_USER: ${DB_USER:-Not set}"
+          echo "DB_HOST: ${DB_HOST:-Not set}"
+          echo "DB_PORT: ${DB_PORT:-Not set}"
+          echo "DB_NAME: ${DB_NAME:-Not set}"
+          echo "PGUSER: ${PGUSER:-Not set}"
+          echo "POSTGRES_USER: ${POSTGRES_USER:-Not set}"
+          echo ""
+          echo "=== Checking for root user ==="
+          if [[ "$USER" == "root" ]]; then
+            echo "WARNING: OS USER is root"
+          fi
+          if [[ "$DB_USER" == "root" ]] || [[ "$PGUSER" == "root" ]] || [[ "$POSTGRES_USER" == "root" ]]; then
+            echo "ERROR: Database user is set to root!"
+            exit 1
+          fi
+
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
@@ -45,10 +70,10 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('**/package-lock.json') }}-v2
           restore-keys: |
-            ${{ runner.os }}-node-${{ matrix.node-version }}-
-            ${{ runner.os }}-node-
+            ${{ runner.os }}-node-${{ matrix.node-version }}-v2
+            ${{ runner.os }}-node-v2
 
       - name: Install dependencies
         run: npm ci
