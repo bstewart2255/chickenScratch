@@ -62,7 +62,8 @@ async function runMigration() {
     let lastProcessedId = 0;
     const batchSize = 20;
     
-    while (true) {
+    let hasMoreRecords = true;
+    while (hasMoreRecords) {
       // Get next batch
       const batch = await client.query(`
         SELECT id 
@@ -75,6 +76,7 @@ async function runMigration() {
       `, [lastProcessedId, batchSize]);
       
       if (batch.rows.length === 0) {
+        hasMoreRecords = false;
         break;
       }
       

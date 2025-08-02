@@ -528,7 +528,9 @@
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
     
     <!-- Load device capability detection -->
-    <script src="device-capabilities.js"></script>
+    <!-- TypeScript compiled modules -->
+    <script type="module" src="../dist/frontend/frontend/DeviceCapabilityDetector.js"></script>
+    <script src="device-capabilities.js"></script> <!-- Fallback for compatibility -->
     
     <script>
         // API URL configuration - adjust based on environment

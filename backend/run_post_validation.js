@@ -1,6 +1,6 @@
 require('dotenv').config();
-const fs = require('fs').promises;
-const path = require('path');
+// const fs = require('fs').promises; // Unused import removed
+// const path = require('path'); // Unused import removed
 const pool = require('./db.js');
 
 async function runPostValidation() {
@@ -8,8 +8,8 @@ async function runPostValidation() {
     
     try {
         // Read the post-validation SQL file
-        const sqlFile = path.join(__dirname, 'phase2', 'post_validation_queries.sql');
-        const sqlContent = await fs.readFile(sqlFile, 'utf8');
+        // const sqlFile = path.join(__dirname, 'phase2', 'post_validation_queries.sql'); // Unused variable removed
+        // const sqlContent = await fs.readFile(sqlFile, 'utf8'); // Unused variable removed
         
         // Run key post-validation queries manually
         const keyQueries = [

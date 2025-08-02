@@ -62,7 +62,7 @@ function calculateStandardizedMetrics(strokeData) {
         }
 
         validStrokes++;
-        let strokeDistance = 0;
+        // let strokeDistance = 0;
         let prevPoint = null;
 
         // Process each point in the stroke
@@ -111,7 +111,7 @@ function calculateStandardizedMetrics(strokeData) {
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 
                 if (!isNaN(distance) && isFinite(distance)) {
-                    strokeDistance += distance;
+                    // strokeDistance += distance;
                     totalDistance += distance;
                 }
             }

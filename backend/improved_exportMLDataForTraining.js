@@ -12,7 +12,7 @@ const pool = new Pool({
 
 // Configuration
 const OUTPUT_DIR = path.join(__dirname, '..', 'ml-model', 'data');
-const BATCH_SIZE = 100;
+// const BATCH_SIZE = 100;
 
 // Validate metrics quality
 function validateMetrics(metrics) {

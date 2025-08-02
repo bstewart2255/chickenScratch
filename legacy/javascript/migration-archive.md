@@ -1,0 +1,148 @@
+# JavaScript Archive
+
+This directory contains the original JavaScript files archived during the TypeScript migration.
+Migration completed on: Thu Jul 31 23:25:25 PDT 2025
+
+## Archive Structure
+- backend/ - Backend server and service files
+- frontend/ - Frontend application files  
+- scripts/ - Build and utility scripts
+- tests/ - Test files
+
+## File Mapping
+The following files were archived:
+
+- backend/test-enhanced-features.js -> legacy/javascript/backend/test-enhanced-features.js
+- backend/test-signature-extraction.js -> legacy/javascript/backend/test-signature-extraction.js
+- backend/test-registration-fix.js -> legacy/javascript/backend/test-registration-fix.js
+- backend/setup_monitoring.js -> legacy/javascript/backend/setup_monitoring.js
+- backend/test-component-scoring-fix.js -> legacy/javascript/backend/test-component-scoring-fix.js
+- backend/verifyTables.js -> legacy/javascript/backend/verifyTables.js
+- backend/clean_training_data.js -> legacy/javascript/backend/clean_training_data.js
+- backend/validate-stroke-data-flow.js -> legacy/javascript/backend/validate-stroke-data-flow.js
+- backend/exportMLData.js -> legacy/javascript/backend/exportMLData.js
+- backend/run_stroke_migration.js -> legacy/javascript/backend/run_stroke_migration.js
+- backend/execute_migration.js -> legacy/javascript/backend/execute_migration.js
+- backend/updateDatabase.js -> legacy/javascript/backend/updateDatabase.js
+- backend/debug-shape-scores.js -> legacy/javascript/backend/debug-shape-scores.js
+- backend/final_verification.js -> legacy/javascript/backend/final_verification.js
+- backend/verify-enhanced-features-schema.js -> legacy/javascript/backend/verify-enhanced-features-schema.js
+- backend/testUserDetails.js -> legacy/javascript/backend/testUserDetails.js
+- backend/test-stroke-storage-realistic.js -> legacy/javascript/backend/test-stroke-storage-realistic.js
+- backend/server.js -> legacy/javascript/backend/server.js
+- backend/db.js -> legacy/javascript/backend/db.js
+- backend/exportMLDataForTraining.js -> legacy/javascript/backend/exportMLDataForTraining.js
+- backend/updateMLFeatures.js -> legacy/javascript/backend/updateMLFeatures.js
+- backend/run_pre_validation.js -> legacy/javascript/backend/run_pre_validation.js
+- backend/test-apex-sharpness-fix.js -> legacy/javascript/backend/test-apex-sharpness-fix.js
+- backend/phase2/test_all_components.js -> legacy/javascript/backend/phase2/test_all_components.js
+- backend/phase2/metrics_calculation_service.js -> legacy/javascript/backend/phase2/metrics_calculation_service.js
+- backend/phase2/batch_processing_script.js -> legacy/javascript/backend/phase2/batch_processing_script.js
+- backend/verifyMetrics.js -> legacy/javascript/backend/verifyMetrics.js
+- backend/test-enhanced-features-collection.js -> legacy/javascript/backend/test-enhanced-features-collection.js
+- backend/test-stroke-storage.js -> legacy/javascript/backend/test-stroke-storage.js
+- backend/run-migration.js -> legacy/javascript/backend/run-migration.js
+- backend/fixVelocityBaselines.js -> legacy/javascript/backend/fixVelocityBaselines.js
+- backend/pre-migration-validator.js -> legacy/javascript/backend/pre-migration-validator.js
+- backend/comprehensiveVelocityFix.js -> legacy/javascript/backend/comprehensiveVelocityFix.js
+- backend/test-enhanced-integration.js -> legacy/javascript/backend/test-enhanced-integration.js
+- backend/test-stroke-extraction-fix.js -> legacy/javascript/backend/test-stroke-extraction-fix.js
+- backend/component-specific-features.js -> legacy/javascript/backend/component-specific-features.js
+- backend/run_post_validation.js -> legacy/javascript/backend/run_post_validation.js
+- backend/run-all-stroke-tests.js -> legacy/javascript/backend/run-all-stroke-tests.js
+- backend/check_tables.js -> legacy/javascript/backend/check_tables.js
+- backend/create_backup.js -> legacy/javascript/backend/create_backup.js
+- backend/test-enhanced-features-fallback.js -> legacy/javascript/backend/test-enhanced-features-fallback.js
+- backend/check_migration_status.js -> legacy/javascript/backend/check_migration_status.js
+- backend/update_to_stroke_storage.js -> legacy/javascript/backend/update_to_stroke_storage.js
+- backend/run_query.js -> legacy/javascript/backend/run_query.js
+- backend/checkData.js -> legacy/javascript/backend/checkData.js
+- backend/monitor-stroke-system.js -> legacy/javascript/backend/monitor-stroke-system.js
+- backend/check_auth_attempts.js -> legacy/javascript/backend/check_auth_attempts.js
+- backend/mlComparison.js -> legacy/javascript/backend/mlComparison.js
+- backend/test-auth-with-scoring.js -> legacy/javascript/backend/test-auth-with-scoring.js
+- backend/check_shapes_columns.js -> legacy/javascript/backend/check_shapes_columns.js
+- backend/pre-deploy-check.js -> legacy/javascript/backend/pre-deploy-check.js
+- backend/investigation.js -> legacy/javascript/backend/investigation.js
+- backend/run_enrollment_migration.js -> legacy/javascript/backend/run_enrollment_migration.js
+- backend/test-stroke-integration.js -> legacy/javascript/backend/test-stroke-integration.js
+- backend/server-typescript.js -> legacy/javascript/backend/server-typescript.js
+- backend/run_migration.js -> legacy/javascript/backend/run_migration.js
+- backend/run_backup_simple.js -> legacy/javascript/backend/run_backup_simple.js
+- backend/run-nullable-migration.js -> legacy/javascript/backend/run-nullable-migration.js
+- backend/run_migrations.js -> legacy/javascript/backend/run_migrations.js
+- backend/improved_exportMLDataForTraining.js -> legacy/javascript/backend/improved_exportMLDataForTraining.js
+- backend/migrate-drawing-data.js -> legacy/javascript/backend/migrate-drawing-data.js
+- backend/run_backup_corrected.js -> legacy/javascript/backend/run_backup_corrected.js
+- backend/test_enrollment_fix.js -> legacy/javascript/backend/test_enrollment_fix.js
+- backend/benchmark-stroke-performance.js -> legacy/javascript/backend/benchmark-stroke-performance.js
+- backend/run_backup.js -> legacy/javascript/backend/run_backup.js
+- backend/run_migration_fixed.js -> legacy/javascript/backend/run_migration_fixed.js
+- backend/drawingVerification.js -> legacy/javascript/backend/drawingVerification.js
+- backend/generate_synthetic_forgeries.js -> legacy/javascript/backend/generate_synthetic_forgeries.js
+- backend/test-real-world-data.js -> legacy/javascript/backend/test-real-world-data.js
+- backend/run_enhanced_features_migration.js -> legacy/javascript/backend/run_enhanced_features_migration.js
+- backend/create_monitoring_views.js -> legacy/javascript/backend/create_monitoring_views.js
+- backend/test-enhanced-features-fix.js -> legacy/javascript/backend/test-enhanced-features-fix.js
+- backend/verify_training_data_balance.js -> legacy/javascript/backend/verify_training_data_balance.js
+- backend/test-drawing-format-fix.js -> legacy/javascript/backend/test-drawing-format-fix.js
+- backend/test-biometric-fixes.js -> legacy/javascript/backend/test-biometric-fixes.js
+- backend/prepare_final_training_data.js -> legacy/javascript/backend/prepare_final_training_data.js
+- backend/investigate-data-inconsistencies.js -> legacy/javascript/backend/investigate-data-inconsistencies.js
+- backend/test-point-format-fix.js -> legacy/javascript/backend/test-point-format-fix.js
+- backend/enhanced-feature-extraction.js -> legacy/javascript/backend/enhanced-feature-extraction.js
+- backend/run-all-tests.js -> legacy/javascript/backend/run-all-tests.js
+- backend/setupDatabase.js -> legacy/javascript/backend/setupDatabase.js
+- backend/investigate_base64_shapes.js -> legacy/javascript/backend/investigate_base64_shapes.js
+- backend/test-component-scoring.js -> legacy/javascript/backend/test-component-scoring.js
+- backend/stroke-to-image.js -> legacy/javascript/backend/stroke-to-image.js
+- frontend/ml-status-addon.js -> legacy/javascript/frontend/ml-status-addon.js
+- frontend/device-capabilities.js -> legacy/javascript/frontend/device-capabilities.js
+- scripts/complete-phase12.js -> legacy/javascript/scripts/complete-phase12.js
+- scripts/init-migration-status.js -> legacy/javascript/scripts/init-migration-status.js
+- scripts/show-migration-status.js -> legacy/javascript/scripts/show-migration-status.js
+- scripts/scripts/MigrationTracker.js -> legacy/javascript/scripts/scripts/MigrationTracker.js
+- scripts/complete-phase11.js -> legacy/javascript/scripts/complete-phase11.js
+- scripts/complete-phase7.js -> legacy/javascript/scripts/complete-phase7.js
+- scripts/monitor-performance.js -> legacy/javascript/scripts/monitor-performance.js
+- scripts/backup/update-backup-index.js -> legacy/javascript/scripts/backup/update-backup-index.js
+- scripts/src/types/database/tables.js -> legacy/javascript/scripts/src/types/database/tables.js
+- scripts/src/types/core/biometric.js -> legacy/javascript/scripts/src/types/core/biometric.js
+- scripts/src/types/core/errors.js -> legacy/javascript/scripts/src/types/core/errors.js
+- scripts/src/types/config/index.js -> legacy/javascript/scripts/src/types/config/index.js
+- scripts/src/types/index.js -> legacy/javascript/scripts/src/types/index.js
+- scripts/src/types/canvas/index.js -> legacy/javascript/scripts/src/types/canvas/index.js
+- scripts/src/types/api/auth.js -> legacy/javascript/scripts/src/types/api/auth.js
+- scripts/src/types/api/schemas.js -> legacy/javascript/scripts/src/types/api/schemas.js
+- scripts/src/types/validation/schemas.js -> legacy/javascript/scripts/src/types/validation/schemas.js
+- tests/backend/test-enhanced-features.js -> legacy/javascript/tests/backend/test-enhanced-features.js
+- tests/backend/test-signature-extraction.js -> legacy/javascript/tests/backend/test-signature-extraction.js
+- tests/backend/test-registration-fix.js -> legacy/javascript/tests/backend/test-registration-fix.js
+- tests/backend/verifyTables.js -> legacy/javascript/tests/backend/verifyTables.js
+- tests/backend/test-component-specific-features-fix.js -> legacy/javascript/tests/backend/test-component-specific-features-fix.js
+- tests/backend/test-stroke-storage-realistic.js -> legacy/javascript/tests/backend/test-stroke-storage-realistic.js
+- tests/backend/verifyMetrics.js -> legacy/javascript/tests/backend/verifyMetrics.js
+- tests/backend/test-stroke-storage.js -> legacy/javascript/tests/backend/test-stroke-storage.js
+- tests/backend/test-enhanced-integration.js -> legacy/javascript/tests/backend/test-enhanced-integration.js
+- tests/backend/run-all-stroke-tests.js -> legacy/javascript/tests/backend/run-all-stroke-tests.js
+- tests/backend/test-auth-with-scoring.js -> legacy/javascript/tests/backend/test-auth-with-scoring.js
+- tests/backend/test-stroke-integration.js -> legacy/javascript/tests/backend/test-stroke-integration.js
+- tests/backend/test-enhanced-features-fix.js -> legacy/javascript/tests/backend/test-enhanced-features-fix.js
+- tests/backend/verify_training_data_balance.js -> legacy/javascript/tests/backend/verify_training_data_balance.js
+- tests/backend/test-drawing-format-fix.js -> legacy/javascript/tests/backend/test-drawing-format-fix.js
+- tests/backend/test-biometric-fixes.js -> legacy/javascript/tests/backend/test-biometric-fixes.js
+- tests/backend/run-all-tests.js -> legacy/javascript/tests/backend/run-all-tests.js
+- tests/backend/test-component-scoring.js -> legacy/javascript/tests/backend/test-component-scoring.js
+- diagnose-dashboard.js -> legacy/javascript/diagnose-dashboard.js
+- jest.config.frontend.js -> legacy/javascript/jest.config.frontend.js
+- jest.config.js -> legacy/javascript/jest.config.js
+- test-house-filtering.js -> legacy/javascript/test-house-filtering.js
+- test-ml-dashboard-fix.js -> legacy/javascript/test-ml-dashboard-fix.js
+- test-ml-dashboard-fixes.js -> legacy/javascript/test-ml-dashboard-fixes.js
+- test-ml-dashboard.js -> legacy/javascript/test-ml-dashboard.js
+- test-regression.js -> legacy/javascript/test-regression.js
+- update-phase8-status.js -> legacy/javascript/update-phase8-status.js
+- updated-api-functions.js -> legacy/javascript/updated-api-functions.js
+
+Total files archived: 131
+Archive completed: Thu Jul 31 23:25:26 PDT 2025

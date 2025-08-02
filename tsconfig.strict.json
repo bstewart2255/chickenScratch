@@ -1,0 +1,53 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // Enable all strict type checking options
+    "strict": true,
+    
+    // Individual strict options (all enabled by "strict": true)
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    
+    // Additional strict checks
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    
+    // Keep allowJs false for strict profile
+    "allowJs": false,
+    "checkJs": false
+  },
+  "include": [
+    // Only include TypeScript files for strict checking
+    "backend/**/*.ts",
+    "frontend/**/*.ts",
+    "scripts/**/*.ts",
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    // Exclude JavaScript files and same exclusions as base
+    "**/*.js",
+    "node_modules",
+    "dist",
+    "coverage",
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "legacy",
+    "Redundant",
+    "docs",
+    "test-*",
+    "phase3",
+    "ml-dashboard-*",
+    ".git",
+    "*.html"
+  ]
+}

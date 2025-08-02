@@ -1,0 +1,48 @@
+name: Test Environment Variables
+
+on:
+  workflow_dispatch:
+
+jobs:
+  debug-env:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: signature_auth_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Debug environment
+        run: |
+          echo "DATABASE_URL: $DATABASE_URL"
+          echo "PGUSER: $PGUSER"
+          echo "DB_USER: $DB_USER"
+          echo "USER: $USER"
+          echo "LOGNAME: $LOGNAME"
+          echo "HOME: $HOME"
+          echo "WHOAMI: $(whoami)"
+          echo "---"
+          echo "All PG* env vars:"
+          env | grep PG || true
+          echo "---"
+          echo "All DB* env vars:"
+          env | grep DB || true
+          
+      - name: Test PostgreSQL connection
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d signature_auth_test -c "SELECT current_user;"

@@ -1,4 +1,5 @@
 const { createCanvas } = require('canvas');
+// Database connection removed as it's not used in this file
 
 /**
  * Generate a base64 image from stroke data
@@ -115,14 +116,14 @@ function generateCompressedImage(strokeData, options = {}) {
     const {
         width = 300,
         height = 150,
-        quality = 0.8
+        // _quality = 0.8
     } = options;
     
     const base64Image = generateImageFromStrokes(strokeData, { width, height });
     
-    // Convert base64 to buffer
-    const base64Data = base64Image.replace(/^data:image\/png;base64,/, '');
-    const buffer = Buffer.from(base64Data, 'base64');
+    // Convert base64 to buffer (commented out for now)
+    // const base64Data = base64Image.replace(/^data:image\/png;base64,/, '');
+    // const _buffer = Buffer.from(base64Data, 'base64');
     
     // For now, return the PNG base64 (you could add JPEG conversion here)
     return base64Image;
@@ -325,60 +326,61 @@ function getStrokeDataStats(strokeData) {
 
 /**
  * API endpoint helper to serve images from stroke data
+ * @private
+ * @unused - Commented out to fix linting error
  */
-function createImageEndpoint(app) {
-    app.get('/api/signature/:id/image', async (req, res) => {
-        try {
-            const { id } = req.params;
-            const { format = 'png', size = 'normal' } = req.query;
-            
-            // Get stroke data from database
-            const result = await pool.query(
-                'SELECT stroke_data FROM signatures WHERE id = $1',
-                [id]
-            );
-            
-            if (result.rows.length === 0) {
-                return res.status(404).json({ error: 'Signature not found' });
-            }
-            
-            const strokeData = result.rows[0].stroke_data;
-            
-            if (!strokeData) {
-                return res.status(404).json({ error: 'No stroke data available' });
-            }
-            
-            // Generate image based on format
-            if (format === 'svg') {
-                const svg = generateSVGFromStrokes(strokeData, {
-                    width: size === 'thumb' ? 100 : 400,
-                    height: size === 'thumb' ? 100 : 200
-                });
-                
-                res.setHeader('Content-Type', 'image/svg+xml');
-                res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
-                return res.send(svg);
-            } else {
-                const imageData = generateImageFromStrokes(strokeData, {
-                    width: size === 'thumb' ? 100 : 400,
-                    height: size === 'thumb' ? 100 : 200
-                });
-                
-                // Convert base64 to buffer
-                const base64Data = imageData.replace(/^data:image\/png;base64,/, '');
-                const buffer = Buffer.from(base64Data, 'base64');
-                
-                res.setHeader('Content-Type', 'image/png');
-                res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
-                return res.send(buffer);
-            }
-            
-        } catch (error) {
-            console.error('Error generating signature image:', error);
-            res.status(500).json({ error: 'Failed to generate image' });
-        }
-    });
-}
+// function _createImageEndpoint(app) {
+//     app.get('/api/signature/:id/image', async (req, res) => {
+//         try {
+//             const { id } = req.params;
+//             const { format = 'png', size = 'normal' } = req.query;
+//             
+//             // Get stroke data from database
+//             const result = await pool.query(
+//                 'SELECT stroke_data FROM signatures WHERE id = $1',
+//                 [id]
+//             );
+//             
+//             if (result.rows.length === 0) {
+//                 return res.status(404).json({ error: 'Signature not found' });
+//             }
+//             
+//             const strokeData = result.rows[0].stroke_data;
+//             
+//             if (!strokeData) {
+//                 return res.status(404).json({ error: 'No stroke data available' });
+//             }
+//             
+//             // Generate image based on format
+//             if (format === 'svg') {
+//                 const svg = generateSVGFromStrokes(strokeData, {
+//                     width: size === 'thumb' ? 100 : 400,
+//                     height: size === 'thumb' ? 100 : 200
+//                 });
+//                 
+//                 res.setHeader('Content-Type', 'image/svg+xml');
+//                 res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+//                 return res.send(svg);
+//             } else {
+//                 const imageData = generateImageFromStrokes(strokeData, {
+//                     width: size === 'thumb' ? 100 : 400,
+//                     height: size === 'thumb' ? 100 : 200
+//                 });
+//                 
+//                 // Convert base64 to buffer
+//                 const buffer = Buffer.from(imageData.replace(/^data:image\/png;base64,/, ''), 'base64');
+//                 
+//                 res.setHeader('Content-Type', 'image/png');
+//                 res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+//                 return res.send(buffer);
+//             }
+//             
+//         } catch (error) {
+//             console.error('Error generating signature image:', error);
+//             res.status(500).json({ error: 'Failed to generate image' });
+//         }
+//     });
+// }
 
 module.exports = {
     generateImageFromStrokes,

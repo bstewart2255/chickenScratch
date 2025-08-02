@@ -1,3 +1,5 @@
+/* global window, navigator, PointerEvent, Touch */
+
 /**
  * Device Capability Detection Module
  * Detects and reports device capabilities for enhanced biometric features
