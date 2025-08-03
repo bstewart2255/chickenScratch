@@ -3943,12 +3943,17 @@
 <a name='L3878'></a><a href='#L3878'>3878</a>
 <a name='L3879'></a><a href='#L3879'>3879</a>
 <a name='L3880'></a><a href='#L3880'>3880</a>
-<a name='L3881'></a><a href='#L3881'>3881</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L3881'></a><a href='#L3881'>3881</a>
+<a name='L3882'></a><a href='#L3882'>3882</a>
+<a name='L3883'></a><a href='#L3883'>3883</a>
+<a name='L3884'></a><a href='#L3884'>3884</a>
+<a name='L3885'></a><a href='#L3885'>3885</a>
+<a name='L3886'></a><a href='#L3886'>3886</a>
+<a name='L3887'></a><a href='#L3887'>3887</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -5067,7 +5072,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -5079,6 +5083,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -6951,9 +6956,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -6963,9 +6970,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -7295,6 +7304,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -7304,6 +7314,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -7319,6 +7330,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -7825,9 +7837,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">const express = <span class="cstat-no" title="statement not covered" >require('express');</span>
 const cors = <span class="cstat-no" title="statement not covered" >require('cors');</span>
-const bodyParser = <span class="cstat-no" title="statement not covered" >require('body-parser');</span>
 const { Pool } = <span class="cstat-no" title="statement not covered" >require('pg');</span>
-const { storeSignatureWithStrokeData, getSignatureData, extractStrokeData } = <span class="cstat-no" title="statement not covered" >require('./update_to_stroke_storage');</span>
+const { getSignatureData, extractStrokeData } = <span class="cstat-no" title="statement not covered" >require('./update_to_stroke_storage');</span>
 const { configService } = <span class="cstat-no" title="statement not covered" >require('../src/config/ConfigService');</span>
 &nbsp;
 const app = <span class="cstat-no" title="statement not covered" >express();</span>
@@ -8347,7 +8358,7 @@ function <span class="fstat-no" title="function not covered" >extractSignatureFe
 }
 &nbsp;
 // Import ML comparison functions
-const { compareSignaturesML, compareMultipleSignaturesML, compareSignaturesEnhanced } = <span class="cstat-no" title="statement not covered" >require('./mlComparison');</span>
+const { compareSignaturesML, compareSignaturesEnhanced } = <span class="cstat-no" title="statement not covered" >require('./mlComparison');</span>
 &nbsp;
 // Legacy comparison function (kept for fallback)
 function <span class="fstat-no" title="function not covered" >compareSignaturesLegacy(</span>signature1, signature2) {
@@ -8421,7 +8432,7 @@ async function <span class="fstat-no" title="function not covered" >compareSigna
 &nbsp;
 // Helper function to insert signatures with fallback for is_enrollment column
 async function <span class="fstat-no" title="function not covered" >insertSignatureWithFallback(</span>pool, signatureData) {
-    const { userId, strokeData, signature, mlFeatures, isEnrollment } = <span class="cstat-no" title="statement not covered" >signatureData;</span>
+    const { userId, strokeData, mlFeatures, isEnrollment } = <span class="cstat-no" title="statement not covered" >signatureData;</span>
     
 <span class="cstat-no" title="statement not covered" >    try {</span>
         // Try with is_enrollment column first
@@ -8833,7 +8844,7 @@ async function <span class="fstat-no" title="function not covered" >insertSignat
         bodyKeys: Object.keys(req.body)
     });
     
-    let { username, signature, shapes, drawings, deviceInfo, useTemporaryData, metadata } = <span class="cstat-no" title="statement not covered" >req.body;</span>
+    let { username, signature, shapes, drawings, useTemporaryData, metadata } = <span class="cstat-no" title="statement not covered" >req.body;</span>
     
     // If using temporary data from mobile flow
 <span class="cstat-no" title="statement not covered" >    if (useTemporaryData &amp;&amp; username) {</span>
@@ -8957,7 +8968,7 @@ async function <span class="fstat-no" title="function not covered" >insertSignat
         };
 &nbsp;
         // Helper function to add features to collection
-        function <span class="fstat-no" title="function not covered" >addFeaturesToCollection(</span>componentType, componentName, features) {
+        const addFeaturesToCollection = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(c</span>omponentType, componentName, features) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >            if (!features || typeof features !== 'object') <span class="cstat-no" title="statement not covered" >return;</span></span>
             
 <span class="cstat-no" title="statement not covered" >            if (componentType === 'signature') {</span>
@@ -8969,7 +8980,7 @@ async function <span class="fstat-no" title="function not covered" >insertSignat
             }
             
 <span class="cstat-no" title="statement not covered" >            enhancedFeaturesCollection._total_components_processed++;</span>
-        }
+        };
 &nbsp;
         // Get user
         const userResult = <span class="cstat-no" title="statement not covered" >await pool.query(</span>
@@ -9238,7 +9249,7 @@ async function <span class="fstat-no" title="function not covered" >insertSignat
                 hasConnectDots: !!drawings.connect_dots
             });
             
-            const { compareDrawings, extractStrokeDataFromSignaturePad: extractStrokeDataFromDrawingModule } = <span class="cstat-no" title="statement not covered" >require('./drawingVerification');</span>
+            const { extractStrokeDataFromSignaturePad } = <span class="cstat-no" title="statement not covered" >require('./drawingVerification');</span>
             
             const storedDrawingsResult = <span class="cstat-no" title="statement not covered" >await pool.query(</span>
                 'SELECT drawing_type, metrics, enhanced_features FROM drawings WHERE user_id = $1 AND drawing_type = ANY($2::text[])',
@@ -10823,29 +10834,33 @@ function <span class="fstat-no" title="function not covered" >calculateStructura
     const pointCount = <span class="cstat-no" title="statement not covered" >metrics.pointCount || 0;</span>
     
 <span class="cstat-no" title="statement not covered" >    switch(drawingType) {</span>
-        case 'face':
+        case 'face': {
             // A face typically has 3-7 strokes
             const faceStrokeScore = <span class="cstat-no" title="statement not covered" >Math.min(100, (strokeCount / 5) * 100);</span>
             const facePointScore = <span class="cstat-no" title="statement not covered" >Math.min(100, (pointCount / 50) * 100);</span>
 <span class="cstat-no" title="statement not covered" >            return Math.round((faceStrokeScore + facePointScore) / 2);</span>
+        }
             
-        case 'star':
+        case 'star': {
             // A 5-pointed star typically has 1-2 strokes
             const starStrokeScore = <span class="cstat-no" title="statement not covered" >strokeCount &gt;= 1 ? 80 : 20;</span>
             const starPointScore = <span class="cstat-no" title="statement not covered" >Math.min(100, (pointCount / 30) * 100);</span>
 <span class="cstat-no" title="statement not covered" >            return Math.round((starStrokeScore + starPointScore) / 2);</span>
+        }
             
-        case 'house':
+        case 'house': {
             // A house typically has 4-8 strokes
             const houseStrokeScore = <span class="cstat-no" title="statement not covered" >Math.min(100, (strokeCount / 6) * 100);</span>
             const housePointScore = <span class="cstat-no" title="statement not covered" >Math.min(100, (pointCount / 60) * 100);</span>
 <span class="cstat-no" title="statement not covered" >            return Math.round((houseStrokeScore + housePointScore) / 2);</span>
+        }
             
-        case 'connect_dots':
+        case 'connect_dots': {
             // Connect dots should be efficient
             const efficiency = <span class="cstat-no" title="statement not covered" >strokeCount &gt; 0 ? Math.max(0, 100 - (strokeCount - 1) * 20) : 0;</span>
             const completeness = <span class="cstat-no" title="statement not covered" >Math.min(100, (pointCount / 20) * 100);</span>
 <span class="cstat-no" title="statement not covered" >            return Math.round((efficiency + completeness) / 2);</span>
+        }
             
         default:
 <span class="cstat-no" title="statement not covered" >            return 50;</span>
@@ -11152,7 +11167,7 @@ function <span class="fstat-no" title="function not covered" >calculateConnectDo
         const userId = <span class="cstat-no" title="statement not covered" >userResult.rows[0].id;</span>
         
 <span class="cstat-no" title="statement not covered" >        switch (type) {</span>
-            case 'signature':
+            case 'signature': {
                 // Get signature performance over time
                 const signaturePerf = <span class="cstat-no" title="statement not covered" >await pool.query(</span>
                     `SELECT 
@@ -11171,8 +11186,9 @@ function <span class="fstat-no" title="function not covered" >calculateConnectDo
                     performance: signaturePerf.rows
                 });
 <span class="cstat-no" title="statement not covered" >                break;</span>
+            }
                 
-            case 'shapes':
+            case 'shapes': {
                 // Shape performance would need to be extracted from auth attempts
                 // For now, return a placeholder
 <span class="cstat-no" title="statement not covered" >                res.json({</span>
@@ -11181,8 +11197,9 @@ function <span class="fstat-no" title="function not covered" >calculateConnectDo
                     message: 'Shape-specific performance tracking coming soon'
                 });
 <span class="cstat-no" title="statement not covered" >                break;</span>
+            }
                 
-            case 'drawings':
+            case 'drawings': {
                 // Get drawing performance from auth attempts
                 const drawingPerf = <span class="cstat-no" title="statement not covered" >await pool.query(</span>
                     `SELECT 
@@ -11199,6 +11216,7 @@ function <span class="fstat-no" title="function not covered" >calculateConnectDo
                     performance: drawingPerf.rows
                 });
 <span class="cstat-no" title="statement not covered" >                break;</span>
+            }
                 
             default:
 <span class="cstat-no" title="statement not covered" >                res.status(400).json({ error: 'Invalid component type' });</span>
@@ -11603,7 +11621,7 @@ function <span class="fstat-no" title="function not covered" >extractDeviceType(
 }
 &nbsp;
 // Global error handler - must be last middleware
-<span class="cstat-no" title="statement not covered" >app.use(<span class="fstat-no" title="function not covered" >(e</span>rr, req, res, next) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >app.use(<span class="fstat-no" title="function not covered" >(e</span>rr, req, res, _next) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    console.error('Unhandled error:', err);</span>
 <span class="cstat-no" title="statement not covered" >    console.error('Error stack:', err.stack);</span>
     
@@ -11710,7 +11728,7 @@ function <span class="fstat-no" title="function not covered" >extractStrokeDataF
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-01T05:01:49.257Z
+                at 2025-08-01T23:15:10.167Z
             </div>
         <script src="../prettify.js"></script>
         <script>
