@@ -49,9 +49,25 @@ class DatabaseService {
         database: dbConfig.database,
         DATABASE_URL: process.env['DATABASE_URL'] ? 'set' : 'not set',
         DB_USER: process.env['DB_USER'] || 'not set',
-        PGUSER: process.env['PGUSER'] || 'not set'
+        PGUSER: process.env['PGUSER'] || 'not set',
+        OS_USER: process.env['USER'] || 'not set'
       });
-      throw new DatabaseError('Database user cannot be "root". Please set DB_USER or PGUSER to a non-root user (e.g., "postgres")', 'CONFIG_ERROR');
+      
+      const errorMessage = [
+        'Database user cannot be "root".',
+        'This is likely because:',
+        '  1. No DB_USER or PGUSER is set',
+        '  2. OS USER is "root" (common in CI environments)',
+        '  3. GitHub repository variables are set to "root"',
+        '',
+        'Solutions:',
+        '  1. Set DB_USER=postgres in your environment',
+        '  2. Set PGUSER=postgres in your environment',
+        '  3. Update DATABASE_URL to use postgres user',
+        '  4. Check GitHub repository variables/secrets'
+      ].join('\n');
+      
+      throw new DatabaseError(errorMessage, 'CONFIG_ERROR');
     }
     
     // Additional validation for DATABASE_URL if present

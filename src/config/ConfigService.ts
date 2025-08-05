@@ -315,7 +315,16 @@ class ConfigService {
     // CRITICAL: Prevent root user from individual variables
     if (user === 'root') {
       console.error('❌ ERROR: Database user is set to "root"!');
-      console.error('Please set DB_USER or PGUSER to a non-root user (e.g., "postgres")');
+      console.error('This is likely because:');
+      console.error('  1. No DB_USER or PGUSER is set');
+      console.error('  2. OS USER is "root" (common in CI environments)');
+      console.error('  3. GitHub repository variables are set to "root"');
+      console.error('');
+      console.error('Solutions:');
+      console.error('  1. Set DB_USER=postgres in your environment');
+      console.error('  2. Set PGUSER=postgres in your environment');
+      console.error('  3. Update DATABASE_URL to use postgres user');
+      console.error('  4. Check GitHub repository variables/secrets');
       process.exit(1);
     }
     

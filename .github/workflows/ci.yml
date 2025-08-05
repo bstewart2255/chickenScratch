@@ -18,7 +18,8 @@ jobs:
       matrix:
         node-version: [18.x, 20.x]
     env:
-      # Explicitly override any GitHub repository variables for test environment
+      # CRITICAL: Explicitly override any GitHub repository variables for test environment
+      # This prevents fallback to OS USER (which is 'root' in GitHub Actions)
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/signature_auth_test
       NODE_ENV: test
       API_SECRET_KEY: test-secret-key
@@ -32,6 +33,8 @@ jobs:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: signature_auth_test
+      # Additional safety: explicitly unset any potential root user variables
+      USER: postgres
     services:
       postgres:
         image: postgres:14
@@ -121,6 +124,20 @@ jobs:
           else
             echo "⚠️  DATABASE_URL is not set"
           fi
+          
+          echo ""
+          echo "=== Effective User Analysis ==="
+          EFFECTIVE_USER="${DB_USER:-${PGUSER:-${POSTGRES_USER:-$USER}}}"
+          echo "Effective database user: $EFFECTIVE_USER"
+          if [[ "$EFFECTIVE_USER" == "root" ]]; then
+            echo "❌ CRITICAL: Effective user is 'root' - this will cause connection failure!"
+            exit 1
+          else
+            echo "✅ Effective user is '$EFFECTIVE_USER' (safe)"
+          fi
+
+      - name: Run Database User Diagnostic
+        run: ./scripts/fix-ci-database-user.sh
 
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
@@ -220,6 +237,7 @@ jobs:
 
       - name: Setup database
         env:
+          # CRITICAL: Explicitly set all database user variables to prevent root fallback
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/signature_auth_integration
           PGUSER: postgres
           DB_USER: postgres
@@ -227,12 +245,15 @@ jobs:
           DB_PORT: 5432
           DB_NAME: signature_auth_integration
           DB_PASSWORD: postgres
+          # Additional safety: explicitly unset any potential root user variables
+          USER: postgres
         run: |
           npm run db:setup
           npm run db:migrate
 
       - name: Run integration tests
         env:
+          # CRITICAL: Explicitly set all database user variables to prevent root fallback
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/signature_auth_integration
           NODE_ENV: test
           API_SECRET_KEY: test-secret-key
@@ -242,6 +263,8 @@ jobs:
           DB_PORT: 5432
           DB_NAME: signature_auth_integration
           DB_PASSWORD: postgres
+          # Additional safety: explicitly unset any potential root user variables
+          USER: postgres
         run: npm run test:integration
 
   security:
