@@ -54,6 +54,36 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Force Database User Variables
+        run: |
+          echo "🔧 Forcing database user variables to prevent root user issues..."
+          
+          # Explicitly unset any problematic variables first
+          unset DB_USER_ROOT
+          unset PGUSER_ROOT
+          unset POSTGRES_USER_ROOT
+          
+          # Force set the correct values (these will override any repository variables)
+          export DB_USER=postgres
+          export PGUSER=postgres
+          export POSTGRES_USER=postgres
+          export USER=postgres
+          
+          # Verify the values are set correctly
+          echo "✅ Forced database user variables:"
+          echo "   DB_USER: $DB_USER"
+          echo "   PGUSER: $PGUSER"
+          echo "   POSTGRES_USER: $POSTGRES_USER"
+          echo "   USER: $USER"
+          
+          # Double-check no root values
+          if [[ "$DB_USER" == "root" ]] || [[ "$PGUSER" == "root" ]] || [[ "$POSTGRES_USER" == "root" ]]; then
+            echo "❌ CRITICAL: Still detecting root user values after force set!"
+            exit 1
+          fi
+          
+          echo "✅ All database user variables are correctly set to 'postgres'"
+
       - name: Debug Environment Variables
         run: |
           echo "=== OS Environment ==="
@@ -138,6 +168,40 @@ jobs:
 
       - name: Run Database User Diagnostic
         run: ./scripts/fix-ci-database-user.sh
+
+      - name: Check for Repository Variables Override
+        run: |
+          echo "🔍 Checking for potential repository variable overrides..."
+          
+          # Check if any environment variables are being overridden by repository variables
+          echo "Current environment after force set:"
+          echo "DB_USER: '$DB_USER'"
+          echo "PGUSER: '$PGUSER'"
+          echo "POSTGRES_USER: '$POSTGRES_USER'"
+          echo "USER: '$USER'"
+          
+          # Check if DATABASE_URL contains root
+          if [[ -n "$DATABASE_URL" ]]; then
+            echo "DATABASE_URL: '$DATABASE_URL'"
+            if echo "$DATABASE_URL" | grep -q "://root@"; then
+              echo "❌ WARNING: DATABASE_URL still contains root user!"
+              echo "This might be from a repository variable or secret"
+            else
+              echo "✅ DATABASE_URL does not contain root user"
+            fi
+          fi
+          
+          # Final validation
+          EFFECTIVE_USER="${DB_USER:-${PGUSER:-${POSTGRES_USER:-$USER}}}"
+          echo "Effective database user: '$EFFECTIVE_USER'"
+          
+          if [[ "$EFFECTIVE_USER" == "root" ]]; then
+            echo "❌ CRITICAL: Repository variables are overriding our settings!"
+            echo "Please check GitHub repository variables/secrets for 'root' values"
+            exit 1
+          else
+            echo "✅ Effective user is safe: '$EFFECTIVE_USER'"
+          fi
 
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
@@ -235,6 +299,23 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Force Database User Variables (Integration)
+        run: |
+          echo "🔧 Forcing database user variables for integration tests..."
+          
+          # Force set the correct values
+          export DB_USER=postgres
+          export PGUSER=postgres
+          export POSTGRES_USER=postgres
+          export USER=postgres
+          export DATABASE_URL=postgresql://postgres:postgres@localhost:5432/signature_auth_integration
+          export DB_HOST=localhost
+          export DB_PORT=5432
+          export DB_NAME=signature_auth_integration
+          export DB_PASSWORD=postgres
+          
+          echo "✅ Integration test database variables set"
+
       - name: Setup database
         env:
           # CRITICAL: Explicitly set all database user variables to prevent root fallback
@@ -265,7 +346,19 @@ jobs:
           DB_PASSWORD: postgres
           # Additional safety: explicitly unset any potential root user variables
           USER: postgres
-        run: npm run test:integration
+        run: |
+          # Final check before running tests
+          echo "🔍 Final database user check before integration tests..."
+          echo "DB_USER: '$DB_USER'"
+          echo "PGUSER: '$PGUSER'"
+          echo "USER: '$USER'"
+          
+          if [[ "$DB_USER" == "root" ]] || [[ "$PGUSER" == "root" ]]; then
+            echo "❌ CRITICAL: Database user is still 'root' before integration tests!"
+            exit 1
+          fi
+          
+          npm run test:integration
 
   security:
     name: Security Scan
