@@ -11,11 +11,15 @@ const { Pool } = require('pg');
 function validateEnvironment() {
   console.log('🔍 Pre-test Database Configuration Validation\n');
 
+  // Check if we're in a CI environment
+  const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+  
   // Check OS environment
   console.log('=== OS Environment ===');
   console.log(`USER: ${process.env.USER || 'not set'}`);
   console.log(`HOME: ${process.env.HOME || 'not set'}`);
   console.log(`NODE_ENV: ${process.env.NODE_ENV || 'not set'}`);
+  console.log(`CI Environment: ${isCI ? 'Yes' : 'No'}`);
 
   // Check database environment
   console.log('\n=== Database Environment ===');
@@ -47,11 +51,14 @@ function validateEnvironment() {
   
   let hasErrors = false;
 
-  // Check if OS user is root and no DB_USER is set
-  if (process.env.USER === 'root' && !process.env.DB_USER && !process.env.PGUSER) {
+  // In CI environment, be more lenient about OS USER being root
+  // since GitHub Actions runners always have USER=root
+  if (process.env.USER === 'root' && !process.env.DB_USER && !process.env.PGUSER && !isCI) {
     console.error('❌ ERROR: OS user is "root" and no DB_USER or PGUSER is set!');
     console.error('   This may cause PostgreSQL to attempt connection as "root"');
     hasErrors = true;
+  } else if (process.env.USER === 'root' && isCI) {
+    console.log('ℹ️  CI Environment detected: OS USER=root is expected in GitHub Actions');
   }
 
   // Check explicit root user settings

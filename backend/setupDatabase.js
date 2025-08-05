@@ -9,8 +9,11 @@ function validateDatabaseConfig() {
   const dbName = process.env.DB_NAME || process.env.PGDATABASE || 'signatureauth';
   const dbPassword = process.env.DB_PASSWORD || process.env.PGPASSWORD || 'postgres';
 
-  // Check for root user
-  if (dbUser === 'root' || process.env.USER === 'root' && !process.env.DB_USER) {
+  // Check if we're in a CI environment
+  const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+
+  // Check for root user - be more lenient in CI environment
+  if (dbUser === 'root') {
     console.error('❌ ERROR: Database connection attempted with "root" user!');
     console.error('   Please set DB_USER or PGUSER to "postgres" or another valid database user.');
     console.error('   Current configuration:');
@@ -18,6 +21,16 @@ function validateDatabaseConfig() {
     console.error(`   - PGUSER: ${process.env.PGUSER || 'not set'}`);
     console.error(`   - OS USER: ${process.env.USER || 'not set'}`);
     process.exit(1);
+  } else if (process.env.USER === 'root' && !process.env.DB_USER && !isCI) {
+    console.error('❌ ERROR: OS user is "root" and no DB_USER is set!');
+    console.error('   Please set DB_USER or PGUSER to "postgres" or another valid database user.');
+    console.error('   Current configuration:');
+    console.error(`   - DB_USER: ${process.env.DB_USER || 'not set'}`);
+    console.error(`   - PGUSER: ${process.env.PGUSER || 'not set'}`);
+    console.error(`   - OS USER: ${process.env.USER || 'not set'}`);
+    process.exit(1);
+  } else if (process.env.USER === 'root' && isCI) {
+    console.log('ℹ️  CI Environment detected: OS USER=root is expected in GitHub Actions');
   }
 
   // Log configuration for debugging
