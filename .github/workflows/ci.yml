@@ -56,7 +56,11 @@ jobs:
 
       - name: Override Repository Variables
         run: |
-          echo "🔧 Overriding any repository variables that might be set to 'root'..."
+          echo "🔧 Setting database environment variables..."
+          
+          # Debug: Show OS user first
+          echo "OS USER before override: $USER"
+          echo "HOME: $HOME"
           
           # Use GITHUB_ENV to forcefully override for all subsequent steps
           echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/signature_auth_test" >> $GITHUB_ENV
@@ -68,21 +72,26 @@ jobs:
           echo "DB_PORT=5432" >> $GITHUB_ENV
           echo "DB_NAME=signature_auth_test" >> $GITHUB_ENV
           echo "DB_PASSWORD=postgres" >> $GITHUB_ENV
-          echo "USER=postgres" >> $GITHUB_ENV
           
-          echo "✅ Environment variables have been forcefully overridden"
+          # CRITICAL: Also export them for the current step
+          export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/signature_auth_test"
+          export PGUSER="postgres"
+          export DB_USER="postgres"
+          export POSTGRES_USER="postgres"
+          
+          echo "✅ Environment variables have been set in GITHUB_ENV"
 
       - name: Force Database User Variables
         run: |
           echo "🔧 Verifying database user variables..."
           
-          # Check the environment variables that are set at job level
-          echo "Current database user variables:"
-          echo "   DB_USER: $DB_USER"
-          echo "   PGUSER: $PGUSER"
-          echo "   POSTGRES_USER: $POSTGRES_USER"
-          echo "   USER: $USER"
-          echo "   DATABASE_URL: ${DATABASE_URL}"
+          # These should now be set from GITHUB_ENV
+          echo "Current database user variables (from GITHUB_ENV):"
+          echo "   DB_USER: ${DB_USER:-NOT SET}"
+          echo "   PGUSER: ${PGUSER:-NOT SET}"
+          echo "   POSTGRES_USER: ${POSTGRES_USER:-NOT SET}"
+          echo "   OS USER: $USER"
+          echo "   DATABASE_URL: ${DATABASE_URL:-NOT SET}"
           
           # Verify no root values
           if [[ "$DB_USER" == "root" ]] || [[ "$PGUSER" == "root" ]] || [[ "$POSTGRES_USER" == "root" ]]; then
@@ -185,7 +194,18 @@ jobs:
           fi
 
       - name: Run Database User Diagnostic
-        run: ./scripts/fix-ci-database-user.sh
+        run: |
+          # Ensure environment is set for the diagnostic script
+          export DATABASE_URL="${DATABASE_URL:-postgresql://postgres:postgres@localhost:5432/signature_auth_test}"
+          export PGUSER="${PGUSER:-postgres}"
+          export DB_USER="${DB_USER:-postgres}"
+          export POSTGRES_USER="${POSTGRES_USER:-postgres}"
+          export DB_HOST="${DB_HOST:-localhost}"
+          export DB_PORT="${DB_PORT:-5432}"
+          export DB_NAME="${DB_NAME:-signature_auth_test}"
+          export DB_PASSWORD="${DB_PASSWORD:-postgres}"
+          
+          ./scripts/fix-ci-database-user.sh
 
       - name: Check for Repository Variables Override
         run: |
@@ -325,7 +345,10 @@ jobs:
 
       - name: Override Repository Variables (Integration)
         run: |
-          echo "🔧 Overriding repository variables for integration tests..."
+          echo "🔧 Setting integration test environment variables..."
+          
+          # Debug: Show OS user
+          echo "OS USER: $USER"
           
           # Use GITHUB_ENV to forcefully override for all subsequent steps
           echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/signature_auth_integration" >> $GITHUB_ENV
@@ -337,9 +360,8 @@ jobs:
           echo "DB_PORT=5432" >> $GITHUB_ENV
           echo "DB_NAME=signature_auth_integration" >> $GITHUB_ENV
           echo "DB_PASSWORD=postgres" >> $GITHUB_ENV
-          echo "USER=postgres" >> $GITHUB_ENV
           
-          echo "✅ Integration test environment variables overridden"
+          echo "✅ Integration test environment variables set in GITHUB_ENV"
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
