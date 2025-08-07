@@ -54,6 +54,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Override Repository Variables
+        run: |
+          echo "🔧 Overriding any repository variables that might be set to 'root'..."
+          
+          # Use GITHUB_ENV to forcefully override for all subsequent steps
+          echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/signature_auth_test" >> $GITHUB_ENV
+          echo "PGUSER=postgres" >> $GITHUB_ENV
+          echo "DB_USER=postgres" >> $GITHUB_ENV
+          echo "POSTGRES_USER=postgres" >> $GITHUB_ENV
+          echo "POSTGRES_PASSWORD=postgres" >> $GITHUB_ENV
+          echo "DB_HOST=localhost" >> $GITHUB_ENV
+          echo "DB_PORT=5432" >> $GITHUB_ENV
+          echo "DB_NAME=signature_auth_test" >> $GITHUB_ENV
+          echo "DB_PASSWORD=postgres" >> $GITHUB_ENV
+          echo "USER=postgres" >> $GITHUB_ENV
+          
+          echo "✅ Environment variables have been forcefully overridden"
+
       - name: Force Database User Variables
         run: |
           echo "🔧 Verifying database user variables..."
@@ -304,6 +322,24 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Override Repository Variables (Integration)
+        run: |
+          echo "🔧 Overriding repository variables for integration tests..."
+          
+          # Use GITHUB_ENV to forcefully override for all subsequent steps
+          echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/signature_auth_integration" >> $GITHUB_ENV
+          echo "PGUSER=postgres" >> $GITHUB_ENV
+          echo "DB_USER=postgres" >> $GITHUB_ENV
+          echo "POSTGRES_USER=postgres" >> $GITHUB_ENV
+          echo "POSTGRES_PASSWORD=postgres" >> $GITHUB_ENV
+          echo "DB_HOST=localhost" >> $GITHUB_ENV
+          echo "DB_PORT=5432" >> $GITHUB_ENV
+          echo "DB_NAME=signature_auth_integration" >> $GITHUB_ENV
+          echo "DB_PASSWORD=postgres" >> $GITHUB_ENV
+          echo "USER=postgres" >> $GITHUB_ENV
+          
+          echo "✅ Integration test environment variables overridden"
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
