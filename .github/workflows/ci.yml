@@ -18,8 +18,8 @@ jobs:
       matrix:
         node-version: [18.x, 20.x]
     env:
-      # CRITICAL: Explicitly override any GitHub repository variables for test environment
-      # This prevents fallback to OS USER (which is 'root' in GitHub Actions)
+      # CRITICAL: Explicitly set all database variables
+      # DO NOT set USER - it's protected in GitHub Actions
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/signature_auth_test
       NODE_ENV: test
       API_SECRET_KEY: test-secret-key
@@ -29,12 +29,9 @@ jobs:
       DB_PORT: 5432
       DB_NAME: signature_auth_test
       DB_PASSWORD: postgres
-      # Ensure these are not inherited from repository variables
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: signature_auth_test
-      # Additional safety: explicitly unset any potential root user variables
-      USER: postgres
     services:
       postgres:
         image: postgres:14
@@ -54,192 +51,29 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Override Repository Variables
+      - name: Verify Database Configuration
         run: |
-          echo "🔧 Setting database environment variables..."
+          echo "🔍 Verifying database configuration..."
+          echo "OS USER: $USER (this is expected to be 'root' in GitHub Actions)"
+          echo "PGUSER: ${PGUSER}"
+          echo "DB_USER: ${DB_USER}"
+          echo "POSTGRES_USER: ${POSTGRES_USER}"
+          echo "DATABASE_URL: ${DATABASE_URL}"
           
-          # Debug: Show OS user first
-          echo "OS USER before override: $USER"
-          echo "HOME: $HOME"
+          # Critical check
+          if [[ "${PGUSER}" != "postgres" ]] || [[ "${DB_USER}" != "postgres" ]]; then
+            echo "❌ ERROR: Database user variables are not set correctly!"
+            echo "PGUSER should be 'postgres' but is '${PGUSER}'"
+            echo "DB_USER should be 'postgres' but is '${DB_USER}'"
+            exit 1
+          fi
           
-          # Use GITHUB_ENV to forcefully override for all subsequent steps
-          echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/signature_auth_test" >> $GITHUB_ENV
-          echo "PGUSER=postgres" >> $GITHUB_ENV
-          echo "DB_USER=postgres" >> $GITHUB_ENV
-          echo "POSTGRES_USER=postgres" >> $GITHUB_ENV
-          echo "POSTGRES_PASSWORD=postgres" >> $GITHUB_ENV
-          echo "DB_HOST=localhost" >> $GITHUB_ENV
-          echo "DB_PORT=5432" >> $GITHUB_ENV
-          echo "DB_NAME=signature_auth_test" >> $GITHUB_ENV
-          echo "DB_PASSWORD=postgres" >> $GITHUB_ENV
-          
-          # CRITICAL: Also export them for the current step
-          export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/signature_auth_test"
-          export PGUSER="postgres"
-          export DB_USER="postgres"
-          export POSTGRES_USER="postgres"
-          
-          echo "✅ Environment variables have been set in GITHUB_ENV"
+          echo "✅ Database configuration verified"
 
-      - name: Force Database User Variables
-        run: |
-          echo "🔧 Verifying database user variables..."
-          
-          # These should now be set from GITHUB_ENV
-          echo "Current database user variables (from GITHUB_ENV):"
-          echo "   DB_USER: ${DB_USER:-NOT SET}"
-          echo "   PGUSER: ${PGUSER:-NOT SET}"
-          echo "   POSTGRES_USER: ${POSTGRES_USER:-NOT SET}"
-          echo "   OS USER: $USER"
-          echo "   DATABASE_URL: ${DATABASE_URL:-NOT SET}"
-          
-          # Verify no root values
-          if [[ "$DB_USER" == "root" ]] || [[ "$PGUSER" == "root" ]] || [[ "$POSTGRES_USER" == "root" ]]; then
-            echo "❌ CRITICAL: Detecting root user values!"
-            echo "Please check GitHub repository variables/secrets"
-            exit 1
-          fi
-          
-          # Check if DATABASE_URL has the expected value
-          if [[ "$DATABASE_URL" != "postgresql://postgres:postgres@localhost:5432/signature_auth_test" ]]; then
-            echo "❌ WARNING: DATABASE_URL doesn't match expected value!"
-            echo "Expected: postgresql://postgres:postgres@localhost:5432/signature_auth_test"
-            echo "Actual: $DATABASE_URL"
-            echo "This might be overridden by a repository variable"
-            exit 1
-          fi
-          
-          echo "✅ All database user variables are correctly set to 'postgres'"
-
-      - name: Debug Environment Variables
-        run: |
-          echo "=== OS Environment ==="
-          echo "USER: $USER"
-          echo "HOME: $HOME"
-          echo "SHELL: $SHELL"
-          echo ""
-          echo "=== Database Environment Variables ==="
-          echo "DATABASE_URL: ${DATABASE_URL:-Not set}"
-          echo "DB_USER: ${DB_USER:-Not set}"
-          echo "DB_HOST: ${DB_HOST:-Not set}"
-          echo "DB_PORT: ${DB_PORT:-Not set}"
-          echo "DB_NAME: ${DB_NAME:-Not set}"
-          echo "PGUSER: ${PGUSER:-Not set}"
-          echo "POSTGRES_USER: ${POSTGRES_USER:-Not set}"
-          echo "POSTGRES_DB: ${POSTGRES_DB:-Not set}"
-          echo ""
-          echo "=== Environment Variable Analysis ==="
-          echo "Expected DB_NAME for tests: signature_auth_test"
-          echo "Actual DB_NAME: ${DB_NAME:-Not set}"
-          if [[ "${DB_NAME}" != "signature_auth_test" ]]; then
-            echo "⚠️  WARNING: DB_NAME mismatch! Expected 'signature_auth_test', got '${DB_NAME}'"
-          else
-            echo "✅ DB_NAME is correct for test environment"
-          fi
-          echo ""
-          echo "=== Root User Check ==="
-          echo "Checking if any database user variables are set to 'root':"
-          if [[ "$DB_USER" == "root" ]]; then
-            echo "❌ ERROR: DB_USER is set to 'root'"
-            exit 1
-          elif [[ "$DB_USER" != "" ]]; then
-            echo "✅ DB_USER is set to '$DB_USER' (not root)"
-          else
-            echo "⚠️  DB_USER is not set"
-          fi
-          
-          if [[ "$PGUSER" == "root" ]]; then
-            echo "❌ ERROR: PGUSER is set to 'root'"
-            exit 1
-          elif [[ "$PGUSER" != "" ]]; then
-            echo "✅ PGUSER is set to '$PGUSER' (not root)"
-          else
-            echo "⚠️  PGUSER is not set"
-          fi
-          
-          if [[ "$POSTGRES_USER" == "root" ]]; then
-            echo "❌ ERROR: POSTGRES_USER is set to 'root'"
-            exit 1
-          elif [[ "$POSTGRES_USER" != "" ]]; then
-            echo "✅ POSTGRES_USER is set to '$POSTGRES_USER' (not root)"
-          else
-            echo "⚠️  POSTGRES_USER is not set"
-          fi
-          
-          echo ""
-          echo "=== DATABASE_URL Analysis ==="
-          if [[ -n "$DATABASE_URL" ]]; then
-            if echo "$DATABASE_URL" | grep -q "://root@"; then
-              echo "❌ ERROR: DATABASE_URL contains 'root' user!"
-              exit 1
-            else
-              echo "✅ DATABASE_URL does not contain 'root' user"
-              # Extract username from DATABASE_URL
-              USERNAME=$(echo "$DATABASE_URL" | sed -n 's/.*:\/\/\([^:]*\):.*/\1/p')
-              echo "📋 DATABASE_URL username: $USERNAME"
-            fi
-          else
-            echo "⚠️  DATABASE_URL is not set"
-          fi
-          
-          echo ""
-          echo "=== Effective User Analysis ==="
-          EFFECTIVE_USER="${DB_USER:-${PGUSER:-${POSTGRES_USER:-$USER}}}"
-          echo "Effective database user: $EFFECTIVE_USER"
-          if [[ "$EFFECTIVE_USER" == "root" ]]; then
-            echo "❌ CRITICAL: Effective user is 'root' - this will cause connection failure!"
-            exit 1
-          else
-            echo "✅ Effective user is '$EFFECTIVE_USER' (safe)"
-          fi
 
       - name: Run Database User Diagnostic
-        run: |
-          # Ensure environment is set for the diagnostic script
-          export DATABASE_URL="${DATABASE_URL:-postgresql://postgres:postgres@localhost:5432/signature_auth_test}"
-          export PGUSER="${PGUSER:-postgres}"
-          export DB_USER="${DB_USER:-postgres}"
-          export POSTGRES_USER="${POSTGRES_USER:-postgres}"
-          export DB_HOST="${DB_HOST:-localhost}"
-          export DB_PORT="${DB_PORT:-5432}"
-          export DB_NAME="${DB_NAME:-signature_auth_test}"
-          export DB_PASSWORD="${DB_PASSWORD:-postgres}"
-          
-          ./scripts/fix-ci-database-user.sh
+        run: ./scripts/fix-ci-database-user.sh
 
-      - name: Check for Repository Variables Override
-        run: |
-          echo "🔍 Checking for potential repository variable overrides..."
-          
-          # Check if any environment variables are being overridden by repository variables
-          echo "Current environment after force set:"
-          echo "DB_USER: '$DB_USER'"
-          echo "PGUSER: '$PGUSER'"
-          echo "POSTGRES_USER: '$POSTGRES_USER'"
-          echo "USER: '$USER'"
-          
-          # Check if DATABASE_URL contains root
-          if [[ -n "$DATABASE_URL" ]]; then
-            echo "DATABASE_URL: '$DATABASE_URL'"
-            if echo "$DATABASE_URL" | grep -q "://root@"; then
-              echo "❌ WARNING: DATABASE_URL still contains root user!"
-              echo "This might be from a repository variable or secret"
-            else
-              echo "✅ DATABASE_URL does not contain root user"
-            fi
-          fi
-          
-          # Final validation
-          EFFECTIVE_USER="${DB_USER:-${PGUSER:-${POSTGRES_USER:-$USER}}}"
-          echo "Effective database user: '$EFFECTIVE_USER'"
-          
-          if [[ "$EFFECTIVE_USER" == "root" ]]; then
-            echo "❌ CRITICAL: Repository variables are overriding our settings!"
-            echo "Please check GitHub repository variables/secrets for 'root' values"
-            exit 1
-          else
-            echo "✅ Effective user is safe: '$EFFECTIVE_USER'"
-          fi
 
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
@@ -310,7 +144,8 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     env:
-      # CRITICAL: Explicitly set all database user variables at job level
+      # CRITICAL: Explicitly set all database variables at job level
+      # DO NOT set USER - it's protected in GitHub Actions
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/signature_auth_integration
       NODE_ENV: test
       API_SECRET_KEY: test-secret-key
@@ -323,7 +158,6 @@ jobs:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: signature_auth_integration
-      USER: postgres
     services:
       postgres:
         image: postgres:14
@@ -343,26 +177,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Override Repository Variables (Integration)
-        run: |
-          echo "🔧 Setting integration test environment variables..."
-          
-          # Debug: Show OS user
-          echo "OS USER: $USER"
-          
-          # Use GITHUB_ENV to forcefully override for all subsequent steps
-          echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/signature_auth_integration" >> $GITHUB_ENV
-          echo "PGUSER=postgres" >> $GITHUB_ENV
-          echo "DB_USER=postgres" >> $GITHUB_ENV
-          echo "POSTGRES_USER=postgres" >> $GITHUB_ENV
-          echo "POSTGRES_PASSWORD=postgres" >> $GITHUB_ENV
-          echo "DB_HOST=localhost" >> $GITHUB_ENV
-          echo "DB_PORT=5432" >> $GITHUB_ENV
-          echo "DB_NAME=signature_auth_integration" >> $GITHUB_ENV
-          echo "DB_PASSWORD=postgres" >> $GITHUB_ENV
-          
-          echo "✅ Integration test environment variables set in GITHUB_ENV"
-
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
@@ -372,26 +186,19 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Verify Database User Variables (Integration)
+      - name: Verify Database Configuration (Integration)
         run: |
-          echo "🔧 Verifying database user variables for integration tests..."
+          echo "🔍 Verifying integration database configuration..."
+          echo "PGUSER: ${PGUSER}"
+          echo "DB_USER: ${DB_USER}"
+          echo "DATABASE_URL: ${DATABASE_URL}"
           
-          # Check that environment variables are properly set
-          echo "Current database configuration:"
-          echo "   DB_USER: ${DB_USER:-not set}"
-          echo "   PGUSER: ${PGUSER:-not set}"
-          echo "   POSTGRES_USER: ${POSTGRES_USER:-not set}"
-          echo "   USER: ${USER:-not set}"
-          echo "   DATABASE_URL: ${DATABASE_URL:-not set}"
-          
-          # Verify no root values
-          if [[ "$DB_USER" == "root" ]] || [[ "$PGUSER" == "root" ]] || [[ "$POSTGRES_USER" == "root" ]]; then
-            echo "❌ CRITICAL: Detecting root user values in integration job!"
-            echo "Please check GitHub repository variables/secrets"
+          if [[ "${PGUSER}" != "postgres" ]] || [[ "${DB_USER}" != "postgres" ]]; then
+            echo "❌ ERROR: Database user variables are not set correctly!"
             exit 1
           fi
           
-          echo "✅ Integration test database variables verified"
+          echo "✅ Integration database configuration verified"
 
       - name: Setup database
         run: |
@@ -399,19 +206,7 @@ jobs:
           npm run db:migrate
 
       - name: Run integration tests
-        run: |
-          # Final check before running tests
-          echo "🔍 Final database user check before integration tests..."
-          echo "DB_USER: '$DB_USER'"
-          echo "PGUSER: '$PGUSER'"
-          echo "USER: '$USER'"
-          
-          if [[ "$DB_USER" == "root" ]] || [[ "$PGUSER" == "root" ]]; then
-            echo "❌ CRITICAL: Database user is still 'root' before integration tests!"
-            exit 1
-          fi
-          
-          npm run test:integration
+        run: npm run test:integration
 
   security:
     name: Security Scan
