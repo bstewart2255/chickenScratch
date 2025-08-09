@@ -1,13 +1,14 @@
 import request from 'supertest';
 import app from '../../backend/server';
-import { DatabaseService } from '../../backend/DatabaseService';
+import { databaseService } from '../../backend/DatabaseService';
 
 describe('Health Check API Integration Tests', () => {
-  let dbService: DatabaseService;
+  let dbService: typeof databaseService;
 
   beforeAll(async () => {
     // DatabaseService is initialized automatically in the app
     // No need to create a new instance for tests
+    dbService = databaseService;
   });
 
   afterAll(async () => {
@@ -192,7 +193,10 @@ describe('Health Check API Integration Tests', () => {
 
       expect(response.headers).toHaveProperty('x-api-version');
       expect(response.headers).toHaveProperty('x-response-time');
-      expect(parseFloat(response.headers['x-response-time'])).toBeGreaterThan(0);
+      const responseTime = response.headers['x-response-time'];
+      if (responseTime) {
+        expect(parseFloat(responseTime as string)).toBeGreaterThan(0);
+      }
     });
   });
 

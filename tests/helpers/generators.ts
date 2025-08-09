@@ -3,11 +3,11 @@ import {
   User, 
   DeviceCapabilities,
   StrokeData,
-  Point,
+  StrokePoint,
   BiometricFeatures,
   RegistrationData,
   AuthenticationData
-} from '../../src/types';
+} from '../../src/types/core/biometric';
 
 export class TestDataGenerator {
   private static counter = 0;
@@ -31,7 +31,7 @@ export class TestDataGenerator {
     };
   }
 
-  static generatePoint(overrides: Partial<Point> = {}): Point {
+  static generatePoint(overrides: Partial<StrokePoint> = {}): StrokePoint {
     return {
       x: Math.random() * 500,
       y: Math.random() * 300,
@@ -42,7 +42,7 @@ export class TestDataGenerator {
   }
 
   static generateStrokeData(pointCount: number = 10): StrokeData {
-    const points: Point[] = [];
+    const points: StrokePoint[] = [];
     const startTime = Date.now();
     
     for (let i = 0; i < pointCount; i++) {
