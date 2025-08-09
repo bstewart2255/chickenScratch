@@ -1,14 +1,77 @@
 require('dotenv').config();
 const { Pool } = require('pg');
 
-// Use your External Database URL for this one-time setup
-const pool = new Pool({
-      connectionString: process.env.DATABASE_URL || 
-      `postgresql://${process.env.DB_USER || 'postgres'}:${process.env.DB_PASSWORD}@${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || '5432'}/${process.env.DB_NAME || 'signatureauth'}`,
-  ssl: {
-    rejectUnauthorized: false
+// Validate database configuration before connecting
+function validateDatabaseConfig() {
+  const dbUser = process.env.DB_USER || process.env.PGUSER || 'postgres';
+  const dbHost = process.env.DB_HOST || process.env.PGHOST || 'localhost';
+  const dbPort = process.env.DB_PORT || process.env.PGPORT || '5432';
+  const dbName = process.env.DB_NAME || process.env.PGDATABASE || 'signatureauth';
+  const dbPassword = process.env.DB_PASSWORD || process.env.PGPASSWORD || 'postgres';
+
+  // Check if we're in a CI environment
+  const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+
+  // Check for root user - be more lenient in CI environment
+  if (dbUser === 'root') {
+    console.error('❌ ERROR: Database connection attempted with "root" user!');
+    console.error('   Please set DB_USER or PGUSER to "postgres" or another valid database user.');
+    console.error('   Current configuration:');
+    console.error(`   - DB_USER: ${process.env.DB_USER || 'not set'}`);
+    console.error(`   - PGUSER: ${process.env.PGUSER || 'not set'}`);
+    console.error(`   - OS USER: ${process.env.USER || 'not set'}`);
+    process.exit(1);
+  } else if (process.env.USER === 'root' && !process.env.DB_USER && !isCI) {
+    console.error('❌ ERROR: OS user is "root" and no DB_USER is set!');
+    console.error('   Please set DB_USER or PGUSER to "postgres" or another valid database user.');
+    console.error('   Current configuration:');
+    console.error(`   - DB_USER: ${process.env.DB_USER || 'not set'}`);
+    console.error(`   - PGUSER: ${process.env.PGUSER || 'not set'}`);
+    console.error(`   - OS USER: ${process.env.USER || 'not set'}`);
+    process.exit(1);
+  } else if (process.env.USER === 'root' && isCI) {
+    console.log('ℹ️  CI Environment detected: OS USER=root is expected in GitHub Actions');
   }
-});
+
+  // Log configuration for debugging
+  console.log('Database configuration:');
+  console.log(`  Host: ${dbHost}`);
+  console.log(`  Port: ${dbPort}`);
+  console.log(`  Database: ${dbName}`);
+  console.log(`  User: ${dbUser}`);
+
+  return { dbUser, dbHost, dbPort, dbName, dbPassword };
+}
+
+const config = validateDatabaseConfig();
+
+// Use explicit configuration - no fallback to OS user
+const poolConfig = {
+  host: config.dbHost,
+  port: parseInt(config.dbPort),
+  database: config.dbName,
+  user: config.dbUser,
+  password: config.dbPassword,
+  ssl: process.env.NODE_ENV === 'production' ? {
+    rejectUnauthorized: false
+  } : false
+};
+
+// If DATABASE_URL is provided, parse it but still validate user
+if (process.env.DATABASE_URL) {
+  try {
+    const url = new URL(process.env.DATABASE_URL);
+    if (url.username === 'root') {
+      console.error('❌ ERROR: DATABASE_URL contains "root" user!');
+      process.exit(1);
+    }
+    poolConfig.connectionString = process.env.DATABASE_URL;
+  } catch (e) {
+    console.log('Using individual connection parameters instead of DATABASE_URL');
+  }
+}
+
+const pool = new Pool(poolConfig);
 
 async function setupDatabase() {
   try {

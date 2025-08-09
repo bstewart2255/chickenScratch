@@ -1,0 +1,25 @@
+{
+  "extends": "./tsconfig.strict.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "sourceMap": true,
+    "removeComments": true,
+    "declaration": true,
+    "declarationMap": true,
+    "inlineSources": false,
+    "noEmitOnError": true
+  },
+  "include": [
+    "src/**/*",
+    "backend/**/*",
+    "frontend/**/*",
+    "scripts/MigrationTracker.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "tests",
+    "**/*.test.ts",
+    "**/*.spec.ts"
+  ]
+}

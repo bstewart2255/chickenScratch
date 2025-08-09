@@ -1,0 +1,1703 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Signature Modal Flow</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Portrait Mode - Entry Point */
+        .portrait-container, .username-container {
+            display: none;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Prevent viewport shift when keyboard appears */
+        @supports (-webkit-touch-callout: none) {
+            /* iOS Safari */
+            .username-container {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+        }
+        
+        .portrait-container {
+            display: block;
+        }
+        
+        .auth-button {
+            flex: 1;
+            height: 120px;
+            border: 2px solid #e5e5e5;
+            border-radius: 12px;
+            background: white;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .auth-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        
+        .signup-btn {
+            border-color: #667eea;
+        }
+        
+        .signup-btn:hover {
+            background: #f8f9ff;
+            border-color: #5a67d8;
+        }
+        
+        .signin-btn {
+            border-color: #48bb78;
+        }
+        
+        .signin-btn:hover {
+            background: #f0fff4;
+            border-color: #38a169;
+        }
+        
+        .auth-icon {
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+        
+        .auth-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+        
+        .auth-button small {
+            opacity: 0.7;
+            font-size: 12px;
+            font-weight: 400;
+        }
+        
+        /* Landscape Signing Modal */
+        .signing-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 1000;
+            overflow: hidden;
+        }
+        
+        .signing-modal.active {
+            display: block;
+        }
+        
+        /* Canvas Container */
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #signature-canvas {
+            background: white;
+            border: none;
+            touch-action: none;
+            cursor: crosshair;
+        }
+        
+        /* Controls Overlay - Top Right */
+        .controls-overlay {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            z-index: 10;
+        }
+        
+        .fullscreen-btn {
+            background: #333;
+            color: white;
+        }
+        
+        .fullscreen-btn:hover {
+            background: #555;
+            transform: scale(1.05);
+        }
+        
+        .step-counter {
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            min-width: 80px;
+            text-align: center;
+        }
+        
+        .control-button {
+            width: 60px;
+            height: 60px;
+            border: none;
+            border-radius: 50%;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        
+        .clear-btn {
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        .clear-btn:hover {
+            background: #e5e5e5;
+            transform: scale(1.05);
+        }
+        
+        .next-btn {
+            background: #667eea;
+            color: white;
+        }
+        
+        .next-btn:hover {
+            background: #5a67d8;
+            transform: scale(1.05);
+        }
+        
+        .next-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Instruction Overlay */
+        .instruction-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: left;
+            z-index: 5;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        
+        .instruction-overlay.hidden {
+            opacity: 0;
+        }
+        
+        /* Completion Message */
+        .completion-message {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            padding: 40px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-width: 400px;
+            width: 90%;
+            z-index: 2000;
+        }
+        
+        .completion-message.show {
+            display: block;
+        }
+        
+        /* Overlay for completion message */
+        .completion-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1999;
+        }
+        
+        .completion-overlay.show {
+            display: block;
+        }
+        
+        .success-icon {
+            font-size: 72px;
+            margin-bottom: 20px;
+            color: #4CAF50;
+        }
+        
+        .completion-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .completion-btn {
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            background: #e5e5e5;
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background: #d5d5d5;
+        }
+        
+        #usernameInput {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+        
+        #usernameInput:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        /* Prevent zoom on input focus on iOS */
+        @media screen and (max-width: 768px) {
+            input[type="text"] {
+                font-size: 16px !important;
+            }
+        }
+        
+        /* Responsive Canvas Sizing */
+        @media screen and (orientation: landscape) {
+            #signature-canvas {
+                width: calc(100vw - 40px);
+                height: calc(100vh - 40px);
+                max-width: none;
+                max-height: none;
+            }
+        }
+        
+        @media screen and (orientation: portrait) {
+            #signature-canvas {
+                width: 90vw;
+                height: 60vh;
+            }
+        }
+        
+        /* Force landscape message */
+        .rotate-message {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            z-index: 15;
+        }
+        
+        @media screen and (orientation: portrait) {
+            .signing-modal.active .rotate-message {
+                display: block;
+            }
+            .signing-modal.active .canvas-container {
+                filter: blur(5px);
+            }
+        }
+        
+        /* Tablet & Desktop Responsive Styles */
+        @media (min-width: 768px) {
+            .portrait-container {
+                max-width: 500px;
+                margin: 40px auto;
+                padding: 40px 20px;
+                border-radius: 12px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            }
+            
+            .username-container {
+                max-width: 500px;
+                margin: 40px auto;
+                padding: 40px 20px;
+            }
+            
+            .signing-modal {
+                position: relative !important;
+                width: 90vw;
+                height: 80vh;
+                max-width: 1000px;
+                margin: 20px auto;
+                border-radius: 12px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+                background: white;
+            }
+            
+            .rotate-message {
+                display: none !important;
+            }
+            
+            #signature-canvas {
+                width: calc(100% - 40px) !important;
+                height: calc(100% - 40px) !important;
+            }
+            
+            .completion-message {
+                max-width: 500px;
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Portrait Mode Entry -->
+    <div class="portrait-container" id="portraitContainer">
+        <h1>Signature Authentication</h1>
+        <p style="color: #666; margin: 20px 0;">Sign in or create your account</p>
+        
+        <div style="display: flex; gap: 15px; margin: 30px 0;">
+            <button class="auth-button signup-btn" onclick="startSignUp()">
+                <div class="auth-icon">✨</div>
+                <div class="auth-title">Sign Up</div>
+                <small>Create account</small>
+            </button>
+            
+            <button class="auth-button signin-btn" onclick="startSignIn()">
+                <div class="auth-icon">✍️</div>
+                <div class="auth-title">Sign In</div>
+                <small>Use existing account</small>
+            </button>
+        </div>
+        
+        <p style="color: #999; font-size: 14px;">
+            <span id="flowDescription">Choose an option to continue</span>
+        </p>
+    </div>
+
+    <!-- Username Input Screen -->
+    <div class="username-container" id="usernameContainer">
+        <h1 id="usernameTitle">Create Account</h1>
+        <p style="color: #666; margin: 20px 0;" id="usernameDescription">Choose your username</p>
+        
+        <div style="margin: 30px 0;">
+            <input type="text" id="usernameInput" placeholder="Enter username" style="
+                width: 100%;
+                padding: 15px;
+                font-size: 18px;
+                border: 2px solid #e5e5e5;
+                border-radius: 12px;
+                text-align: center;
+                outline: none;
+                transition: border-color 0.3s ease;
+            ">
+        </div>
+        
+        <div style="display: flex; gap: 12px;">
+            <button class="completion-btn btn-secondary" onclick="goBackToAuth()">
+                Back
+            </button>
+            <button class="completion-btn btn-primary" onclick="proceedToSigning()" style="flex: 1;">
+                Continue
+            </button>
+        </div>
+        
+        <p style="color: #999; font-size: 14px; margin-top: 20px;">
+            <span id="usernameHint">This will be used to identify your signature</span>
+        </p>
+    </div>
+
+    <!-- Landscape Signing Modal -->
+    <div class="signing-modal" id="signingModal">
+        <div class="rotate-message">
+            <h2>Please rotate your device</h2>
+            <p>Turn to landscape mode to continue</p>
+            <div style="font-size: 48px; margin: 20px 0;">📱 ↻</div>
+        </div>
+        
+        <div class="canvas-container">
+            <!-- Controls Overlay -->
+            <div class="controls-overlay">
+                <div class="step-counter" id="stepCounter">1 of 11</div>
+                <button class="control-button fullscreen-btn" onclick="toggleFullscreen()" title="Fullscreen">
+                    <span id="fullscreenIcon">⛶</span>
+                </button>
+                <button class="control-button clear-btn" onclick="clearCanvas()" title="Clear">
+                    Clear
+                </button>
+                <button class="control-button next-btn" id="nextBtn" onclick="nextStep()" title="Next">
+                    Next
+                </button>
+            </div>
+            
+            <!-- Instruction Overlay -->
+            <div class="instruction-overlay" id="instructionOverlay">
+                Sign your name
+            </div>
+            
+            <!-- Canvas -->
+            <canvas id="signature-canvas"></canvas>
+        </div>
+    </div>
+
+    <!-- Completion Overlay -->
+    <div class="completion-overlay" id="completionOverlay"></div>
+    
+    <!-- Completion Message -->
+    <div class="completion-message" id="completionMessage">
+        <div class="success-icon">✅</div>
+        <h2>All Set!</h2>
+        <p style="color: #666; margin: 20px 0;">Your signature authentication is ready</p>
+        <div class="completion-buttons" id="completionButtons">
+            <button onclick="resetDemo()" style="background: #667eea; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer;">
+                Try Again
+            </button>
+        </div>
+    </div>
+
+    <!-- Load signature_pad library -->
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+    
+    <!-- Load device capability detection -->
+    <script src="device-capabilities.js"></script>
+    
+    <script>
+        // API URL configuration - adjust based on environment
+        const API_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:3000' 
+            : 'https://chickenscratch.onrender.com';
+        
+        let signaturePad;
+        let currentStep = 1;
+        let totalSteps = 11; // Default to sign-up flow
+        let hasDrawn = false;
+        let isSignUp = true; // Track which flow we're in
+        let userJustSignedUp = false; // Track if they just completed sign-up
+        let currentUsername = ''; // Store username
+        let currentSessionId = null; // Store session ID
+        let drawingStartTime = null; // Track drawing duration
+        let collectedData = []; // Store all drawings locally until submission
+        let deviceCapabilities = null; // Store device capabilities
+        
+        // Detect device capabilities on load
+        if (typeof DeviceCapabilityDetector !== 'undefined') {
+            deviceCapabilities = DeviceCapabilityDetector.detectCapabilities();
+            console.log('Device capabilities:', deviceCapabilities);
+        }
+        
+        // Flow definitions
+        // Sign-up flow: 10 drawing steps total
+        const signUpSteps = [
+            // Signatures (Steps 1-3 of 10)
+            { type: 'signature', instruction: 'Sign your name' },
+            { type: 'signature', instruction: 'Sign your name again' },
+            { type: 'signature', instruction: 'Sign your name one more time' },
+            
+            // Shapes (Steps 4-6 of 10)
+            { type: 'shape', instruction: 'Draw a circle' },
+            { type: 'shape', instruction: 'Draw a square' },
+            { type: 'shape', instruction: 'Draw a triangle' },
+            
+            // Creative Drawings (Steps 7-10 of 10)
+            { type: 'drawing', instruction: 'Draw a simple face' },
+            { type: 'drawing', instruction: 'Draw a star' },
+            { type: 'drawing', instruction: 'Draw a house' },
+            { type: 'drawing', instruction: 'Connect these dots' }
+        ];
+        
+        // Sign-in flow: 6 drawing steps total
+        const signInSteps = [
+            // Signature (Step 1 of 6)
+            { type: 'signature', instruction: 'Sign your name' },
+            
+            // Shape Verification (Steps 2-4 of 6)
+            { type: 'shape', instruction: 'Draw a circle' },
+            { type: 'shape', instruction: 'Draw a square' },
+            { type: 'shape', instruction: 'Draw a triangle' },
+            
+            // Drawing Verification (Steps 5-6 of 6)
+            { type: 'drawing', instruction: 'Draw a simple face' },
+            { type: 'drawing', instruction: 'Draw a star' }
+        ];
+        
+        let flowSteps = signUpSteps; // Default
+        
+        function startSignUp() {
+            isSignUp = true;
+            totalSteps = 10; // 10 drawing steps for sign-up
+            flowSteps = signUpSteps;
+            userJustSignedUp = false;
+            currentSessionId = null;
+            collectedData = []; // Reset collected data
+            showUsernameInput();
+        }
+        
+        function startSignIn() {
+            isSignUp = false;
+            totalSteps = 6; // 6 drawing steps for sign-in
+            flowSteps = signInSteps;
+            currentSessionId = null;
+            collectedData = []; // Reset collected data
+            showUsernameInput();
+        }
+        
+        function showUsernameInput() {
+            // Hide auth buttons
+            document.getElementById('portraitContainer').style.display = 'none';
+            
+            // Show username input
+            const usernameContainer = document.getElementById('usernameContainer');
+            const title = document.getElementById('usernameTitle');
+            const description = document.getElementById('usernameDescription');
+            const hint = document.getElementById('usernameHint');
+            
+            if (isSignUp) {
+                title.textContent = 'Create Account';
+                description.textContent = 'Choose your username';
+                hint.textContent = 'This will be used to identify your signature';
+            } else {
+                title.textContent = 'Welcome Back';
+                description.textContent = 'Enter your username';
+                hint.textContent = 'We\'ll verify your signature';
+            }
+            
+            usernameContainer.style.display = 'block';
+            
+            // Delay focus to prevent immediate keyboard on mobile
+            setTimeout(() => {
+                const input = document.getElementById('usernameInput');
+                // Only focus on desktop/tablet, not on mobile phones
+                if (window.innerWidth > 768) {
+                    input.focus();
+                }
+            }, 300);
+        }
+        
+        function goBackToAuth() {
+            document.getElementById('usernameContainer').style.display = 'none';
+            document.getElementById('portraitContainer').style.display = 'block';
+            document.getElementById('usernameInput').value = '';
+        }
+        
+        function proceedToSigning() {
+            const username = document.getElementById('usernameInput').value.trim();
+            
+            if (!username) {
+                alert('Please enter a username');
+                return;
+            }
+            
+            if (username.length < 2) {
+                alert('Username must be at least 2 characters');
+                return;
+            }
+            
+            currentUsername = username;
+            
+            // Show processing state
+            const continueBtn = document.querySelector('#usernameContainer .btn-primary');
+            const originalText = continueBtn.textContent;
+            continueBtn.disabled = true;
+            continueBtn.textContent = 'Checking...';
+            
+            // Check username with backend
+            checkUsernameAvailability(username)
+                .then(() => {
+                    // Username is valid, proceed to appropriate flow
+                    document.getElementById('usernameContainer').style.display = 'none';
+                    
+                    if (isSignUp) {
+                        startSigning(); // Direct to signing for sign-up
+                    } else {
+                        proceedToSignInFlow(); // Get challenges for sign-in
+                    }
+                })
+                .catch((error) => {
+                    // Show error and reset button
+                    alert(error.message);
+                    continueBtn.disabled = false;
+                    continueBtn.textContent = originalText;
+                });
+        }
+        
+        async function checkUsernameAvailability(username) {
+            try {
+                if (isSignUp) {
+                    // For sign-up: check if username is available
+                    const response = await fetch(`${API_URL}/api/check-username`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username })
+                    });
+                    
+                    if (!response.ok) {
+                        if (response.status === 409) {
+                            throw new Error('Username already taken, please choose another');
+                        }
+                        throw new Error('Error checking username availability');
+                    }
+                    
+                    const data = await response.json();
+                    return data;
+                } else {
+                    // For sign-in: check if username exists
+                    const response = await fetch(`${API_URL}/api/check-user-exists`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username })
+                    });
+                    
+                    if (!response.ok) {
+                        if (response.status === 404) {
+                            throw new Error('Username does not exist, please sign up first');
+                        }
+                        throw new Error('Error checking username');
+                    }
+                    
+                    const data = await response.json();
+                    return data;
+                }
+            } catch (error) {
+                if (error.message.includes('fetch')) {
+                    throw new Error('Connection error, please try again');
+                }
+                throw error;
+            }
+        }
+        
+        function proceedToSignInFlow() {
+            // Use fixed sign-in flow (6 steps)
+            console.log('Starting sign-in flow with fixed 6 steps');
+            totalSteps = 6;
+            flowSteps = signInSteps;
+            startSigning();
+        }
+        
+        function continueToSignIn() {
+            // Hide the completion message and overlay
+            document.getElementById('completionMessage').classList.remove('show');
+            document.getElementById('completionOverlay').classList.remove('show');
+            
+            // After sign-up completion, start sign-in flow
+            userJustSignedUp = true;
+            isSignUp = false;
+            currentSessionId = null; // Reset session ID for new sign-in flow
+            collectedData = []; // Clear collected data for new flow
+            
+            // Skip username input since we already have it from sign-up
+            // currentUsername is already set from the sign-up flow
+            console.log('Continuing to sign-in with username:', currentUsername);
+            
+            // Hide portrait container
+            document.getElementById('portraitContainer').style.display = 'none';
+            
+            // Set up for sign-in flow
+            totalSteps = 6;
+            flowSteps = signInSteps;
+            
+            // Add a small delay to ensure database commit is complete
+            setTimeout(() => {
+                proceedToSignInFlow();
+            }, 500);
+        }
+        
+        function startSigning() {
+            const isMobile = window.innerWidth < 768;
+            
+            // Reset step counter for new flow
+            currentStep = 1;
+            hasDrawn = false;
+            
+            // Hide portrait container
+            document.getElementById('portraitContainer').style.display = 'none';
+            
+            // Show signing modal
+            const modal = document.getElementById('signingModal');
+            modal.classList.add('active');
+            
+            // Mobile-only behaviors
+            if (isMobile) {
+                // Try to lock screen orientation to landscape
+                if (screen.orientation && screen.orientation.lock) {
+                    screen.orientation.lock('landscape').catch(err => {
+                        console.log('Orientation lock not supported:', err);
+                    });
+                }
+                
+                // Request fullscreen mode
+                const element = document.documentElement;
+                if (element.requestFullscreen) {
+                    element.requestFullscreen().catch(err => console.log('Fullscreen failed:', err));
+                } else if (element.webkitRequestFullscreen) {
+                    element.webkitRequestFullscreen(); // Safari
+                } else if (element.mozRequestFullScreen) {
+                    element.mozRequestFullScreen(); // Firefox
+                } else if (element.msRequestFullscreen) {
+                    element.msRequestFullscreen(); // IE/Edge
+                }
+            }
+            
+            // Initialize canvas and controls (for all devices)
+            initializeCanvas();
+            
+            // Clear any existing drawings
+            if (signaturePad) {
+                signaturePad.clear();
+            }
+            
+            updateStepCounter();
+            showInstruction();
+        }
+        
+        function initializeCanvas() {
+            const canvas = document.getElementById('signature-canvas');
+            const container = canvas.parentElement;
+            const isMobile = window.innerWidth < 768;
+            
+            // Set canvas size based on screen
+            function resizeCanvas() {
+                const containerRect = container.getBoundingClientRect();
+                const devicePixelRatio = window.devicePixelRatio || 1;
+                
+                if (isMobile) {
+                    // Mobile: Use viewport dimensions with padding
+                    const width = window.innerWidth - 40;
+                    const height = window.innerHeight - 40;
+                    
+                    // Set canvas actual size (in memory) with DPI scaling
+                    canvas.width = width * devicePixelRatio;
+                    canvas.height = height * devicePixelRatio;
+                    
+                    // Set canvas display size (CSS)
+                    canvas.style.width = width + 'px';
+                    canvas.style.height = height + 'px';
+                    
+                    // Scale context to match device pixel ratio
+                    const ctx = canvas.getContext('2d');
+                    ctx.scale(devicePixelRatio, devicePixelRatio);
+                } else {
+                    // Desktop/Tablet: Size to container
+                    const width = containerRect.width - 40;
+                    const height = containerRect.height - 40;
+                    
+                    // Set canvas actual size
+                    canvas.width = width;
+                    canvas.height = height;
+                    
+                    // Set canvas display size
+                    canvas.style.width = width + 'px';
+                    canvas.style.height = height + 'px';
+                }
+                
+                // Initialize or reinitialize signature pad
+                if (signaturePad) {
+                    const currentData = signaturePad.toData();
+                    signaturePad.clear();
+                    signaturePad = new SignaturePad(canvas, {
+                        backgroundColor: 'rgba(255,255,255,0)',
+                        penColor: 'rgb(0, 0, 0)',
+                        minWidth: 2,
+                        maxWidth: 4,
+                        velocityFilterWeight: 0.7,
+                        throttle: 16,
+                        minDistance: 2,
+                    });
+                    // Restore previous data if any
+                    if (currentData.length > 0) {
+                        signaturePad.fromData(currentData);
+                    }
+                } else {
+                    signaturePad = new SignaturePad(canvas, {
+                        backgroundColor: 'rgba(255,255,255,0)',
+                        penColor: 'rgb(0, 0, 0)',
+                        minWidth: 2,
+                        maxWidth: 4,
+                        velocityFilterWeight: 0.7,
+                        throttle: 16,
+                        minDistance: 2,
+                    });
+                }
+                
+                // Listen for drawing start
+                signaturePad.addEventListener("beginStroke", onDrawingStart);
+            }
+            
+            resizeCanvas();
+        }
+        
+        function onDrawingStart() {
+            if (!hasDrawn) {
+                hasDrawn = true;
+                drawingStartTime = Date.now();
+                hideInstruction();
+            }
+        }
+        
+        // Calculate comprehensive metrics for ML dashboard
+        function calculateComprehensiveMetrics(rawData, duration) {
+            console.log('Raw data format:', rawData);
+            console.log('First stroke:', rawData[0]);
+            
+            // Get canvas dimensions for normalization
+            const canvas = document.getElementById('signature-canvas');
+            const canvasWidth = canvas.width;
+            const canvasHeight = canvas.height;
+            const cssWidth = parseInt(canvas.style.width);
+            const cssHeight = parseInt(canvas.style.height);
+            
+            // Calculate scaling factor (how much coordinates need to be scaled down)
+            // This handles high DPI displays where canvas.width > css width
+            const scaleX = canvasWidth / cssWidth;
+            const scaleY = canvasHeight / cssHeight;
+            console.log(`Canvas scaling - width: ${canvasWidth}/${cssWidth}=${scaleX}, height: ${canvasHeight}/${cssHeight}=${scaleY}`);
+            
+            // SignaturePad v4 returns strokes as objects with points array
+            // Convert to expected format if needed
+            let strokes = rawData;
+            if (rawData.length > 0 && rawData[0].points) {
+                console.log('Converting SignaturePad v4 format to points array');
+                strokes = rawData.map(stroke => stroke.points || []);
+            }
+            
+            // Basic counts
+            const strokeCount = strokes.length;
+            let totalPoints = 0;
+            
+            // Safely calculate total points
+            try {
+                totalPoints = strokes.reduce((sum, stroke) => {
+                    if (Array.isArray(stroke)) {
+                        return sum + stroke.length;
+                    }
+                    console.warn('Non-array stroke found:', stroke);
+                    return sum;
+                }, 0);
+            } catch (e) {
+                console.error('Error calculating total points:', e);
+                totalPoints = 0;
+            }
+            
+            // Calculate bounding box
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            let allPoints = [];
+            let velocities = [];
+            let strokeLengths = [];
+            let strokeDurations = [];
+            
+            strokes.forEach((stroke, strokeIndex) => {
+                // Check if stroke is an array of points
+                if (!Array.isArray(stroke) || stroke.length === 0) {
+                    console.warn(`Stroke ${strokeIndex} is not a valid array:`, stroke);
+                    return;
+                }
+                
+                let strokeLength = 0;
+                let strokeStartTime = stroke[0]?.time || 0;
+                let strokeEndTime = stroke[stroke.length - 1]?.time || 0;
+                let strokeDuration = strokeEndTime - strokeStartTime;
+                
+                stroke.forEach((point, pointIndex) => {
+                    // Ensure point has required properties
+                    if (!point || typeof point.x !== 'number' || typeof point.y !== 'number') {
+                        console.warn(`Invalid point at stroke ${strokeIndex}, point ${pointIndex}:`, point);
+                        return;
+                    }
+                    
+                    // Normalize coordinates to CSS pixels (undo DPI scaling)
+                    const normalizedX = point.x / scaleX;
+                    const normalizedY = point.y / scaleY;
+                    
+                    // Update bounding box with normalized coordinates
+                    minX = Math.min(minX, normalizedX);
+                    minY = Math.min(minY, normalizedY);
+                    maxX = Math.max(maxX, normalizedX);
+                    maxY = Math.max(maxY, normalizedY);
+                    
+                    allPoints.push({x: normalizedX, y: normalizedY, time: point.time});
+                    
+                    // Calculate velocity between points using normalized coordinates
+                    if (pointIndex > 0) {
+                        const prevPoint = stroke[pointIndex - 1];
+                        if (prevPoint && typeof prevPoint.x === 'number' && typeof prevPoint.y === 'number') {
+                            const prevNormalizedX = prevPoint.x / scaleX;
+                            const prevNormalizedY = prevPoint.y / scaleY;
+                            const dx = normalizedX - prevNormalizedX;
+                            const dy = normalizedY - prevNormalizedY;
+                            const distance = Math.sqrt(dx * dx + dy * dy);
+                            const dt = (point.time - prevPoint.time) || 1; // milliseconds
+                            // Keep velocity in pixels per millisecond (not multiply by 1000)
+                            // This matches how the backend/baseline calculates it
+                            const velocity = distance / dt; // pixels per millisecond
+                            velocities.push(velocity);
+                            strokeLength += distance;
+                        }
+                    }
+                });
+                
+                if (strokeLength > 0) {
+                    strokeLengths.push(strokeLength);
+                }
+                if (strokeDuration > 0) {
+                    strokeDurations.push(strokeDuration);
+                }
+            });
+            
+            // Calculate bounding box dimensions
+            const width = (minX !== Infinity && maxX !== -Infinity) ? maxX - minX : 0;
+            const height = (minY !== Infinity && maxY !== -Infinity) ? maxY - minY : 0;
+            const area = width * height;
+            const aspectRatio = height > 0 ? width / height : 0;
+            const centerX = (minX !== Infinity && maxX !== -Infinity) ? (minX + maxX) / 2 : 0;
+            const centerY = (minY !== Infinity && maxY !== -Infinity) ? (minY + maxY) / 2 : 0;
+            
+            // Calculate velocity statistics
+            const avgVelocity = velocities.length > 0 ? 
+                velocities.reduce((a, b) => a + b, 0) / velocities.length : 0;
+            const maxVelocity = velocities.length > 0 ? Math.max(...velocities) : 0;
+            const minVelocity = velocities.length > 0 ? Math.min(...velocities) : 0;
+            
+            // Calculate velocity standard deviation
+            let velocityStd = 0;
+            if (velocities.length > 1) {
+                const velocityVariance = velocities.reduce((sum, v) => 
+                    sum + Math.pow(v - avgVelocity, 2), 0) / velocities.length;
+                velocityStd = Math.sqrt(velocityVariance);
+            }
+            
+            // Calculate length statistics
+            const totalLength = strokeLengths.reduce((a, b) => a + b, 0);
+            const avgStrokeLength = strokeCount > 0 ? totalLength / strokeCount : 0;
+            
+            // Calculate length variation
+            let lengthVariation = 0;
+            if (strokeLengths.length > 1) {
+                const lengthVariance = strokeLengths.reduce((sum, len) => 
+                    sum + Math.pow(len - avgStrokeLength, 2), 0) / strokeLengths.length;
+                lengthVariation = Math.sqrt(lengthVariance);
+            }
+            
+            // Calculate duration statistics
+            const avgStrokeDuration = strokeDurations.length > 0 ? 
+                strokeDurations.reduce((a, b) => a + b, 0) / strokeDurations.length : 
+                (duration / strokeCount);
+            
+            // Calculate duration variation
+            let durationVariation = 0;
+            if (strokeDurations.length > 1) {
+                const durationVariance = strokeDurations.reduce((sum, dur) => 
+                    sum + Math.pow(dur - avgStrokeDuration, 2), 0) / strokeDurations.length;
+                durationVariation = Math.sqrt(durationVariance);
+            }
+            
+            return {
+                stroke_count: strokeCount,
+                total_points: totalPoints,
+                total_duration_ms: duration,
+                avg_points_per_stroke: strokeCount > 0 ? totalPoints / strokeCount : 0,
+                avg_velocity: avgVelocity,
+                max_velocity: maxVelocity,
+                min_velocity: minVelocity,
+                velocity_std: velocityStd,
+                width: width,
+                height: height,
+                area: area,
+                aspect_ratio: aspectRatio,
+                center_x: centerX,
+                center_y: centerY,
+                avg_stroke_length: avgStrokeLength,
+                total_length: totalLength,
+                length_variation: lengthVariation,
+                avg_stroke_duration: avgStrokeDuration,
+                duration_variation: durationVariation
+            };
+        }
+        
+        function showInstruction() {
+            const overlay = document.getElementById('instructionOverlay');
+            const step = flowSteps[currentStep - 1];
+            
+            // Clear canvas before showing new instruction
+            if (signaturePad) {
+                signaturePad.clear();
+            }
+            
+            overlay.textContent = step.instruction;
+            overlay.classList.remove('hidden');
+            hasDrawn = false;
+            drawingStartTime = null;
+            
+            // Check if this is a connect dots challenge
+            if (step.instruction && step.instruction.toLowerCase().includes('dots')) {
+                setTimeout(() => drawDots(), 100);
+            }
+        }
+        
+        function hideInstruction() {
+            const overlay = document.getElementById('instructionOverlay');
+            overlay.classList.add('hidden');
+        }
+        
+        function clearCanvas() {
+            if (signaturePad) {
+                signaturePad.clear();
+                hasDrawn = false;
+                drawingStartTime = null;
+                showInstruction();
+            }
+        }
+        
+        function nextStep() {
+            if (signaturePad && signaturePad.isEmpty()) {
+                alert('Please complete the drawing before continuing');
+                return;
+            }
+            
+            // Show processing state
+            const nextBtn = document.getElementById('nextBtn');
+            const originalText = nextBtn.textContent;
+            nextBtn.disabled = true;
+            nextBtn.textContent = 'Saving...';
+            
+            // Calculate drawing duration
+            const duration = drawingStartTime ? Date.now() - drawingStartTime : 0;
+            
+            // Extract metrics from the signature pad data
+            const rawData = signaturePad.toData();
+            let metrics;
+            try {
+                metrics = calculateComprehensiveMetrics(rawData, duration);
+                console.log('Calculated metrics:', metrics);
+            } catch (metricsError) {
+                console.error('Error calculating metrics:', metricsError);
+                // Fallback to basic metrics
+                metrics = {
+                    stroke_count: rawData.length,
+                    total_points: rawData.reduce((sum, stroke) => sum + stroke.length, 0),
+                    duration_ms: duration
+                };
+            }
+            
+            // Save current drawing data
+            const drawingData = {
+                raw: rawData,
+                step: currentStep,
+                type: flowSteps[currentStep - 1].type,
+                instruction: flowSteps[currentStep - 1].instruction,
+                timestamp: Date.now(),
+                username: currentUsername,
+                metrics: metrics,
+                sessionId: currentSessionId,
+                device_capabilities: deviceCapabilities
+            };
+            
+            // Store drawing data locally (no server calls during flow)
+            console.log('Storing drawing data locally...');
+            collectedData.push(drawingData);
+            console.log(`Step ${currentStep} data collected. Total collected: ${collectedData.length}`);
+            
+            // Check if all steps are completed
+            if (currentStep >= totalSteps) {
+                console.log(`All steps completed (${currentStep}/${totalSteps}). Submitting all data...`);
+                nextBtn.disabled = false;
+                nextBtn.textContent = originalText;
+                completeFlow();
+                return;
+            }
+            
+            // Move to next step
+            currentStep++;
+            console.log(`Step ${currentStep - 1} completed. Moving to step ${currentStep} of ${totalSteps}`);
+            
+            // Update UI for next step
+            updateStepCounter();
+            clearCanvas();
+            showInstruction();
+            
+            // Reset button
+            nextBtn.disabled = false;
+            nextBtn.textContent = originalText;
+        }
+        
+        function updateStepCounter() {
+            document.getElementById('stepCounter').textContent = `${currentStep} of ${totalSteps}`;
+        }
+        
+        function completeFlow() {
+            // Show processing state
+            const nextBtn = document.getElementById('nextBtn');
+            nextBtn.disabled = true;
+            nextBtn.textContent = 'Finishing...';
+            
+            // Send final completion to backend
+            completeAuthFlow()
+                .then((result) => {
+                    // Exit modal with proper cleanup
+                    exitSigningModal();
+                    showCompletionMessage(result);
+                })
+                .catch((error) => {
+                    // Exit modal with proper cleanup
+                    exitSigningModal();
+                    showFailureMessage(error.message);
+                });
+        }
+        
+        async function completeAuthFlow() {
+            try {
+                if (isSignUp) {
+                    // Process collected data for sign-up
+                    console.log('Completing sign-up for:', currentUsername);
+                    console.log('Collected data items:', collectedData.length);
+                    
+                    // Extract drawing type from instruction
+                    const getDrawingKey = (instruction) => {
+                        const mappings = {
+                            'circle': 'circle',
+                            'square': 'square',
+                            'triangle': 'triangle',
+                            'face': 'face',
+                            'star': 'star',
+                            'house': 'house',
+                            'dots': 'connect_dots'  // Fixed: 'dots' maps to 'connect_dots'
+                        };
+                        
+                        for (const [key, value] of Object.entries(mappings)) {
+                            if (instruction.toLowerCase().includes(key)) {
+                                return value;
+                            }
+                        }
+                        return 'unknown';
+                    };
+                    
+                    // Organize data by type as per spec
+                    const signatures = [];
+                    const shapesObject = {};
+                    const drawingsObject = {};
+                    
+                    collectedData.forEach(item => {
+                        const dataItem = {
+                            data: item.signature,
+                            raw: item.raw,
+                            metrics: item.metrics,
+                            timestamp: item.timestamp
+                        };
+                        
+                        if (item.type === 'signature') {
+                            signatures.push(dataItem);
+                        } else if (item.type === 'shape') {
+                            const key = getDrawingKey(item.instruction);
+                            shapesObject[key] = dataItem;
+                        } else if (item.type === 'drawing') {
+                            const key = getDrawingKey(item.instruction);
+                            drawingsObject[key] = dataItem;
+                        }
+                    });
+                    
+                    const response = await fetch(`${API_URL}/register`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            username: currentUsername,
+                            signatures: signatures,
+                            shapes: shapesObject,
+                            drawings: drawingsObject,
+                            device_info: navigator.userAgent,
+                            device_capabilities: deviceCapabilities,
+                            timestamp: new Date().toISOString()
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Registration failed');
+                    }
+                    
+                    const result = await response.json();
+                    return { 
+                        type: 'signup', 
+                        username: currentUsername,
+                        ...result 
+                    };
+                } else {
+                    // Process collected data for sign-in
+                    console.log('Completing sign-in for:', currentUsername);
+                    console.log('Collected data items:', collectedData.length);
+                    
+                    // Extract signature and other verification data
+                    const signature = collectedData.find(item => item.type === 'signature');
+                    const shapes = collectedData.filter(item => item.type === 'shape');
+                    const drawings = collectedData.filter(item => item.type === 'drawing');
+                    
+                    // Extract drawing type from instruction
+                    const getDrawingKey = (instruction) => {
+                        const mappings = {
+                            'circle': 'circle',
+                            'square': 'square',
+                            'triangle': 'triangle',
+                            'face': 'face',
+                            'star': 'star',
+                            'house': 'house',
+                            'dots': 'connect_dots'  // Fixed: 'dots' maps to 'connect_dots'
+                        };
+                        
+                        for (const [key, value] of Object.entries(mappings)) {
+                            if (instruction.toLowerCase().includes(key)) {
+                                return value;
+                            }
+                        }
+                        return 'unknown';
+                    };
+                    
+                    // Convert shapes array to keyed object
+                    const shapesObject = {};
+                    shapes.forEach(item => {
+                        const key = getDrawingKey(item.instruction);
+                        shapesObject[key] = {
+                            data: item.signature,
+                            raw: item.raw,
+                            metrics: item.metrics,
+                            timestamp: item.timestamp
+                        };
+                    });
+                    
+                    // Convert drawings array to keyed object
+                    const drawingsObject = {};
+                    drawings.forEach(item => {
+                        const key = getDrawingKey(item.instruction);
+                        drawingsObject[key] = {
+                            data: item.signature,
+                            raw: item.raw,
+                            metrics: item.metrics,
+                            timestamp: item.timestamp
+                        };
+                    });
+                    
+                    const response = await fetch(`${API_URL}/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            username: currentUsername,
+                            signature: {
+                                data: signature.signature,
+                                raw: signature.raw,
+                                metrics: signature.metrics,
+                                timestamp: signature.timestamp
+                            },
+                            shapes: shapesObject,
+                            drawings: drawingsObject,
+                            device_info: navigator.userAgent,
+                            device_capabilities: deviceCapabilities,
+                            timestamp: new Date().toISOString()
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        
+                        // Handle specific authentication failure
+                        if (response.status === 401) {
+                            throw new Error('Authentication failed. Unable to verify your identity.');
+                        }
+                        
+                        throw new Error(errorData.error || 'Sign-in failed');
+                    }
+                    
+                    const result = await response.json();
+                    return { 
+                        type: 'signin', 
+                        username: currentUsername,
+                        ...result 
+                    };
+                }
+            } catch (error) {
+                if (error.message.includes('fetch')) {
+                    throw new Error('Connection error, please try again');
+                }
+                throw error;
+            }
+        }
+        
+        function showCompletionMessage(result) {
+            const completionEl = document.getElementById('completionMessage');
+            const successIcon = completionEl.querySelector('.success-icon');
+            const title = completionEl.querySelector('h2');
+            const description = completionEl.querySelector('p');
+            const buttonsContainer = document.getElementById('completionButtons');
+            
+            // Reset the Next button state
+            const nextBtn = document.getElementById('nextBtn');
+            if (nextBtn) {
+                nextBtn.disabled = false;
+                nextBtn.textContent = 'Next';
+            }
+            
+            if (result.type === 'signup') {
+                // Sign-up Success Completion
+                successIcon.textContent = '✅';
+                title.textContent = 'Account Created!';
+                description.textContent = 'Your signature authentication is ready';
+                buttonsContainer.innerHTML = `
+                    <button class="completion-btn btn-primary" onclick="resetDemo()">
+                        Home
+                    </button>
+                    <button class="completion-btn btn-secondary" onclick="continueToSignIn()">
+                        Sign In
+                    </button>
+                `;
+            } else {
+                // Sign-in Success Completion
+                successIcon.textContent = '👋';
+                title.textContent = 'Welcome Back!';
+                description.textContent = `Hello ${result.username}! Authentication successful`;
+                buttonsContainer.innerHTML = `
+                    <button class="completion-btn btn-primary" onclick="resetDemo()">
+                        Home
+                    </button>
+                    <button class="completion-btn btn-secondary" onclick="goToApp()">
+                        Go to App
+                    </button>
+                `;
+            }
+            
+            completionEl.classList.add('show');
+            document.getElementById('completionOverlay').classList.add('show');
+        }
+        
+        function showFailureMessage(errorMessage) {
+            const completionEl = document.getElementById('completionMessage');
+            const successIcon = completionEl.querySelector('.success-icon');
+            const title = completionEl.querySelector('h2');
+            const description = completionEl.querySelector('p');
+            const buttonsContainer = document.getElementById('completionButtons');
+            
+            // Reset the Next button state
+            const nextBtn = document.getElementById('nextBtn');
+            if (nextBtn) {
+                nextBtn.disabled = false;
+                nextBtn.textContent = 'Next';
+            }
+            
+            if (isSignUp) {
+                // Sign-up Failure Completion
+                successIcon.textContent = '❌';
+                title.textContent = 'Account Creation Failed';
+                description.textContent = errorMessage;
+                buttonsContainer.innerHTML = `
+                    <button class="completion-btn btn-primary" onclick="resetDemo()">
+                        Home
+                    </button>
+                    <button class="completion-btn btn-secondary" onclick="startSignIn()">
+                        Sign In
+                    </button>
+                `;
+            } else {
+                // Sign-in Failure Completion
+                successIcon.textContent = '❌';
+                title.textContent = 'Authentication Failed';
+                description.textContent = 'Unable to verify your identity. Please try again.';
+                buttonsContainer.innerHTML = `
+                    <button class="completion-btn btn-primary" onclick="resetDemo()">
+                        Home
+                    </button>
+                    <button class="completion-btn btn-secondary" onclick="startSignIn()">
+                        Sign In
+                    </button>
+                `;
+            }
+            
+            completionEl.classList.add('show');
+            document.getElementById('completionOverlay').classList.add('show');
+        }
+        
+        function goToApp() {
+            // Redirect to main app or dashboard
+            window.location.href = '/';
+        }
+        
+        function resetDemo() {
+            // Reset state
+            currentStep = 1;
+            hasDrawn = false;
+            userJustSignedUp = false;
+            currentUsername = '';
+            currentSessionId = null;
+            isSignUp = false;
+            totalSteps = 0;
+            flowSteps = [];
+            drawingStartTime = null;
+            collectedData = []; // Clear collected drawings
+            
+            // Hide completion message and overlay
+            document.getElementById('completionMessage').classList.remove('show');
+            document.getElementById('completionOverlay').classList.remove('show');
+            
+            // Ensure signing modal is closed
+            const modal = document.getElementById('signingModal');
+            if (modal.classList.contains('active')) {
+                exitSigningModal();
+            }
+            
+            // Hide username container
+            document.getElementById('usernameContainer').style.display = 'none';
+            
+            // Show portrait container
+            document.getElementById('portraitContainer').style.display = 'block';
+            
+            // Clear username input
+            document.getElementById('usernameInput').value = '';
+            
+            // Reset any button states
+            const continueBtn = document.querySelector('#usernameContainer .btn-primary');
+            if (continueBtn) {
+                continueBtn.disabled = false;
+                continueBtn.textContent = 'Continue';
+            }
+            
+            // Update counter
+            updateStepCounter();
+        }
+        
+        // Handle escape key (desktop) and back button
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('signingModal');
+                if (modal.classList.contains('active')) {
+                    exitSigningModal();
+                }
+            }
+        });
+        
+        // Handle browser back button
+        window.addEventListener('popstate', function(event) {
+            // If signing modal is active, exit it
+            const modal = document.getElementById('signingModal');
+            if (modal.classList.contains('active')) {
+                // Exit signing mode with proper cleanup
+                exitSigningModal();
+                return;
+            }
+            
+            // If on username screen, go back to auth choice
+            const usernameContainer = document.getElementById('usernameContainer');
+            if (usernameContainer.style.display !== 'none') {
+                goBackToAuth();
+                return;
+            }
+            
+            // If on completion screen, reset to start
+            const completionMessage = document.getElementById('completionMessage');
+            if (completionMessage.classList.contains('show')) {
+                resetDemo();
+                return;
+            }
+        });
+
+        // Handle enter key on username input
+        document.getElementById('usernameInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                proceedToSigning();
+            }
+        });
+        
+        // Update window resize handler for responsive canvas
+        window.addEventListener('resize', function() {
+            if (signaturePad && document.getElementById('signingModal').classList.contains('active')) {
+                // Reinitialize canvas on resize
+                setTimeout(initializeCanvas, 100);
+            }
+        });
+        
+        // Handle viewport changes when keyboard appears/disappears (mobile)
+        let viewportHeight = window.innerHeight;
+        window.addEventListener('resize', function() {
+            const currentHeight = window.innerHeight;
+            const usernameContainer = document.getElementById('usernameContainer');
+            
+            // If username container is visible and height changed significantly (keyboard)
+            if (usernameContainer.style.display !== 'none' && Math.abs(currentHeight - viewportHeight) > 100) {
+                if (currentHeight < viewportHeight) {
+                    // Keyboard appeared - adjust container position
+                    usernameContainer.style.marginTop = '-50px';
+                } else {
+                    // Keyboard disappeared - reset position
+                    usernameContainer.style.marginTop = '0';
+                }
+            }
+            
+            viewportHeight = currentHeight;
+        });
+        
+        // Toggle fullscreen function
+        function toggleFullscreen() {
+            const icon = document.getElementById('fullscreenIcon');
+            const isMobile = window.innerWidth < 768;
+            
+            // Only allow fullscreen toggle on mobile devices
+            if (!isMobile) {
+                return;
+            }
+            
+            if (!document.fullscreenElement && !document.webkitFullscreenElement && 
+                !document.mozFullScreenElement && !document.msFullscreenElement) {
+                // Enter fullscreen
+                const element = document.documentElement;
+                if (element.requestFullscreen) {
+                    element.requestFullscreen();
+                } else if (element.webkitRequestFullscreen) {
+                    element.webkitRequestFullscreen();
+                } else if (element.mozRequestFullScreen) {
+                    element.mozRequestFullScreen();
+                } else if (element.msRequestFullscreen) {
+                    element.msRequestFullscreen();
+                }
+                icon.textContent = '⛶';
+            } else {
+                // Exit fullscreen
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+                icon.textContent = '⛶';
+            }
+        }
+        
+        // Exit signing modal with proper cleanup
+        function exitSigningModal() {
+            const isMobile = window.innerWidth < 768;
+            const modal = document.getElementById('signingModal');
+            modal.classList.remove('active');
+            
+            // Mobile-only cleanup
+            if (isMobile) {
+                // Exit fullscreen
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+                
+                // Unlock screen orientation
+                if (screen.orientation && screen.orientation.unlock) {
+                    screen.orientation.unlock();
+                }
+            }
+            
+            document.getElementById('portraitContainer').style.display = 'block';
+        }
+        
+        // Draw dots function for connect-the-dots challenge
+        function drawDots() {
+            const canvas = document.getElementById('signature-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Save the current signature data
+            const currentData = signaturePad.toData();
+            
+            // Clear and redraw
+            signaturePad.clear();
+            
+            // Account for device pixel ratio
+            const dpr = window.devicePixelRatio || 1;
+            
+            // Define 4 dot positions (spread across canvas)
+            const dots = [
+                { x: canvas.width * 0.25 / dpr, y: canvas.height * 0.25 / dpr },
+                { x: canvas.width * 0.75 / dpr, y: canvas.height * 0.25 / dpr },
+                { x: canvas.width * 0.25 / dpr, y: canvas.height * 0.75 / dpr },
+                { x: canvas.width * 0.75 / dpr, y: canvas.height * 0.75 / dpr }
+            ];
+            
+            // Draw the dots WITHOUT numbers
+            ctx.fillStyle = '#667eea';
+            dots.forEach(dot => {
+                ctx.beginPath();
+                ctx.arc(dot.x, dot.y, 10, 0, 2 * Math.PI);
+                ctx.fill();
+            });
+            
+            // Restore previous strokes if any
+            if (currentData.length > 0) {
+                signaturePad.fromData(currentData);
+            }
+        }
+    </script>
+</body>
+</html>

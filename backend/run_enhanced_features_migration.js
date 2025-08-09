@@ -70,7 +70,7 @@ async function runEnhancedFeaturesMigration() {
         
         // Test SELECT with enhanced_features column
         try {
-            const selectResult = await pool.query(`
+            await pool.query(`
                 SELECT id, enhanced_features FROM auth_attempts 
                 WHERE enhanced_features IS NOT NULL 
                 LIMIT 1

@@ -448,7 +448,7 @@ const EnhancedFeatureExtractor = {
         tempoVariations.reduce((a, b) => a + b, 0) / tempoVariations.length : 0;
       
       // Calculate dwell time patterns
-      const totalDwellPoints = strokes.reduce((acc, stroke) => acc + (stroke.dwellCount || 0), 0);
+      // const totalDwellPoints = strokes.reduce((acc, stroke) => acc + (stroke.dwellCount || 0), 0); // Unused variable removed
       const avgDwellTime = strokes.reduce((acc, stroke) => acc + (stroke.avgDwellTime || 0), 0) / strokes.length;
       
       const features = {

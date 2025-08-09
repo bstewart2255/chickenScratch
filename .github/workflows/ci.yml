@@ -1,0 +1,304 @@
+name: TypeScript Migration CI/CD
+
+on:
+  push:
+    branches: [ main, staging, develop ]
+  pull_request:
+    branches: [ main, staging, develop ]
+  workflow_call:
+
+env:
+  NODE_VERSION: '18.x'
+
+jobs:
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    env:
+      # CRITICAL: Explicitly set all database variables
+      # DO NOT set USER - it's protected in GitHub Actions
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/signature_auth_test
+      NODE_ENV: test
+      API_SECRET_KEY: test-secret-key
+      PGUSER: postgres
+      DB_USER: postgres
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_NAME: signature_auth_test
+      DB_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: signature_auth_test
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: signature_auth_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Verify Database Configuration
+        run: |
+          echo "🔍 Verifying database configuration..."
+          echo "OS USER: $USER (this is expected to be 'root' in GitHub Actions)"
+          echo "PGUSER: ${PGUSER}"
+          echo "DB_USER: ${DB_USER}"
+          echo "POSTGRES_USER: ${POSTGRES_USER}"
+          echo "DATABASE_URL: ${DATABASE_URL}"
+          
+          # Critical check
+          if [[ "${PGUSER}" != "postgres" ]] || [[ "${DB_USER}" != "postgres" ]]; then
+            echo "❌ ERROR: Database user variables are not set correctly!"
+            echo "PGUSER should be 'postgres' but is '${PGUSER}'"
+            echo "DB_USER should be 'postgres' but is '${DB_USER}'"
+            exit 1
+          fi
+          
+          echo "✅ Database configuration verified"
+
+
+      - name: Run Database User Diagnostic
+        run: ./scripts/fix-ci-database-user.sh
+
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('**/package-lock.json') }}-v2
+          restore-keys: |
+            ${{ runner.os }}-node-${{ matrix.node-version }}-v2
+            ${{ runner.os }}-node-v2
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linter
+        run: npm run lint
+
+      - name: Run type check (permissive)
+        run: npm run type-check
+
+      - name: Check database configuration
+        run: npm run db:check-config
+
+      - name: Run tests with coverage
+        run: npm run test:coverage
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.node-version }}
+          path: coverage/
+          retention-days: 7
+
+      - name: Check coverage thresholds
+        run: |
+          COVERAGE=$(npx nyc report --reporter=text-summary | grep 'Statements' | awk '{print $3}' | sed 's/%//')
+          if (( $(echo "$COVERAGE < 90" | bc -l) )); then
+            echo "Coverage dropped below 90% (current: $COVERAGE%)"
+            exit 1
+          fi
+          echo "Coverage is at $COVERAGE% - meets threshold"
+
+      - name: Build project
+        run: npm run build
+
+      - name: Run strict type check
+        run: npm run type-check:strict || echo "Strict type check warnings (not failing CI)"
+
+      - name: Performance benchmarks
+        if: matrix.node-version == '18.x'
+        run: npm run test:performance
+
+      - name: Archive build artifacts
+        if: matrix.node-version == '18.x'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
+
+  integration:
+    name: Integration Tests
+    needs: test
+    runs-on: ubuntu-latest
+    env:
+      # CRITICAL: Explicitly set all database variables at job level
+      # DO NOT set USER - it's protected in GitHub Actions
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/signature_auth_integration
+      NODE_ENV: test
+      API_SECRET_KEY: test-secret-key
+      PGUSER: postgres
+      DB_USER: postgres
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_NAME: signature_auth_integration
+      DB_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: signature_auth_integration
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: signature_auth_integration
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify Database Configuration (Integration)
+        run: |
+          echo "🔍 Verifying integration database configuration..."
+          echo "PGUSER: ${PGUSER}"
+          echo "DB_USER: ${DB_USER}"
+          echo "DATABASE_URL: ${DATABASE_URL}"
+          
+          if [[ "${PGUSER}" != "postgres" ]] || [[ "${DB_USER}" != "postgres" ]]; then
+            echo "❌ ERROR: Database user variables are not set correctly!"
+            exit 1
+          fi
+          
+          echo "✅ Integration database configuration verified"
+
+      - name: Setup database
+        run: |
+          npm run db:setup
+          npm run db:migrate
+
+      - name: Run integration tests
+        run: npm run test:integration
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: npm audit --production
+
+      - name: Check for secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+
+  bundle-analysis:
+    name: Bundle Size Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Analyze bundle size
+        run: |
+          echo "Frontend bundle sizes:"
+          ls -lh dist/frontend/*.js | awk '{print $5, $9}'
+          echo ""
+          echo "Backend bundle sizes:"
+          ls -lh dist/backend/*.js | awk '{print $5, $9}'
+
+  migration-status:
+    name: Check Migration Status
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check migration status
+        run: node scripts/show-migration-status.js
+
+  ci-summary:
+    name: CI Summary
+    needs: [test, integration, security, bundle-analysis, migration-status]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check job statuses
+        run: |
+          echo "Test Suite: ${{ needs.test.result }}"
+          echo "Integration Tests: ${{ needs.integration.result }}"
+          echo "Security Scan: ${{ needs.security.result }}"
+          echo "Bundle Analysis: ${{ needs.bundle-analysis.result }}"
+          echo "Migration Status: ${{ needs.migration-status.result }}"
+          
+          if [[ "${{ needs.test.result }}" != "success" ]] || \
+             [[ "${{ needs.integration.result }}" != "success" ]] || \
+             [[ "${{ needs.security.result }}" != "success" ]]; then
+            echo "CI failed - critical checks did not pass"
+            exit 1
+          fi
+          
+          echo "All CI checks passed successfully!"

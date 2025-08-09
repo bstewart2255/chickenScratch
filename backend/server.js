@@ -1,19 +1,26 @@
 const express = require('express');
 const cors = require('cors');
-const bodyParser = require('body-parser');
 const { Pool } = require('pg');
-const { storeSignatureWithStrokeData, getSignatureData, extractStrokeData } = require('./update_to_stroke_storage');
+const { getSignatureData, extractStrokeData } = require('./update_to_stroke_storage');
+const { configService } = require('../src/config/ConfigService');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const config = configService.get();
+const PORT = config.server.port;
 
 // Database connection
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL || 
-      `postgresql://${process.env.DB_USER || 'postgres'}:${process.env.DB_PASSWORD}@${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || '5432'}/${process.env.DB_NAME || 'signatureauth'}`,
-    ssl: {
+    host: config.database.host,
+    port: config.database.port,
+    database: config.database.database,
+    user: config.database.user,
+    password: config.database.password,
+    ssl: config.database.ssl ? {
         rejectUnauthorized: false
-    }
+    } : false,
+    max: config.database.maxConnections,
+    idleTimeoutMillis: config.database.idleTimeoutMillis,
+    connectionTimeoutMillis: config.database.connectionTimeoutMillis
 });
 
 // Update CORS configuration
@@ -75,8 +82,8 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Body parser middleware - IMPORTANT: Must be before routes
-app.use(express.json({ limit: '10mb' })); // Increase limit for drawing data
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: config.server.maxRequestSize }));
+app.use(express.urlencoded({ extended: true, limit: config.server.maxRequestSize }));
 
 // Request logging middleware
 app.use((req, res, next) => {
@@ -150,7 +157,7 @@ const EnhancedFeatureExtractor = require('./enhanced-feature-extraction');
 const ComponentSpecificFeatures = require('./component-specific-features');
 
 // Feature flag for enhanced features (can be controlled via environment variable)
-const ENABLE_ENHANCED_FEATURES = process.env.ENABLE_ENHANCED_FEATURES !== 'false'; // Default to true
+const ENABLE_ENHANCED_FEATURES = config.features.enableEnhancedBiometrics;
 
 // Helper function to calculate all ML features from signature data
 function calculateMLFeatures(signatureData) {
@@ -514,7 +521,7 @@ function extractSignatureFeatures(signatureDataUrl) {
 }
 
 // Import ML comparison functions
-const { compareSignaturesML, compareMultipleSignaturesML, compareSignaturesEnhanced } = require('./mlComparison');
+const { compareSignaturesML, compareSignaturesEnhanced } = require('./mlComparison');
 
 // Legacy comparison function (kept for fallback)
 function compareSignaturesLegacy(signature1, signature2) {
@@ -588,7 +595,7 @@ async function compareSignatures(signature1, signature2, metrics1, metrics2, use
 
 // Helper function to insert signatures with fallback for is_enrollment column
 async function insertSignatureWithFallback(pool, signatureData) {
-    const { userId, strokeData, signature, mlFeatures, isEnrollment } = signatureData;
+    const { userId, strokeData, mlFeatures, isEnrollment } = signatureData;
     
     try {
         // Try with is_enrollment column first
@@ -1000,7 +1007,7 @@ app.post('/login', async (req, res) => {
         bodyKeys: Object.keys(req.body)
     });
     
-    let { username, signature, shapes, drawings, deviceInfo, useTemporaryData, metadata } = req.body;
+    let { username, signature, shapes, drawings, useTemporaryData, metadata } = req.body;
     
     // If using temporary data from mobile flow
     if (useTemporaryData && username) {
@@ -1124,7 +1131,7 @@ app.post('/login', async (req, res) => {
         };
 
         // Helper function to add features to collection
-        function addFeaturesToCollection(componentType, componentName, features) {
+        const addFeaturesToCollection = (componentType, componentName, features) => {
             if (!features || typeof features !== 'object') return;
             
             if (componentType === 'signature') {
@@ -1136,7 +1143,7 @@ app.post('/login', async (req, res) => {
             }
             
             enhancedFeaturesCollection._total_components_processed++;
-        }
+        };
 
         // Get user
         const userResult = await pool.query(
@@ -1405,7 +1412,7 @@ app.post('/login', async (req, res) => {
                 hasConnectDots: !!drawings.connect_dots
             });
             
-            const { compareDrawings, extractStrokeDataFromSignaturePad: extractStrokeDataFromDrawingModule } = require('./drawingVerification');
+            const { extractStrokeDataFromSignaturePad } = require('./drawingVerification');
             
             const storedDrawingsResult = await pool.query(
                 'SELECT drawing_type, metrics, enhanced_features FROM drawings WHERE user_id = $1 AND drawing_type = ANY($2::text[])',
@@ -3004,29 +3011,33 @@ function calculateStructuralAccuracy(metrics, drawingType) {
     const pointCount = metrics.pointCount || 0;
     
     switch(drawingType) {
-        case 'face':
+        case 'face': {
             // A face typically has 3-7 strokes
             const faceStrokeScore = Math.min(100, (strokeCount / 5) * 100);
             const facePointScore = Math.min(100, (pointCount / 50) * 100);
             return Math.round((faceStrokeScore + facePointScore) / 2);
+        }
             
-        case 'star':
+        case 'star': {
             // A 5-pointed star typically has 1-2 strokes
             const starStrokeScore = strokeCount >= 1 ? 80 : 20;
             const starPointScore = Math.min(100, (pointCount / 30) * 100);
             return Math.round((starStrokeScore + starPointScore) / 2);
+        }
             
-        case 'house':
+        case 'house': {
             // A house typically has 4-8 strokes
             const houseStrokeScore = Math.min(100, (strokeCount / 6) * 100);
             const housePointScore = Math.min(100, (pointCount / 60) * 100);
             return Math.round((houseStrokeScore + housePointScore) / 2);
+        }
             
-        case 'connect_dots':
+        case 'connect_dots': {
             // Connect dots should be efficient
             const efficiency = strokeCount > 0 ? Math.max(0, 100 - (strokeCount - 1) * 20) : 0;
             const completeness = Math.min(100, (pointCount / 20) * 100);
             return Math.round((efficiency + completeness) / 2);
+        }
             
         default:
             return 50;
@@ -3333,7 +3344,7 @@ app.get('/api/user/:username/component-performance/:type', async (req, res) => {
         const userId = userResult.rows[0].id;
         
         switch (type) {
-            case 'signature':
+            case 'signature': {
                 // Get signature performance over time
                 const signaturePerf = await pool.query(
                     `SELECT 
@@ -3352,8 +3363,9 @@ app.get('/api/user/:username/component-performance/:type', async (req, res) => {
                     performance: signaturePerf.rows
                 });
                 break;
+            }
                 
-            case 'shapes':
+            case 'shapes': {
                 // Shape performance would need to be extracted from auth attempts
                 // For now, return a placeholder
                 res.json({
@@ -3362,8 +3374,9 @@ app.get('/api/user/:username/component-performance/:type', async (req, res) => {
                     message: 'Shape-specific performance tracking coming soon'
                 });
                 break;
+            }
                 
-            case 'drawings':
+            case 'drawings': {
                 // Get drawing performance from auth attempts
                 const drawingPerf = await pool.query(
                     `SELECT 
@@ -3380,6 +3393,7 @@ app.get('/api/user/:username/component-performance/:type', async (req, res) => {
                     performance: drawingPerf.rows
                 });
                 break;
+            }
                 
             default:
                 res.status(400).json({ error: 'Invalid component type' });
@@ -3784,7 +3798,7 @@ function extractDeviceType(userAgent) {
 }
 
 // Global error handler - must be last middleware
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
     console.error('Unhandled error:', err);
     console.error('Error stack:', err.stack);
     
@@ -3793,7 +3807,7 @@ app.use((err, req, res, next) => {
         error: 'Internal server error',
         message: err.message || 'An unexpected error occurred',
         // Include more details in development
-        ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+        ...(config.env === 'development' && { stack: err.stack })
     });
 });
 

@@ -45,7 +45,7 @@ async function exportMLTrainingData() {
         // Export in the format expected by train_model.py
         let exportCount = 0;
         
-        result.rows.forEach((row, index) => {
+        result.rows.forEach((row) => {
             const metrics = row.metrics;
             const username = row.username;
             

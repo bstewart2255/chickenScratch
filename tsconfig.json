@@ -1,0 +1,88 @@
+{
+  "compilerOptions": {
+    // Enable all strict type checking options
+    "strict": true,
+    
+    // Individual strict options (all enabled by "strict": true)
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    
+    // Additional strict checks
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    
+    // Strict mode - no JavaScript allowed
+    "allowJs": false,
+    "checkJs": false,
+    
+    // Target and module settings
+    "target": "ES2020",
+    "module": "commonjs",
+    "lib": ["ES2020", "DOM"],
+    "moduleResolution": "node",
+    
+    // Output settings
+    "outDir": "./dist",
+    "rootDir": "./",
+    "sourceMap": true,
+    
+    // Interop settings
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    
+    // Type checking
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    
+    // Emit settings
+    "removeComments": false,
+    "preserveConstEnums": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    
+    // Node.js specific
+    "types": ["node", "jest"],
+    
+    // Enable iteration for ES2015+ features
+    "downlevelIteration": true
+  },
+  "include": [
+    "backend/**/*.ts",
+    "frontend/**/*.ts",
+    "scripts/**/*.ts",
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "**/*.js",
+    "node_modules",
+    "dist",
+    "coverage",
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "legacy",
+    "Redundant",
+    "docs",
+    "test-*",
+    "phase3",
+    "ml-dashboard-*",
+    ".git",
+    "*.html",
+    "scripts/test-migration-system.ts",
+    "src/types/auth.ts",
+    "src/types/ml.ts",
+    "src/types/validation/schemas.ts"
+  ]
+}

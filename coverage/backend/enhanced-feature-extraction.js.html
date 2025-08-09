@@ -1,0 +1,2917 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for backend/enhanced-feature-extraction.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../index.html">All files</a> / <a href="index.html">backend</a> enhanced-feature-extraction.js</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>0/455</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>0/280</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>0/52</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>0/425</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line low'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a>
+<a name='L97'></a><a href='#L97'>97</a>
+<a name='L98'></a><a href='#L98'>98</a>
+<a name='L99'></a><a href='#L99'>99</a>
+<a name='L100'></a><a href='#L100'>100</a>
+<a name='L101'></a><a href='#L101'>101</a>
+<a name='L102'></a><a href='#L102'>102</a>
+<a name='L103'></a><a href='#L103'>103</a>
+<a name='L104'></a><a href='#L104'>104</a>
+<a name='L105'></a><a href='#L105'>105</a>
+<a name='L106'></a><a href='#L106'>106</a>
+<a name='L107'></a><a href='#L107'>107</a>
+<a name='L108'></a><a href='#L108'>108</a>
+<a name='L109'></a><a href='#L109'>109</a>
+<a name='L110'></a><a href='#L110'>110</a>
+<a name='L111'></a><a href='#L111'>111</a>
+<a name='L112'></a><a href='#L112'>112</a>
+<a name='L113'></a><a href='#L113'>113</a>
+<a name='L114'></a><a href='#L114'>114</a>
+<a name='L115'></a><a href='#L115'>115</a>
+<a name='L116'></a><a href='#L116'>116</a>
+<a name='L117'></a><a href='#L117'>117</a>
+<a name='L118'></a><a href='#L118'>118</a>
+<a name='L119'></a><a href='#L119'>119</a>
+<a name='L120'></a><a href='#L120'>120</a>
+<a name='L121'></a><a href='#L121'>121</a>
+<a name='L122'></a><a href='#L122'>122</a>
+<a name='L123'></a><a href='#L123'>123</a>
+<a name='L124'></a><a href='#L124'>124</a>
+<a name='L125'></a><a href='#L125'>125</a>
+<a name='L126'></a><a href='#L126'>126</a>
+<a name='L127'></a><a href='#L127'>127</a>
+<a name='L128'></a><a href='#L128'>128</a>
+<a name='L129'></a><a href='#L129'>129</a>
+<a name='L130'></a><a href='#L130'>130</a>
+<a name='L131'></a><a href='#L131'>131</a>
+<a name='L132'></a><a href='#L132'>132</a>
+<a name='L133'></a><a href='#L133'>133</a>
+<a name='L134'></a><a href='#L134'>134</a>
+<a name='L135'></a><a href='#L135'>135</a>
+<a name='L136'></a><a href='#L136'>136</a>
+<a name='L137'></a><a href='#L137'>137</a>
+<a name='L138'></a><a href='#L138'>138</a>
+<a name='L139'></a><a href='#L139'>139</a>
+<a name='L140'></a><a href='#L140'>140</a>
+<a name='L141'></a><a href='#L141'>141</a>
+<a name='L142'></a><a href='#L142'>142</a>
+<a name='L143'></a><a href='#L143'>143</a>
+<a name='L144'></a><a href='#L144'>144</a>
+<a name='L145'></a><a href='#L145'>145</a>
+<a name='L146'></a><a href='#L146'>146</a>
+<a name='L147'></a><a href='#L147'>147</a>
+<a name='L148'></a><a href='#L148'>148</a>
+<a name='L149'></a><a href='#L149'>149</a>
+<a name='L150'></a><a href='#L150'>150</a>
+<a name='L151'></a><a href='#L151'>151</a>
+<a name='L152'></a><a href='#L152'>152</a>
+<a name='L153'></a><a href='#L153'>153</a>
+<a name='L154'></a><a href='#L154'>154</a>
+<a name='L155'></a><a href='#L155'>155</a>
+<a name='L156'></a><a href='#L156'>156</a>
+<a name='L157'></a><a href='#L157'>157</a>
+<a name='L158'></a><a href='#L158'>158</a>
+<a name='L159'></a><a href='#L159'>159</a>
+<a name='L160'></a><a href='#L160'>160</a>
+<a name='L161'></a><a href='#L161'>161</a>
+<a name='L162'></a><a href='#L162'>162</a>
+<a name='L163'></a><a href='#L163'>163</a>
+<a name='L164'></a><a href='#L164'>164</a>
+<a name='L165'></a><a href='#L165'>165</a>
+<a name='L166'></a><a href='#L166'>166</a>
+<a name='L167'></a><a href='#L167'>167</a>
+<a name='L168'></a><a href='#L168'>168</a>
+<a name='L169'></a><a href='#L169'>169</a>
+<a name='L170'></a><a href='#L170'>170</a>
+<a name='L171'></a><a href='#L171'>171</a>
+<a name='L172'></a><a href='#L172'>172</a>
+<a name='L173'></a><a href='#L173'>173</a>
+<a name='L174'></a><a href='#L174'>174</a>
+<a name='L175'></a><a href='#L175'>175</a>
+<a name='L176'></a><a href='#L176'>176</a>
+<a name='L177'></a><a href='#L177'>177</a>
+<a name='L178'></a><a href='#L178'>178</a>
+<a name='L179'></a><a href='#L179'>179</a>
+<a name='L180'></a><a href='#L180'>180</a>
+<a name='L181'></a><a href='#L181'>181</a>
+<a name='L182'></a><a href='#L182'>182</a>
+<a name='L183'></a><a href='#L183'>183</a>
+<a name='L184'></a><a href='#L184'>184</a>
+<a name='L185'></a><a href='#L185'>185</a>
+<a name='L186'></a><a href='#L186'>186</a>
+<a name='L187'></a><a href='#L187'>187</a>
+<a name='L188'></a><a href='#L188'>188</a>
+<a name='L189'></a><a href='#L189'>189</a>
+<a name='L190'></a><a href='#L190'>190</a>
+<a name='L191'></a><a href='#L191'>191</a>
+<a name='L192'></a><a href='#L192'>192</a>
+<a name='L193'></a><a href='#L193'>193</a>
+<a name='L194'></a><a href='#L194'>194</a>
+<a name='L195'></a><a href='#L195'>195</a>
+<a name='L196'></a><a href='#L196'>196</a>
+<a name='L197'></a><a href='#L197'>197</a>
+<a name='L198'></a><a href='#L198'>198</a>
+<a name='L199'></a><a href='#L199'>199</a>
+<a name='L200'></a><a href='#L200'>200</a>
+<a name='L201'></a><a href='#L201'>201</a>
+<a name='L202'></a><a href='#L202'>202</a>
+<a name='L203'></a><a href='#L203'>203</a>
+<a name='L204'></a><a href='#L204'>204</a>
+<a name='L205'></a><a href='#L205'>205</a>
+<a name='L206'></a><a href='#L206'>206</a>
+<a name='L207'></a><a href='#L207'>207</a>
+<a name='L208'></a><a href='#L208'>208</a>
+<a name='L209'></a><a href='#L209'>209</a>
+<a name='L210'></a><a href='#L210'>210</a>
+<a name='L211'></a><a href='#L211'>211</a>
+<a name='L212'></a><a href='#L212'>212</a>
+<a name='L213'></a><a href='#L213'>213</a>
+<a name='L214'></a><a href='#L214'>214</a>
+<a name='L215'></a><a href='#L215'>215</a>
+<a name='L216'></a><a href='#L216'>216</a>
+<a name='L217'></a><a href='#L217'>217</a>
+<a name='L218'></a><a href='#L218'>218</a>
+<a name='L219'></a><a href='#L219'>219</a>
+<a name='L220'></a><a href='#L220'>220</a>
+<a name='L221'></a><a href='#L221'>221</a>
+<a name='L222'></a><a href='#L222'>222</a>
+<a name='L223'></a><a href='#L223'>223</a>
+<a name='L224'></a><a href='#L224'>224</a>
+<a name='L225'></a><a href='#L225'>225</a>
+<a name='L226'></a><a href='#L226'>226</a>
+<a name='L227'></a><a href='#L227'>227</a>
+<a name='L228'></a><a href='#L228'>228</a>
+<a name='L229'></a><a href='#L229'>229</a>
+<a name='L230'></a><a href='#L230'>230</a>
+<a name='L231'></a><a href='#L231'>231</a>
+<a name='L232'></a><a href='#L232'>232</a>
+<a name='L233'></a><a href='#L233'>233</a>
+<a name='L234'></a><a href='#L234'>234</a>
+<a name='L235'></a><a href='#L235'>235</a>
+<a name='L236'></a><a href='#L236'>236</a>
+<a name='L237'></a><a href='#L237'>237</a>
+<a name='L238'></a><a href='#L238'>238</a>
+<a name='L239'></a><a href='#L239'>239</a>
+<a name='L240'></a><a href='#L240'>240</a>
+<a name='L241'></a><a href='#L241'>241</a>
+<a name='L242'></a><a href='#L242'>242</a>
+<a name='L243'></a><a href='#L243'>243</a>
+<a name='L244'></a><a href='#L244'>244</a>
+<a name='L245'></a><a href='#L245'>245</a>
+<a name='L246'></a><a href='#L246'>246</a>
+<a name='L247'></a><a href='#L247'>247</a>
+<a name='L248'></a><a href='#L248'>248</a>
+<a name='L249'></a><a href='#L249'>249</a>
+<a name='L250'></a><a href='#L250'>250</a>
+<a name='L251'></a><a href='#L251'>251</a>
+<a name='L252'></a><a href='#L252'>252</a>
+<a name='L253'></a><a href='#L253'>253</a>
+<a name='L254'></a><a href='#L254'>254</a>
+<a name='L255'></a><a href='#L255'>255</a>
+<a name='L256'></a><a href='#L256'>256</a>
+<a name='L257'></a><a href='#L257'>257</a>
+<a name='L258'></a><a href='#L258'>258</a>
+<a name='L259'></a><a href='#L259'>259</a>
+<a name='L260'></a><a href='#L260'>260</a>
+<a name='L261'></a><a href='#L261'>261</a>
+<a name='L262'></a><a href='#L262'>262</a>
+<a name='L263'></a><a href='#L263'>263</a>
+<a name='L264'></a><a href='#L264'>264</a>
+<a name='L265'></a><a href='#L265'>265</a>
+<a name='L266'></a><a href='#L266'>266</a>
+<a name='L267'></a><a href='#L267'>267</a>
+<a name='L268'></a><a href='#L268'>268</a>
+<a name='L269'></a><a href='#L269'>269</a>
+<a name='L270'></a><a href='#L270'>270</a>
+<a name='L271'></a><a href='#L271'>271</a>
+<a name='L272'></a><a href='#L272'>272</a>
+<a name='L273'></a><a href='#L273'>273</a>
+<a name='L274'></a><a href='#L274'>274</a>
+<a name='L275'></a><a href='#L275'>275</a>
+<a name='L276'></a><a href='#L276'>276</a>
+<a name='L277'></a><a href='#L277'>277</a>
+<a name='L278'></a><a href='#L278'>278</a>
+<a name='L279'></a><a href='#L279'>279</a>
+<a name='L280'></a><a href='#L280'>280</a>
+<a name='L281'></a><a href='#L281'>281</a>
+<a name='L282'></a><a href='#L282'>282</a>
+<a name='L283'></a><a href='#L283'>283</a>
+<a name='L284'></a><a href='#L284'>284</a>
+<a name='L285'></a><a href='#L285'>285</a>
+<a name='L286'></a><a href='#L286'>286</a>
+<a name='L287'></a><a href='#L287'>287</a>
+<a name='L288'></a><a href='#L288'>288</a>
+<a name='L289'></a><a href='#L289'>289</a>
+<a name='L290'></a><a href='#L290'>290</a>
+<a name='L291'></a><a href='#L291'>291</a>
+<a name='L292'></a><a href='#L292'>292</a>
+<a name='L293'></a><a href='#L293'>293</a>
+<a name='L294'></a><a href='#L294'>294</a>
+<a name='L295'></a><a href='#L295'>295</a>
+<a name='L296'></a><a href='#L296'>296</a>
+<a name='L297'></a><a href='#L297'>297</a>
+<a name='L298'></a><a href='#L298'>298</a>
+<a name='L299'></a><a href='#L299'>299</a>
+<a name='L300'></a><a href='#L300'>300</a>
+<a name='L301'></a><a href='#L301'>301</a>
+<a name='L302'></a><a href='#L302'>302</a>
+<a name='L303'></a><a href='#L303'>303</a>
+<a name='L304'></a><a href='#L304'>304</a>
+<a name='L305'></a><a href='#L305'>305</a>
+<a name='L306'></a><a href='#L306'>306</a>
+<a name='L307'></a><a href='#L307'>307</a>
+<a name='L308'></a><a href='#L308'>308</a>
+<a name='L309'></a><a href='#L309'>309</a>
+<a name='L310'></a><a href='#L310'>310</a>
+<a name='L311'></a><a href='#L311'>311</a>
+<a name='L312'></a><a href='#L312'>312</a>
+<a name='L313'></a><a href='#L313'>313</a>
+<a name='L314'></a><a href='#L314'>314</a>
+<a name='L315'></a><a href='#L315'>315</a>
+<a name='L316'></a><a href='#L316'>316</a>
+<a name='L317'></a><a href='#L317'>317</a>
+<a name='L318'></a><a href='#L318'>318</a>
+<a name='L319'></a><a href='#L319'>319</a>
+<a name='L320'></a><a href='#L320'>320</a>
+<a name='L321'></a><a href='#L321'>321</a>
+<a name='L322'></a><a href='#L322'>322</a>
+<a name='L323'></a><a href='#L323'>323</a>
+<a name='L324'></a><a href='#L324'>324</a>
+<a name='L325'></a><a href='#L325'>325</a>
+<a name='L326'></a><a href='#L326'>326</a>
+<a name='L327'></a><a href='#L327'>327</a>
+<a name='L328'></a><a href='#L328'>328</a>
+<a name='L329'></a><a href='#L329'>329</a>
+<a name='L330'></a><a href='#L330'>330</a>
+<a name='L331'></a><a href='#L331'>331</a>
+<a name='L332'></a><a href='#L332'>332</a>
+<a name='L333'></a><a href='#L333'>333</a>
+<a name='L334'></a><a href='#L334'>334</a>
+<a name='L335'></a><a href='#L335'>335</a>
+<a name='L336'></a><a href='#L336'>336</a>
+<a name='L337'></a><a href='#L337'>337</a>
+<a name='L338'></a><a href='#L338'>338</a>
+<a name='L339'></a><a href='#L339'>339</a>
+<a name='L340'></a><a href='#L340'>340</a>
+<a name='L341'></a><a href='#L341'>341</a>
+<a name='L342'></a><a href='#L342'>342</a>
+<a name='L343'></a><a href='#L343'>343</a>
+<a name='L344'></a><a href='#L344'>344</a>
+<a name='L345'></a><a href='#L345'>345</a>
+<a name='L346'></a><a href='#L346'>346</a>
+<a name='L347'></a><a href='#L347'>347</a>
+<a name='L348'></a><a href='#L348'>348</a>
+<a name='L349'></a><a href='#L349'>349</a>
+<a name='L350'></a><a href='#L350'>350</a>
+<a name='L351'></a><a href='#L351'>351</a>
+<a name='L352'></a><a href='#L352'>352</a>
+<a name='L353'></a><a href='#L353'>353</a>
+<a name='L354'></a><a href='#L354'>354</a>
+<a name='L355'></a><a href='#L355'>355</a>
+<a name='L356'></a><a href='#L356'>356</a>
+<a name='L357'></a><a href='#L357'>357</a>
+<a name='L358'></a><a href='#L358'>358</a>
+<a name='L359'></a><a href='#L359'>359</a>
+<a name='L360'></a><a href='#L360'>360</a>
+<a name='L361'></a><a href='#L361'>361</a>
+<a name='L362'></a><a href='#L362'>362</a>
+<a name='L363'></a><a href='#L363'>363</a>
+<a name='L364'></a><a href='#L364'>364</a>
+<a name='L365'></a><a href='#L365'>365</a>
+<a name='L366'></a><a href='#L366'>366</a>
+<a name='L367'></a><a href='#L367'>367</a>
+<a name='L368'></a><a href='#L368'>368</a>
+<a name='L369'></a><a href='#L369'>369</a>
+<a name='L370'></a><a href='#L370'>370</a>
+<a name='L371'></a><a href='#L371'>371</a>
+<a name='L372'></a><a href='#L372'>372</a>
+<a name='L373'></a><a href='#L373'>373</a>
+<a name='L374'></a><a href='#L374'>374</a>
+<a name='L375'></a><a href='#L375'>375</a>
+<a name='L376'></a><a href='#L376'>376</a>
+<a name='L377'></a><a href='#L377'>377</a>
+<a name='L378'></a><a href='#L378'>378</a>
+<a name='L379'></a><a href='#L379'>379</a>
+<a name='L380'></a><a href='#L380'>380</a>
+<a name='L381'></a><a href='#L381'>381</a>
+<a name='L382'></a><a href='#L382'>382</a>
+<a name='L383'></a><a href='#L383'>383</a>
+<a name='L384'></a><a href='#L384'>384</a>
+<a name='L385'></a><a href='#L385'>385</a>
+<a name='L386'></a><a href='#L386'>386</a>
+<a name='L387'></a><a href='#L387'>387</a>
+<a name='L388'></a><a href='#L388'>388</a>
+<a name='L389'></a><a href='#L389'>389</a>
+<a name='L390'></a><a href='#L390'>390</a>
+<a name='L391'></a><a href='#L391'>391</a>
+<a name='L392'></a><a href='#L392'>392</a>
+<a name='L393'></a><a href='#L393'>393</a>
+<a name='L394'></a><a href='#L394'>394</a>
+<a name='L395'></a><a href='#L395'>395</a>
+<a name='L396'></a><a href='#L396'>396</a>
+<a name='L397'></a><a href='#L397'>397</a>
+<a name='L398'></a><a href='#L398'>398</a>
+<a name='L399'></a><a href='#L399'>399</a>
+<a name='L400'></a><a href='#L400'>400</a>
+<a name='L401'></a><a href='#L401'>401</a>
+<a name='L402'></a><a href='#L402'>402</a>
+<a name='L403'></a><a href='#L403'>403</a>
+<a name='L404'></a><a href='#L404'>404</a>
+<a name='L405'></a><a href='#L405'>405</a>
+<a name='L406'></a><a href='#L406'>406</a>
+<a name='L407'></a><a href='#L407'>407</a>
+<a name='L408'></a><a href='#L408'>408</a>
+<a name='L409'></a><a href='#L409'>409</a>
+<a name='L410'></a><a href='#L410'>410</a>
+<a name='L411'></a><a href='#L411'>411</a>
+<a name='L412'></a><a href='#L412'>412</a>
+<a name='L413'></a><a href='#L413'>413</a>
+<a name='L414'></a><a href='#L414'>414</a>
+<a name='L415'></a><a href='#L415'>415</a>
+<a name='L416'></a><a href='#L416'>416</a>
+<a name='L417'></a><a href='#L417'>417</a>
+<a name='L418'></a><a href='#L418'>418</a>
+<a name='L419'></a><a href='#L419'>419</a>
+<a name='L420'></a><a href='#L420'>420</a>
+<a name='L421'></a><a href='#L421'>421</a>
+<a name='L422'></a><a href='#L422'>422</a>
+<a name='L423'></a><a href='#L423'>423</a>
+<a name='L424'></a><a href='#L424'>424</a>
+<a name='L425'></a><a href='#L425'>425</a>
+<a name='L426'></a><a href='#L426'>426</a>
+<a name='L427'></a><a href='#L427'>427</a>
+<a name='L428'></a><a href='#L428'>428</a>
+<a name='L429'></a><a href='#L429'>429</a>
+<a name='L430'></a><a href='#L430'>430</a>
+<a name='L431'></a><a href='#L431'>431</a>
+<a name='L432'></a><a href='#L432'>432</a>
+<a name='L433'></a><a href='#L433'>433</a>
+<a name='L434'></a><a href='#L434'>434</a>
+<a name='L435'></a><a href='#L435'>435</a>
+<a name='L436'></a><a href='#L436'>436</a>
+<a name='L437'></a><a href='#L437'>437</a>
+<a name='L438'></a><a href='#L438'>438</a>
+<a name='L439'></a><a href='#L439'>439</a>
+<a name='L440'></a><a href='#L440'>440</a>
+<a name='L441'></a><a href='#L441'>441</a>
+<a name='L442'></a><a href='#L442'>442</a>
+<a name='L443'></a><a href='#L443'>443</a>
+<a name='L444'></a><a href='#L444'>444</a>
+<a name='L445'></a><a href='#L445'>445</a>
+<a name='L446'></a><a href='#L446'>446</a>
+<a name='L447'></a><a href='#L447'>447</a>
+<a name='L448'></a><a href='#L448'>448</a>
+<a name='L449'></a><a href='#L449'>449</a>
+<a name='L450'></a><a href='#L450'>450</a>
+<a name='L451'></a><a href='#L451'>451</a>
+<a name='L452'></a><a href='#L452'>452</a>
+<a name='L453'></a><a href='#L453'>453</a>
+<a name='L454'></a><a href='#L454'>454</a>
+<a name='L455'></a><a href='#L455'>455</a>
+<a name='L456'></a><a href='#L456'>456</a>
+<a name='L457'></a><a href='#L457'>457</a>
+<a name='L458'></a><a href='#L458'>458</a>
+<a name='L459'></a><a href='#L459'>459</a>
+<a name='L460'></a><a href='#L460'>460</a>
+<a name='L461'></a><a href='#L461'>461</a>
+<a name='L462'></a><a href='#L462'>462</a>
+<a name='L463'></a><a href='#L463'>463</a>
+<a name='L464'></a><a href='#L464'>464</a>
+<a name='L465'></a><a href='#L465'>465</a>
+<a name='L466'></a><a href='#L466'>466</a>
+<a name='L467'></a><a href='#L467'>467</a>
+<a name='L468'></a><a href='#L468'>468</a>
+<a name='L469'></a><a href='#L469'>469</a>
+<a name='L470'></a><a href='#L470'>470</a>
+<a name='L471'></a><a href='#L471'>471</a>
+<a name='L472'></a><a href='#L472'>472</a>
+<a name='L473'></a><a href='#L473'>473</a>
+<a name='L474'></a><a href='#L474'>474</a>
+<a name='L475'></a><a href='#L475'>475</a>
+<a name='L476'></a><a href='#L476'>476</a>
+<a name='L477'></a><a href='#L477'>477</a>
+<a name='L478'></a><a href='#L478'>478</a>
+<a name='L479'></a><a href='#L479'>479</a>
+<a name='L480'></a><a href='#L480'>480</a>
+<a name='L481'></a><a href='#L481'>481</a>
+<a name='L482'></a><a href='#L482'>482</a>
+<a name='L483'></a><a href='#L483'>483</a>
+<a name='L484'></a><a href='#L484'>484</a>
+<a name='L485'></a><a href='#L485'>485</a>
+<a name='L486'></a><a href='#L486'>486</a>
+<a name='L487'></a><a href='#L487'>487</a>
+<a name='L488'></a><a href='#L488'>488</a>
+<a name='L489'></a><a href='#L489'>489</a>
+<a name='L490'></a><a href='#L490'>490</a>
+<a name='L491'></a><a href='#L491'>491</a>
+<a name='L492'></a><a href='#L492'>492</a>
+<a name='L493'></a><a href='#L493'>493</a>
+<a name='L494'></a><a href='#L494'>494</a>
+<a name='L495'></a><a href='#L495'>495</a>
+<a name='L496'></a><a href='#L496'>496</a>
+<a name='L497'></a><a href='#L497'>497</a>
+<a name='L498'></a><a href='#L498'>498</a>
+<a name='L499'></a><a href='#L499'>499</a>
+<a name='L500'></a><a href='#L500'>500</a>
+<a name='L501'></a><a href='#L501'>501</a>
+<a name='L502'></a><a href='#L502'>502</a>
+<a name='L503'></a><a href='#L503'>503</a>
+<a name='L504'></a><a href='#L504'>504</a>
+<a name='L505'></a><a href='#L505'>505</a>
+<a name='L506'></a><a href='#L506'>506</a>
+<a name='L507'></a><a href='#L507'>507</a>
+<a name='L508'></a><a href='#L508'>508</a>
+<a name='L509'></a><a href='#L509'>509</a>
+<a name='L510'></a><a href='#L510'>510</a>
+<a name='L511'></a><a href='#L511'>511</a>
+<a name='L512'></a><a href='#L512'>512</a>
+<a name='L513'></a><a href='#L513'>513</a>
+<a name='L514'></a><a href='#L514'>514</a>
+<a name='L515'></a><a href='#L515'>515</a>
+<a name='L516'></a><a href='#L516'>516</a>
+<a name='L517'></a><a href='#L517'>517</a>
+<a name='L518'></a><a href='#L518'>518</a>
+<a name='L519'></a><a href='#L519'>519</a>
+<a name='L520'></a><a href='#L520'>520</a>
+<a name='L521'></a><a href='#L521'>521</a>
+<a name='L522'></a><a href='#L522'>522</a>
+<a name='L523'></a><a href='#L523'>523</a>
+<a name='L524'></a><a href='#L524'>524</a>
+<a name='L525'></a><a href='#L525'>525</a>
+<a name='L526'></a><a href='#L526'>526</a>
+<a name='L527'></a><a href='#L527'>527</a>
+<a name='L528'></a><a href='#L528'>528</a>
+<a name='L529'></a><a href='#L529'>529</a>
+<a name='L530'></a><a href='#L530'>530</a>
+<a name='L531'></a><a href='#L531'>531</a>
+<a name='L532'></a><a href='#L532'>532</a>
+<a name='L533'></a><a href='#L533'>533</a>
+<a name='L534'></a><a href='#L534'>534</a>
+<a name='L535'></a><a href='#L535'>535</a>
+<a name='L536'></a><a href='#L536'>536</a>
+<a name='L537'></a><a href='#L537'>537</a>
+<a name='L538'></a><a href='#L538'>538</a>
+<a name='L539'></a><a href='#L539'>539</a>
+<a name='L540'></a><a href='#L540'>540</a>
+<a name='L541'></a><a href='#L541'>541</a>
+<a name='L542'></a><a href='#L542'>542</a>
+<a name='L543'></a><a href='#L543'>543</a>
+<a name='L544'></a><a href='#L544'>544</a>
+<a name='L545'></a><a href='#L545'>545</a>
+<a name='L546'></a><a href='#L546'>546</a>
+<a name='L547'></a><a href='#L547'>547</a>
+<a name='L548'></a><a href='#L548'>548</a>
+<a name='L549'></a><a href='#L549'>549</a>
+<a name='L550'></a><a href='#L550'>550</a>
+<a name='L551'></a><a href='#L551'>551</a>
+<a name='L552'></a><a href='#L552'>552</a>
+<a name='L553'></a><a href='#L553'>553</a>
+<a name='L554'></a><a href='#L554'>554</a>
+<a name='L555'></a><a href='#L555'>555</a>
+<a name='L556'></a><a href='#L556'>556</a>
+<a name='L557'></a><a href='#L557'>557</a>
+<a name='L558'></a><a href='#L558'>558</a>
+<a name='L559'></a><a href='#L559'>559</a>
+<a name='L560'></a><a href='#L560'>560</a>
+<a name='L561'></a><a href='#L561'>561</a>
+<a name='L562'></a><a href='#L562'>562</a>
+<a name='L563'></a><a href='#L563'>563</a>
+<a name='L564'></a><a href='#L564'>564</a>
+<a name='L565'></a><a href='#L565'>565</a>
+<a name='L566'></a><a href='#L566'>566</a>
+<a name='L567'></a><a href='#L567'>567</a>
+<a name='L568'></a><a href='#L568'>568</a>
+<a name='L569'></a><a href='#L569'>569</a>
+<a name='L570'></a><a href='#L570'>570</a>
+<a name='L571'></a><a href='#L571'>571</a>
+<a name='L572'></a><a href='#L572'>572</a>
+<a name='L573'></a><a href='#L573'>573</a>
+<a name='L574'></a><a href='#L574'>574</a>
+<a name='L575'></a><a href='#L575'>575</a>
+<a name='L576'></a><a href='#L576'>576</a>
+<a name='L577'></a><a href='#L577'>577</a>
+<a name='L578'></a><a href='#L578'>578</a>
+<a name='L579'></a><a href='#L579'>579</a>
+<a name='L580'></a><a href='#L580'>580</a>
+<a name='L581'></a><a href='#L581'>581</a>
+<a name='L582'></a><a href='#L582'>582</a>
+<a name='L583'></a><a href='#L583'>583</a>
+<a name='L584'></a><a href='#L584'>584</a>
+<a name='L585'></a><a href='#L585'>585</a>
+<a name='L586'></a><a href='#L586'>586</a>
+<a name='L587'></a><a href='#L587'>587</a>
+<a name='L588'></a><a href='#L588'>588</a>
+<a name='L589'></a><a href='#L589'>589</a>
+<a name='L590'></a><a href='#L590'>590</a>
+<a name='L591'></a><a href='#L591'>591</a>
+<a name='L592'></a><a href='#L592'>592</a>
+<a name='L593'></a><a href='#L593'>593</a>
+<a name='L594'></a><a href='#L594'>594</a>
+<a name='L595'></a><a href='#L595'>595</a>
+<a name='L596'></a><a href='#L596'>596</a>
+<a name='L597'></a><a href='#L597'>597</a>
+<a name='L598'></a><a href='#L598'>598</a>
+<a name='L599'></a><a href='#L599'>599</a>
+<a name='L600'></a><a href='#L600'>600</a>
+<a name='L601'></a><a href='#L601'>601</a>
+<a name='L602'></a><a href='#L602'>602</a>
+<a name='L603'></a><a href='#L603'>603</a>
+<a name='L604'></a><a href='#L604'>604</a>
+<a name='L605'></a><a href='#L605'>605</a>
+<a name='L606'></a><a href='#L606'>606</a>
+<a name='L607'></a><a href='#L607'>607</a>
+<a name='L608'></a><a href='#L608'>608</a>
+<a name='L609'></a><a href='#L609'>609</a>
+<a name='L610'></a><a href='#L610'>610</a>
+<a name='L611'></a><a href='#L611'>611</a>
+<a name='L612'></a><a href='#L612'>612</a>
+<a name='L613'></a><a href='#L613'>613</a>
+<a name='L614'></a><a href='#L614'>614</a>
+<a name='L615'></a><a href='#L615'>615</a>
+<a name='L616'></a><a href='#L616'>616</a>
+<a name='L617'></a><a href='#L617'>617</a>
+<a name='L618'></a><a href='#L618'>618</a>
+<a name='L619'></a><a href='#L619'>619</a>
+<a name='L620'></a><a href='#L620'>620</a>
+<a name='L621'></a><a href='#L621'>621</a>
+<a name='L622'></a><a href='#L622'>622</a>
+<a name='L623'></a><a href='#L623'>623</a>
+<a name='L624'></a><a href='#L624'>624</a>
+<a name='L625'></a><a href='#L625'>625</a>
+<a name='L626'></a><a href='#L626'>626</a>
+<a name='L627'></a><a href='#L627'>627</a>
+<a name='L628'></a><a href='#L628'>628</a>
+<a name='L629'></a><a href='#L629'>629</a>
+<a name='L630'></a><a href='#L630'>630</a>
+<a name='L631'></a><a href='#L631'>631</a>
+<a name='L632'></a><a href='#L632'>632</a>
+<a name='L633'></a><a href='#L633'>633</a>
+<a name='L634'></a><a href='#L634'>634</a>
+<a name='L635'></a><a href='#L635'>635</a>
+<a name='L636'></a><a href='#L636'>636</a>
+<a name='L637'></a><a href='#L637'>637</a>
+<a name='L638'></a><a href='#L638'>638</a>
+<a name='L639'></a><a href='#L639'>639</a>
+<a name='L640'></a><a href='#L640'>640</a>
+<a name='L641'></a><a href='#L641'>641</a>
+<a name='L642'></a><a href='#L642'>642</a>
+<a name='L643'></a><a href='#L643'>643</a>
+<a name='L644'></a><a href='#L644'>644</a>
+<a name='L645'></a><a href='#L645'>645</a>
+<a name='L646'></a><a href='#L646'>646</a>
+<a name='L647'></a><a href='#L647'>647</a>
+<a name='L648'></a><a href='#L648'>648</a>
+<a name='L649'></a><a href='#L649'>649</a>
+<a name='L650'></a><a href='#L650'>650</a>
+<a name='L651'></a><a href='#L651'>651</a>
+<a name='L652'></a><a href='#L652'>652</a>
+<a name='L653'></a><a href='#L653'>653</a>
+<a name='L654'></a><a href='#L654'>654</a>
+<a name='L655'></a><a href='#L655'>655</a>
+<a name='L656'></a><a href='#L656'>656</a>
+<a name='L657'></a><a href='#L657'>657</a>
+<a name='L658'></a><a href='#L658'>658</a>
+<a name='L659'></a><a href='#L659'>659</a>
+<a name='L660'></a><a href='#L660'>660</a>
+<a name='L661'></a><a href='#L661'>661</a>
+<a name='L662'></a><a href='#L662'>662</a>
+<a name='L663'></a><a href='#L663'>663</a>
+<a name='L664'></a><a href='#L664'>664</a>
+<a name='L665'></a><a href='#L665'>665</a>
+<a name='L666'></a><a href='#L666'>666</a>
+<a name='L667'></a><a href='#L667'>667</a>
+<a name='L668'></a><a href='#L668'>668</a>
+<a name='L669'></a><a href='#L669'>669</a>
+<a name='L670'></a><a href='#L670'>670</a>
+<a name='L671'></a><a href='#L671'>671</a>
+<a name='L672'></a><a href='#L672'>672</a>
+<a name='L673'></a><a href='#L673'>673</a>
+<a name='L674'></a><a href='#L674'>674</a>
+<a name='L675'></a><a href='#L675'>675</a>
+<a name='L676'></a><a href='#L676'>676</a>
+<a name='L677'></a><a href='#L677'>677</a>
+<a name='L678'></a><a href='#L678'>678</a>
+<a name='L679'></a><a href='#L679'>679</a>
+<a name='L680'></a><a href='#L680'>680</a>
+<a name='L681'></a><a href='#L681'>681</a>
+<a name='L682'></a><a href='#L682'>682</a>
+<a name='L683'></a><a href='#L683'>683</a>
+<a name='L684'></a><a href='#L684'>684</a>
+<a name='L685'></a><a href='#L685'>685</a>
+<a name='L686'></a><a href='#L686'>686</a>
+<a name='L687'></a><a href='#L687'>687</a>
+<a name='L688'></a><a href='#L688'>688</a>
+<a name='L689'></a><a href='#L689'>689</a>
+<a name='L690'></a><a href='#L690'>690</a>
+<a name='L691'></a><a href='#L691'>691</a>
+<a name='L692'></a><a href='#L692'>692</a>
+<a name='L693'></a><a href='#L693'>693</a>
+<a name='L694'></a><a href='#L694'>694</a>
+<a name='L695'></a><a href='#L695'>695</a>
+<a name='L696'></a><a href='#L696'>696</a>
+<a name='L697'></a><a href='#L697'>697</a>
+<a name='L698'></a><a href='#L698'>698</a>
+<a name='L699'></a><a href='#L699'>699</a>
+<a name='L700'></a><a href='#L700'>700</a>
+<a name='L701'></a><a href='#L701'>701</a>
+<a name='L702'></a><a href='#L702'>702</a>
+<a name='L703'></a><a href='#L703'>703</a>
+<a name='L704'></a><a href='#L704'>704</a>
+<a name='L705'></a><a href='#L705'>705</a>
+<a name='L706'></a><a href='#L706'>706</a>
+<a name='L707'></a><a href='#L707'>707</a>
+<a name='L708'></a><a href='#L708'>708</a>
+<a name='L709'></a><a href='#L709'>709</a>
+<a name='L710'></a><a href='#L710'>710</a>
+<a name='L711'></a><a href='#L711'>711</a>
+<a name='L712'></a><a href='#L712'>712</a>
+<a name='L713'></a><a href='#L713'>713</a>
+<a name='L714'></a><a href='#L714'>714</a>
+<a name='L715'></a><a href='#L715'>715</a>
+<a name='L716'></a><a href='#L716'>716</a>
+<a name='L717'></a><a href='#L717'>717</a>
+<a name='L718'></a><a href='#L718'>718</a>
+<a name='L719'></a><a href='#L719'>719</a>
+<a name='L720'></a><a href='#L720'>720</a>
+<a name='L721'></a><a href='#L721'>721</a>
+<a name='L722'></a><a href='#L722'>722</a>
+<a name='L723'></a><a href='#L723'>723</a>
+<a name='L724'></a><a href='#L724'>724</a>
+<a name='L725'></a><a href='#L725'>725</a>
+<a name='L726'></a><a href='#L726'>726</a>
+<a name='L727'></a><a href='#L727'>727</a>
+<a name='L728'></a><a href='#L728'>728</a>
+<a name='L729'></a><a href='#L729'>729</a>
+<a name='L730'></a><a href='#L730'>730</a>
+<a name='L731'></a><a href='#L731'>731</a>
+<a name='L732'></a><a href='#L732'>732</a>
+<a name='L733'></a><a href='#L733'>733</a>
+<a name='L734'></a><a href='#L734'>734</a>
+<a name='L735'></a><a href='#L735'>735</a>
+<a name='L736'></a><a href='#L736'>736</a>
+<a name='L737'></a><a href='#L737'>737</a>
+<a name='L738'></a><a href='#L738'>738</a>
+<a name='L739'></a><a href='#L739'>739</a>
+<a name='L740'></a><a href='#L740'>740</a>
+<a name='L741'></a><a href='#L741'>741</a>
+<a name='L742'></a><a href='#L742'>742</a>
+<a name='L743'></a><a href='#L743'>743</a>
+<a name='L744'></a><a href='#L744'>744</a>
+<a name='L745'></a><a href='#L745'>745</a>
+<a name='L746'></a><a href='#L746'>746</a>
+<a name='L747'></a><a href='#L747'>747</a>
+<a name='L748'></a><a href='#L748'>748</a>
+<a name='L749'></a><a href='#L749'>749</a>
+<a name='L750'></a><a href='#L750'>750</a>
+<a name='L751'></a><a href='#L751'>751</a>
+<a name='L752'></a><a href='#L752'>752</a>
+<a name='L753'></a><a href='#L753'>753</a>
+<a name='L754'></a><a href='#L754'>754</a>
+<a name='L755'></a><a href='#L755'>755</a>
+<a name='L756'></a><a href='#L756'>756</a>
+<a name='L757'></a><a href='#L757'>757</a>
+<a name='L758'></a><a href='#L758'>758</a>
+<a name='L759'></a><a href='#L759'>759</a>
+<a name='L760'></a><a href='#L760'>760</a>
+<a name='L761'></a><a href='#L761'>761</a>
+<a name='L762'></a><a href='#L762'>762</a>
+<a name='L763'></a><a href='#L763'>763</a>
+<a name='L764'></a><a href='#L764'>764</a>
+<a name='L765'></a><a href='#L765'>765</a>
+<a name='L766'></a><a href='#L766'>766</a>
+<a name='L767'></a><a href='#L767'>767</a>
+<a name='L768'></a><a href='#L768'>768</a>
+<a name='L769'></a><a href='#L769'>769</a>
+<a name='L770'></a><a href='#L770'>770</a>
+<a name='L771'></a><a href='#L771'>771</a>
+<a name='L772'></a><a href='#L772'>772</a>
+<a name='L773'></a><a href='#L773'>773</a>
+<a name='L774'></a><a href='#L774'>774</a>
+<a name='L775'></a><a href='#L775'>775</a>
+<a name='L776'></a><a href='#L776'>776</a>
+<a name='L777'></a><a href='#L777'>777</a>
+<a name='L778'></a><a href='#L778'>778</a>
+<a name='L779'></a><a href='#L779'>779</a>
+<a name='L780'></a><a href='#L780'>780</a>
+<a name='L781'></a><a href='#L781'>781</a>
+<a name='L782'></a><a href='#L782'>782</a>
+<a name='L783'></a><a href='#L783'>783</a>
+<a name='L784'></a><a href='#L784'>784</a>
+<a name='L785'></a><a href='#L785'>785</a>
+<a name='L786'></a><a href='#L786'>786</a>
+<a name='L787'></a><a href='#L787'>787</a>
+<a name='L788'></a><a href='#L788'>788</a>
+<a name='L789'></a><a href='#L789'>789</a>
+<a name='L790'></a><a href='#L790'>790</a>
+<a name='L791'></a><a href='#L791'>791</a>
+<a name='L792'></a><a href='#L792'>792</a>
+<a name='L793'></a><a href='#L793'>793</a>
+<a name='L794'></a><a href='#L794'>794</a>
+<a name='L795'></a><a href='#L795'>795</a>
+<a name='L796'></a><a href='#L796'>796</a>
+<a name='L797'></a><a href='#L797'>797</a>
+<a name='L798'></a><a href='#L798'>798</a>
+<a name='L799'></a><a href='#L799'>799</a>
+<a name='L800'></a><a href='#L800'>800</a>
+<a name='L801'></a><a href='#L801'>801</a>
+<a name='L802'></a><a href='#L802'>802</a>
+<a name='L803'></a><a href='#L803'>803</a>
+<a name='L804'></a><a href='#L804'>804</a>
+<a name='L805'></a><a href='#L805'>805</a>
+<a name='L806'></a><a href='#L806'>806</a>
+<a name='L807'></a><a href='#L807'>807</a>
+<a name='L808'></a><a href='#L808'>808</a>
+<a name='L809'></a><a href='#L809'>809</a>
+<a name='L810'></a><a href='#L810'>810</a>
+<a name='L811'></a><a href='#L811'>811</a>
+<a name='L812'></a><a href='#L812'>812</a>
+<a name='L813'></a><a href='#L813'>813</a>
+<a name='L814'></a><a href='#L814'>814</a>
+<a name='L815'></a><a href='#L815'>815</a>
+<a name='L816'></a><a href='#L816'>816</a>
+<a name='L817'></a><a href='#L817'>817</a>
+<a name='L818'></a><a href='#L818'>818</a>
+<a name='L819'></a><a href='#L819'>819</a>
+<a name='L820'></a><a href='#L820'>820</a>
+<a name='L821'></a><a href='#L821'>821</a>
+<a name='L822'></a><a href='#L822'>822</a>
+<a name='L823'></a><a href='#L823'>823</a>
+<a name='L824'></a><a href='#L824'>824</a>
+<a name='L825'></a><a href='#L825'>825</a>
+<a name='L826'></a><a href='#L826'>826</a>
+<a name='L827'></a><a href='#L827'>827</a>
+<a name='L828'></a><a href='#L828'>828</a>
+<a name='L829'></a><a href='#L829'>829</a>
+<a name='L830'></a><a href='#L830'>830</a>
+<a name='L831'></a><a href='#L831'>831</a>
+<a name='L832'></a><a href='#L832'>832</a>
+<a name='L833'></a><a href='#L833'>833</a>
+<a name='L834'></a><a href='#L834'>834</a>
+<a name='L835'></a><a href='#L835'>835</a>
+<a name='L836'></a><a href='#L836'>836</a>
+<a name='L837'></a><a href='#L837'>837</a>
+<a name='L838'></a><a href='#L838'>838</a>
+<a name='L839'></a><a href='#L839'>839</a>
+<a name='L840'></a><a href='#L840'>840</a>
+<a name='L841'></a><a href='#L841'>841</a>
+<a name='L842'></a><a href='#L842'>842</a>
+<a name='L843'></a><a href='#L843'>843</a>
+<a name='L844'></a><a href='#L844'>844</a>
+<a name='L845'></a><a href='#L845'>845</a>
+<a name='L846'></a><a href='#L846'>846</a>
+<a name='L847'></a><a href='#L847'>847</a>
+<a name='L848'></a><a href='#L848'>848</a>
+<a name='L849'></a><a href='#L849'>849</a>
+<a name='L850'></a><a href='#L850'>850</a>
+<a name='L851'></a><a href='#L851'>851</a>
+<a name='L852'></a><a href='#L852'>852</a>
+<a name='L853'></a><a href='#L853'>853</a>
+<a name='L854'></a><a href='#L854'>854</a>
+<a name='L855'></a><a href='#L855'>855</a>
+<a name='L856'></a><a href='#L856'>856</a>
+<a name='L857'></a><a href='#L857'>857</a>
+<a name='L858'></a><a href='#L858'>858</a>
+<a name='L859'></a><a href='#L859'>859</a>
+<a name='L860'></a><a href='#L860'>860</a>
+<a name='L861'></a><a href='#L861'>861</a>
+<a name='L862'></a><a href='#L862'>862</a>
+<a name='L863'></a><a href='#L863'>863</a>
+<a name='L864'></a><a href='#L864'>864</a>
+<a name='L865'></a><a href='#L865'>865</a>
+<a name='L866'></a><a href='#L866'>866</a>
+<a name='L867'></a><a href='#L867'>867</a>
+<a name='L868'></a><a href='#L868'>868</a>
+<a name='L869'></a><a href='#L869'>869</a>
+<a name='L870'></a><a href='#L870'>870</a>
+<a name='L871'></a><a href='#L871'>871</a>
+<a name='L872'></a><a href='#L872'>872</a>
+<a name='L873'></a><a href='#L873'>873</a>
+<a name='L874'></a><a href='#L874'>874</a>
+<a name='L875'></a><a href='#L875'>875</a>
+<a name='L876'></a><a href='#L876'>876</a>
+<a name='L877'></a><a href='#L877'>877</a>
+<a name='L878'></a><a href='#L878'>878</a>
+<a name='L879'></a><a href='#L879'>879</a>
+<a name='L880'></a><a href='#L880'>880</a>
+<a name='L881'></a><a href='#L881'>881</a>
+<a name='L882'></a><a href='#L882'>882</a>
+<a name='L883'></a><a href='#L883'>883</a>
+<a name='L884'></a><a href='#L884'>884</a>
+<a name='L885'></a><a href='#L885'>885</a>
+<a name='L886'></a><a href='#L886'>886</a>
+<a name='L887'></a><a href='#L887'>887</a>
+<a name='L888'></a><a href='#L888'>888</a>
+<a name='L889'></a><a href='#L889'>889</a>
+<a name='L890'></a><a href='#L890'>890</a>
+<a name='L891'></a><a href='#L891'>891</a>
+<a name='L892'></a><a href='#L892'>892</a>
+<a name='L893'></a><a href='#L893'>893</a>
+<a name='L894'></a><a href='#L894'>894</a>
+<a name='L895'></a><a href='#L895'>895</a>
+<a name='L896'></a><a href='#L896'>896</a>
+<a name='L897'></a><a href='#L897'>897</a>
+<a name='L898'></a><a href='#L898'>898</a>
+<a name='L899'></a><a href='#L899'>899</a>
+<a name='L900'></a><a href='#L900'>900</a>
+<a name='L901'></a><a href='#L901'>901</a>
+<a name='L902'></a><a href='#L902'>902</a>
+<a name='L903'></a><a href='#L903'>903</a>
+<a name='L904'></a><a href='#L904'>904</a>
+<a name='L905'></a><a href='#L905'>905</a>
+<a name='L906'></a><a href='#L906'>906</a>
+<a name='L907'></a><a href='#L907'>907</a>
+<a name='L908'></a><a href='#L908'>908</a>
+<a name='L909'></a><a href='#L909'>909</a>
+<a name='L910'></a><a href='#L910'>910</a>
+<a name='L911'></a><a href='#L911'>911</a>
+<a name='L912'></a><a href='#L912'>912</a>
+<a name='L913'></a><a href='#L913'>913</a>
+<a name='L914'></a><a href='#L914'>914</a>
+<a name='L915'></a><a href='#L915'>915</a>
+<a name='L916'></a><a href='#L916'>916</a>
+<a name='L917'></a><a href='#L917'>917</a>
+<a name='L918'></a><a href='#L918'>918</a>
+<a name='L919'></a><a href='#L919'>919</a>
+<a name='L920'></a><a href='#L920'>920</a>
+<a name='L921'></a><a href='#L921'>921</a>
+<a name='L922'></a><a href='#L922'>922</a>
+<a name='L923'></a><a href='#L923'>923</a>
+<a name='L924'></a><a href='#L924'>924</a>
+<a name='L925'></a><a href='#L925'>925</a>
+<a name='L926'></a><a href='#L926'>926</a>
+<a name='L927'></a><a href='#L927'>927</a>
+<a name='L928'></a><a href='#L928'>928</a>
+<a name='L929'></a><a href='#L929'>929</a>
+<a name='L930'></a><a href='#L930'>930</a>
+<a name='L931'></a><a href='#L931'>931</a>
+<a name='L932'></a><a href='#L932'>932</a>
+<a name='L933'></a><a href='#L933'>933</a>
+<a name='L934'></a><a href='#L934'>934</a>
+<a name='L935'></a><a href='#L935'>935</a>
+<a name='L936'></a><a href='#L936'>936</a>
+<a name='L937'></a><a href='#L937'>937</a>
+<a name='L938'></a><a href='#L938'>938</a>
+<a name='L939'></a><a href='#L939'>939</a>
+<a name='L940'></a><a href='#L940'>940</a>
+<a name='L941'></a><a href='#L941'>941</a>
+<a name='L942'></a><a href='#L942'>942</a>
+<a name='L943'></a><a href='#L943'>943</a>
+<a name='L944'></a><a href='#L944'>944</a>
+<a name='L945'></a><a href='#L945'>945</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/**
+ * Enhanced Feature Extraction Module
+ * Implements 4-phase approach for extracting 25+ advanced biometric features
+ * Phase 1: Pressure &amp; Touch Analysis (8 features)
+ * Phase 2: Behavioral Timing (6 features) 
+ * Phase 3: Advanced Geometric (7 features)
+ * Phase 4: Security &amp; Context (6 features)
+ */
+&nbsp;
+// Feature name constants for consistent exclusion handling
+const PRESSURE_FEATURES = <span class="cstat-no" title="statement not covered" >[</span>
+  'avg_pressure', 'max_pressure', 'min_pressure', 
+  'pressure_std', 'pressure_range', 'contact_time_ratio',
+  'pressure_buildup_rate', 'pressure_release_rate'
+];
+&nbsp;
+// Performance monitoring utility
+const PerformanceMonitor = <span class="cstat-no" title="statement not covered" >{</span>
+  startTime: null,
+  
+<span class="fstat-no" title="function not covered" >  st</span>artExtraction() {
+<span class="cstat-no" title="statement not covered" >    this.startTime = Date.now();</span>
+  },
+  
+<span class="fstat-no" title="function not covered" >  en</span>dExtraction(featureCount, category) {
+    const duration = <span class="cstat-no" title="statement not covered" >Date.now() - this.startTime;</span>
+<span class="cstat-no" title="statement not covered" >    console.log(`${category} extraction: ${duration}ms for ${featureCount} features`);</span>
+    
+    // Alert if extraction takes too long
+<span class="cstat-no" title="statement not covered" >    if (duration &gt; 100) {</span>
+<span class="cstat-no" title="statement not covered" >      console.warn(`Slow feature extraction detected: ${duration}ms for ${category}`);</span>
+    }
+    
+<span class="cstat-no" title="statement not covered" >    return duration;</span>
+  }
+};
+&nbsp;
+// Main Enhanced Feature Extractor
+const EnhancedFeatureExtractor = <span class="cstat-no" title="statement not covered" >{</span>
+  // Core validation function
+<span class="fstat-no" title="function not covered" >  va</span>lidateStrokeData(strokeData) {
+    // Check for null/undefined
+<span class="cstat-no" title="statement not covered" >    if (!strokeData) {</span>
+<span class="cstat-no" title="statement not covered" >      console.warn('Invalid stroke data: null or undefined');</span>
+<span class="cstat-no" title="statement not covered" >      return false;</span>
+    }
+    
+    // Get normalized strokes using extractStrokes
+    const strokes = <span class="cstat-no" title="statement not covered" >this.extractStrokes(strokeData);</span>
+    
+    // Check for empty strokes
+<span class="cstat-no" title="statement not covered" >    if (!Array.isArray(strokes) || strokes.length === 0) {</span>
+<span class="cstat-no" title="statement not covered" >      console.warn('Invalid stroke data: empty strokes array');</span>
+<span class="cstat-no" title="statement not covered" >      return false;</span>
+    }
+    
+    // Validate each stroke has points
+<span class="cstat-no" title="statement not covered" >    for (let i = <span class="cstat-no" title="statement not covered" >0;</span> i &lt; strokes.length; i++) {</span>
+      const stroke = <span class="cstat-no" title="statement not covered" >strokes[i];</span>
+<span class="cstat-no" title="statement not covered" >      if (!stroke || !stroke.points || !Array.isArray(stroke.points) || stroke.points.length === 0) {</span>
+<span class="cstat-no" title="statement not covered" >        console.warn(`Invalid stroke at index ${i}: missing or empty points array`);</span>
+<span class="cstat-no" title="statement not covered" >        return false;</span>
+      }
+      
+      // Validate point structure (all points should now be in object format after normalization)
+<span class="cstat-no" title="statement not covered" >      for (let j = <span class="cstat-no" title="statement not covered" >0;</span> j &lt; stroke.points.length; j++) {</span>
+        const point = <span class="cstat-no" title="statement not covered" >stroke.points[j];</span>
+<span class="cstat-no" title="statement not covered" >        if (!point || typeof point.x !== 'number' || typeof point.y !== 'number') {</span>
+<span class="cstat-no" title="statement not covered" >          console.warn(`Invalid point at stroke ${i}, point ${j}: missing x/y coordinates`);</span>
+<span class="cstat-no" title="statement not covered" >          return false;</span>
+        }
+      }
+    }
+    
+<span class="cstat-no" title="statement not covered" >    return true;</span>
+  },
+&nbsp;
+  // Helper function to validate if an array contains point objects or arrays
+<span class="fstat-no" title="function not covered" >  is</span>PointArray(arr) {
+<span class="cstat-no" title="statement not covered" >    if (!Array.isArray(arr) || arr.length === 0) {</span>
+<span class="cstat-no" title="statement not covered" >      return false;</span>
+    }
+    
+    // Check first few elements to validate they are point objects or arrays
+    const sampleSize = <span class="cstat-no" title="statement not covered" >Math.min(3, arr.length);</span>
+<span class="cstat-no" title="statement not covered" >    for (let i = <span class="cstat-no" title="statement not covered" >0;</span> i &lt; sampleSize; i++) {</span>
+      const item = <span class="cstat-no" title="statement not covered" >arr[i];</span>
+      
+      // Handle array format [x, y]
+<span class="cstat-no" title="statement not covered" >      if (Array.isArray(item)) {</span>
+<span class="cstat-no" title="statement not covered" >        if (item.length !== 2 || typeof item[0] !== 'number' || typeof item[1] !== 'number') {</span>
+<span class="cstat-no" title="statement not covered" >          return false;</span>
+        }
+      }
+      // Handle object format {x: number, y: number}
+      else <span class="cstat-no" title="statement not covered" >if (item &amp;&amp; typeof item === 'object') {</span>
+<span class="cstat-no" title="statement not covered" >        if (typeof item.x !== 'number' || typeof item.y !== 'number') {</span>
+<span class="cstat-no" title="statement not covered" >          return false;</span>
+        }
+      } else {
+<span class="cstat-no" title="statement not covered" >        return false;</span>
+      }
+    }
+    
+<span class="cstat-no" title="statement not covered" >    return true;</span>
+  },
+&nbsp;
+  // Helper function to normalize a point to object format
+<span class="fstat-no" title="function not covered" >  no</span>rmalizePoint(point) {
+    // If already in object format, return as is
+<span class="cstat-no" title="statement not covered" >    if (point &amp;&amp; typeof point === 'object' &amp;&amp; !Array.isArray(point) &amp;&amp; </span>
+        typeof point.x === 'number' &amp;&amp; typeof point.y === 'number') {
+<span class="cstat-no" title="statement not covered" >      return point;</span>
+    }
+    
+    // If in array format [x, y], convert to object
+<span class="cstat-no" title="statement not covered" >    if (Array.isArray(point) &amp;&amp; point.length === 2 &amp;&amp; </span>
+        typeof point[0] === 'number' &amp;&amp; typeof point[1] === 'number') {
+<span class="cstat-no" title="statement not covered" >      return { x: point[0], y: point[1] };</span>
+    }
+    
+    // Invalid point format
+<span class="cstat-no" title="statement not covered" >    console.warn('Invalid point format:', point);</span>
+<span class="cstat-no" title="statement not covered" >    return null;</span>
+  },
+&nbsp;
+  // Helper function to normalize an array of points
+<span class="fstat-no" title="function not covered" >  no</span>rmalizePoints(points) {
+<span class="cstat-no" title="statement not covered" >    if (!Array.isArray(points)) <span class="cstat-no" title="statement not covered" >return [];</span></span>
+    
+<span class="cstat-no" title="statement not covered" >    return points.map(<span class="fstat-no" title="function not covered" >po</span>int =&gt; <span class="cstat-no" title="statement not covered" >this.normalizePoint(point))</span>.filter(<span class="fstat-no" title="function not covered" >po</span>int =&gt; <span class="cstat-no" title="statement not covered" >point !== null)</span>;</span>
+  },
+&nbsp;
+  // Helper function to validate and normalize points (returns null if any point is invalid)
+<span class="fstat-no" title="function not covered" >  va</span>lidateAndNormalizePoints(points) {
+<span class="cstat-no" title="statement not covered" >    if (!Array.isArray(points)) <span class="cstat-no" title="statement not covered" >return null;</span></span>
+    
+    const normalizedPoints = <span class="cstat-no" title="statement not covered" >[];</span>
+<span class="cstat-no" title="statement not covered" >    for (const point of points) {</span>
+      const normalized = <span class="cstat-no" title="statement not covered" >this.normalizePoint(point);</span>
+<span class="cstat-no" title="statement not covered" >      if (normalized === null) {</span>
+<span class="cstat-no" title="statement not covered" >        return null; </span>// Return null if any point is invalid
+      }
+<span class="cstat-no" title="statement not covered" >      normalizedPoints.push(normalized);</span>
+    }
+    
+<span class="cstat-no" title="statement not covered" >    return normalizedPoints;</span>
+  },
+&nbsp;
+  // Utility function to extract strokes array from various data formats
+<span class="fstat-no" title="function not covered" >  ex</span>tractStrokes(strokeData) {
+<span class="cstat-no" title="statement not covered" >    if (!strokeData) <span class="cstat-no" title="statement not covered" >return [];</span></span>
+    
+    let rawStrokes = <span class="cstat-no" title="statement not covered" >[];</span>
+    
+<span class="cstat-no" title="statement not covered" >    if (Array.isArray(strokeData)) {</span>
+<span class="cstat-no" title="statement not covered" >      rawStrokes = strokeData;</span>
+    } else <span class="cstat-no" title="statement not covered" >if (strokeData.strokes &amp;&amp; Array.isArray(strokeData.strokes)) {</span>
+<span class="cstat-no" title="statement not covered" >      rawStrokes = strokeData.strokes;</span>
+    } else <span class="cstat-no" title="statement not covered" >if (strokeData.raw &amp;&amp; Array.isArray(strokeData.raw)) {</span>
+      // Check if raw contains stroke objects or point objects
+<span class="cstat-no" title="statement not covered" >      if (strokeData.raw.length &gt; 0 &amp;&amp; this.isPointArray(strokeData.raw)) {</span>
+        // Raw contains point objects, wrap as single stroke
+<span class="cstat-no" title="statement not covered" >        rawStrokes = [{ points: strokeData.raw }];</span>
+      } else {
+        // Raw contains stroke objects
+<span class="cstat-no" title="statement not covered" >        rawStrokes = strokeData.raw;</span>
+      }
+    } else <span class="cstat-no" title="statement not covered" >if (strokeData.data &amp;&amp; Array.isArray(strokeData.data)) {</span>
+      // Check if data contains stroke objects or point objects
+<span class="cstat-no" title="statement not covered" >      if (strokeData.data.length &gt; 0 &amp;&amp; this.isPointArray(strokeData.data)) {</span>
+        // Data contains point objects, wrap as single stroke
+<span class="cstat-no" title="statement not covered" >        rawStrokes = [{ points: strokeData.data }];</span>
+      } else {
+        // Data contains stroke objects
+<span class="cstat-no" title="statement not covered" >        rawStrokes = strokeData.data;</span>
+      }
+    } else {
+<span class="cstat-no" title="statement not covered" >      return [];</span>
+    }
+    
+    // Normalize stroke format - ensure each stroke has a points property with normalized points
+<span class="cstat-no" title="statement not covered" >    return rawStrokes.map(<span class="fstat-no" title="function not covered" >(s</span>troke, index) =&gt; {</span>
+      // If stroke already has the expected format with points property
+<span class="cstat-no" title="statement not covered" >      if (stroke &amp;&amp; typeof stroke === 'object' &amp;&amp; stroke.points &amp;&amp; Array.isArray(stroke.points)) {</span>
+        // Validate and normalize the points to ensure consistent format
+        const normalizedPoints = <span class="cstat-no" title="statement not covered" >this.validateAndNormalizePoints(stroke.points);</span>
+<span class="cstat-no" title="statement not covered" >        if (normalizedPoints === null) {</span>
+<span class="cstat-no" title="statement not covered" >          console.warn(`Invalid points in stroke at index ${index}`);</span>
+<span class="cstat-no" title="statement not covered" >          return null;</span>
+        }
+<span class="cstat-no" title="statement not covered" >        return { ...stroke, points: normalizedPoints };</span>
+      }
+      
+      // If stroke is an array of points, wrap it and normalize
+<span class="cstat-no" title="statement not covered" >      if (Array.isArray(stroke)) {</span>
+        const normalizedPoints = <span class="cstat-no" title="statement not covered" >this.validateAndNormalizePoints(stroke);</span>
+<span class="cstat-no" title="statement not covered" >        if (normalizedPoints === null) {</span>
+<span class="cstat-no" title="statement not covered" >          console.warn(`Invalid points in stroke array at index ${index}`);</span>
+<span class="cstat-no" title="statement not covered" >          return null;</span>
+        }
+<span class="cstat-no" title="statement not covered" >        return { points: normalizedPoints };</span>
+      }
+      
+      // If stroke has other properties but no points array, try to extract
+<span class="cstat-no" title="statement not covered" >      if (stroke &amp;&amp; typeof stroke === 'object') {</span>
+        // Check for alternative point array names - validate each is an array of points
+        let points = <span class="cstat-no" title="statement not covered" >null;</span>
+        
+        // Try stroke.data first (most common for point arrays)
+<span class="cstat-no" title="statement not covered" >        if (stroke.data &amp;&amp; Array.isArray(stroke.data) &amp;&amp; this.isPointArray(stroke.data)) {</span>
+<span class="cstat-no" title="statement not covered" >          points = stroke.data;</span>
+        }
+        // Try stroke.raw (alternative point array name)
+        else <span class="cstat-no" title="statement not covered" >if (stroke.raw &amp;&amp; Array.isArray(stroke.raw) &amp;&amp; this.isPointArray(stroke.raw)) {</span>
+<span class="cstat-no" title="statement not covered" >          points = stroke.raw;</span>
+        }
+        // Try stroke.points (if it exists but wasn't caught above)
+        else <span class="cstat-no" title="statement not covered" >if (stroke.points &amp;&amp; Array.isArray(stroke.points) &amp;&amp; this.isPointArray(stroke.points)) {</span>
+<span class="cstat-no" title="statement not covered" >          points = stroke.points;</span>
+        }
+        // Don't use stroke.strokes as it likely contains other stroke objects, not points
+        
+<span class="cstat-no" title="statement not covered" >        if (points) {</span>
+          const normalizedPoints = <span class="cstat-no" title="statement not covered" >this.validateAndNormalizePoints(points);</span>
+<span class="cstat-no" title="statement not covered" >          if (normalizedPoints === null) {</span>
+<span class="cstat-no" title="statement not covered" >            console.warn(`Invalid points in stroke at index ${index}`);</span>
+<span class="cstat-no" title="statement not covered" >            return null;</span>
+          }
+<span class="cstat-no" title="statement not covered" >          return { ...stroke, points: normalizedPoints };</span>
+        }
+      }
+      
+<span class="cstat-no" title="statement not covered" >      console.warn(`Invalid stroke format at index ${index}:`, stroke);</span>
+<span class="cstat-no" title="statement not covered" >      return null;</span>
+    }).filter(<span class="fstat-no" title="function not covered" >st</span>roke =&gt; <span class="cstat-no" title="statement not covered" >stroke !== null &amp;&amp; stroke.points.length &gt; 0)</span>;
+  },
+&nbsp;
+  // Phase 1: Pressure Analysis Features
+<span class="fstat-no" title="function not covered" >  ex</span>tractPressureFeatures(strokeData, deviceCapabilities = <span class="branch-0 cbranch-no" title="branch not covered" >null)</span> {
+<span class="cstat-no" title="statement not covered" >    PerformanceMonitor.startExtraction();</span>
+    
+<span class="cstat-no" title="statement not covered" >    try {</span>
+      // Validate input data first
+<span class="cstat-no" title="statement not covered" >      if (!this.validateStrokeData(strokeData)) {</span>
+<span class="cstat-no" title="statement not covered" >        return this.getDefaultPressureFeatures();</span>
+      }
+      
+      // Check if device supports pressure
+<span class="cstat-no" title="statement not covered" >      if (deviceCapabilities &amp;&amp; !deviceCapabilities.supportsPressure) {</span>
+        const features = <span class="cstat-no" title="statement not covered" >this.getDefaultPressureFeatures();</span>
+<span class="cstat-no" title="statement not covered" >        features._excluded_features = [...PRESSURE_FEATURES];</span>
+<span class="cstat-no" title="statement not covered" >        features._exclusion_reason = 'device_does_not_support_pressure';</span>
+<span class="cstat-no" title="statement not covered" >        return features;</span>
+      }
+      
+      const strokes = <span class="cstat-no" title="statement not covered" >this.extractStrokes(strokeData);</span>
+      const pressureValues = <span class="cstat-no" title="statement not covered" >[];</span>
+      let totalPoints = <span class="cstat-no" title="statement not covered" >0;</span>
+      let pointsWithPressure = <span class="cstat-no" title="statement not covered" >0;</span>
+      
+      // Extract all pressure values
+<span class="cstat-no" title="statement not covered" >      for (const stroke of strokes) {</span>
+<span class="cstat-no" title="statement not covered" >        for (const point of stroke.points) {</span>
+<span class="cstat-no" title="statement not covered" >          totalPoints++;</span>
+          // Check if pressure data exists (some devices don't support it)
+<span class="cstat-no" title="statement not covered" >          if (typeof point.pressure === 'number' &amp;&amp; point.pressure &gt; 0) {</span>
+<span class="cstat-no" title="statement not covered" >            pressureValues.push(point.pressure);</span>
+<span class="cstat-no" title="statement not covered" >            pointsWithPressure++;</span>
+          }
+        }
+      }
+      
+      // Handle case where device doesn't support pressure
+<span class="cstat-no" title="statement not covered" >      if (pressureValues.length === 0) {</span>
+<span class="cstat-no" title="statement not covered" >        console.log('No pressure data collected - excluding pressure features');</span>
+        const features = <span class="cstat-no" title="statement not covered" >this.getDefaultPressureFeatures();</span>
+<span class="cstat-no" title="statement not covered" >        features._excluded_features = [...PRESSURE_FEATURES];</span>
+<span class="cstat-no" title="statement not covered" >        features._exclusion_reason = 'no_pressure_data_collected';</span>
+<span class="cstat-no" title="statement not covered" >        features.has_pressure_data = false;</span>
+<span class="cstat-no" title="statement not covered" >        PerformanceMonitor.endExtraction(Object.keys(features).length, 'Pressure (excluded)');</span>
+<span class="cstat-no" title="statement not covered" >        return features;</span>
+      }
+      
+      // Calculate pressure statistics
+      const avgPressure = <span class="cstat-no" title="statement not covered" >pressureValues.reduce(<span class="fstat-no" title="function not covered" >(a</span>, b) =&gt; <span class="cstat-no" title="statement not covered" >a + b,</span> 0) / pressureValues.length;</span>
+      const maxPressure = <span class="cstat-no" title="statement not covered" >Math.max(...pressureValues);</span>
+      const minPressure = <span class="cstat-no" title="statement not covered" >Math.min(...pressureValues);</span>
+      const pressureRange = <span class="cstat-no" title="statement not covered" >maxPressure - minPressure;</span>
+      
+      // Calculate standard deviation
+      const pressureVariance = <span class="cstat-no" title="statement not covered" >pressureValues.reduce(<span class="fstat-no" title="function not covered" >(a</span>cc, val) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >        return acc + Math.pow(val - avgPressure, 2);</span>
+      }, 0) / pressureValues.length;
+      const pressureStd = <span class="cstat-no" title="statement not covered" >Math.sqrt(pressureVariance);</span>
+      
+      // Calculate contact time ratio
+      const contactTimeRatio = <span class="cstat-no" title="statement not covered" >pointsWithPressure / totalPoints;</span>
+      
+      // Calculate pressure buildup/release rates
+      let buildupRates = <span class="cstat-no" title="statement not covered" >[];</span>
+      let releaseRates = <span class="cstat-no" title="statement not covered" >[];</span>
+      
+<span class="cstat-no" title="statement not covered" >      for (const stroke of strokes) {</span>
+        const strokePressures = <span class="cstat-no" title="statement not covered" >stroke.points</span>
+          .filter(<span class="fstat-no" title="function not covered" >p </span>=&gt; <span class="cstat-no" title="statement not covered" >typeof p.pressure === 'number')</span>
+          .map(<span class="fstat-no" title="function not covered" >p </span>=&gt; <span class="cstat-no" title="statement not covered" >p.pressure)</span>;
+        
+<span class="cstat-no" title="statement not covered" >        if (strokePressures.length &gt; 1) {</span>
+          // Find buildup rate (first quarter of stroke)
+          const quarterPoint = <span class="cstat-no" title="statement not covered" >Math.floor(strokePressures.length / 4);</span>
+<span class="cstat-no" title="statement not covered" >          if (quarterPoint &gt; 0) {</span>
+            const buildupRate = <span class="cstat-no" title="statement not covered" >(strokePressures[quarterPoint] - strokePressures[0]) / quarterPoint;</span>
+<span class="cstat-no" title="statement not covered" >            buildupRates.push(buildupRate);</span>
+          }
+          
+          // Find release rate (last quarter of stroke)
+          const threeQuarterPoint = <span class="cstat-no" title="statement not covered" >Math.floor(strokePressures.length * 3 / 4);</span>
+<span class="cstat-no" title="statement not covered" >          if (threeQuarterPoint &lt; strokePressures.length - 1) {</span>
+            const releaseRate = <span class="cstat-no" title="statement not covered" >(strokePressures[strokePressures.length - 1] - strokePressures[threeQuarterPoint]) / </span>
+                               (strokePressures.length - 1 - threeQuarterPoint);
+<span class="cstat-no" title="statement not covered" >            releaseRates.push(Math.abs(releaseRate)); </span>// Use absolute value for release
+          }
+        }
+      }
+      
+      const avgBuildupRate = <span class="cstat-no" title="statement not covered" >buildupRates.length &gt; 0 ? </span>
+        buildupRates.reduce(<span class="fstat-no" title="function not covered" >(a</span>, b) =&gt; <span class="cstat-no" title="statement not covered" >a + b,</span> 0) / buildupRates.length : 0;
+      const avgReleaseRate = <span class="cstat-no" title="statement not covered" >releaseRates.length &gt; 0 ?</span>
+        releaseRates.reduce(<span class="fstat-no" title="function not covered" >(a</span>, b) =&gt; <span class="cstat-no" title="statement not covered" >a + b,</span> 0) / releaseRates.length : 0;
+      
+      const features = <span class="cstat-no" title="statement not covered" >{</span>
+        avg_pressure: avgPressure,
+        max_pressure: maxPressure,
+        min_pressure: minPressure,
+        pressure_std: pressureStd,
+        pressure_range: pressureRange,
+        contact_time_ratio: contactTimeRatio,
+        pressure_buildup_rate: avgBuildupRate,
+        pressure_release_rate: avgReleaseRate,
+        has_pressure_data: true
+      };
+      
+<span class="cstat-no" title="statement not covered" >      PerformanceMonitor.endExtraction(Object.keys(features).length, 'Pressure');</span>
+<span class="cstat-no" title="statement not covered" >      return features;</span>
+      
+    } catch (error) {
+<span class="cstat-no" title="statement not covered" >      console.error('Pressure feature extraction failed:', error);</span>
+<span class="cstat-no" title="statement not covered" >      return this.getDefaultPressureFeatures();</span>
+    }
+  },
+&nbsp;
+  // Phase 2: Behavioral Timing Features
+<span class="fstat-no" title="function not covered" >  ex</span>tractTimingFeatures(strokeData) {
+<span class="cstat-no" title="statement not covered" >    PerformanceMonitor.startExtraction();</span>
+    
+<span class="cstat-no" title="statement not covered" >    try {</span>
+<span class="cstat-no" title="statement not covered" >      if (!this.validateStrokeData(strokeData)) {</span>
+<span class="cstat-no" title="statement not covered" >        return this.getDefaultTimingFeatures();</span>
+      }
+      
+      const strokes = <span class="cstat-no" title="statement not covered" >this.extractStrokes(strokeData);</span>
+      const pauseDurations = <span class="cstat-no" title="statement not covered" >[];</span>
+      const strokeDurations = <span class="cstat-no" title="statement not covered" >[];</span>
+      const interStrokeTimings = <span class="cstat-no" title="statement not covered" >[];</span>
+      let totalDrawingTime = <span class="cstat-no" title="statement not covered" >0;</span>
+      let totalPauseTime = <span class="cstat-no" title="statement not covered" >0;</span>
+      
+      // Calculate timing features
+<span class="cstat-no" title="statement not covered" >      for (let i = <span class="cstat-no" title="statement not covered" >0;</span> i &lt; strokes.length; i++) {</span>
+        const stroke = <span class="cstat-no" title="statement not covered" >strokes[i];</span>
+        const points = <span class="cstat-no" title="statement not covered" >stroke.points;</span>
+        
+<span class="cstat-no" title="statement not covered" >        if (points.length &gt; 1) {</span>
+          // Calculate stroke duration
+          const firstPoint = <span class="cstat-no" title="statement not covered" >points[0];</span>
+          const lastPoint = <span class="cstat-no" title="statement not covered" >points[points.length - 1];</span>
+          
+<span class="cstat-no" title="statement not covered" >          if (firstPoint.time &amp;&amp; lastPoint.time) {</span>
+            const strokeDuration = <span class="cstat-no" title="statement not covered" >lastPoint.time - firstPoint.time;</span>
+<span class="cstat-no" title="statement not covered" >            strokeDurations.push(strokeDuration);</span>
+            
+            // Calculate inter-stroke timing
+<span class="cstat-no" title="statement not covered" >            if (i &gt; 0) {</span>
+              const prevStroke = <span class="cstat-no" title="statement not covered" >strokes[i - 1];</span>
+              const prevLastPoint = <span class="cstat-no" title="statement not covered" >prevStroke.points[prevStroke.points.length - 1];</span>
+<span class="cstat-no" title="statement not covered" >              if (prevLastPoint.time) {</span>
+                const interStrokeTiming = <span class="cstat-no" title="statement not covered" >firstPoint.time - prevLastPoint.time;</span>
+<span class="cstat-no" title="statement not covered" >                interStrokeTimings.push(interStrokeTiming);</span>
+                
+                // Detect pauses (inter-stroke time &gt; 50ms considered a pause)
+<span class="cstat-no" title="statement not covered" >                if (interStrokeTiming &gt; 50) {</span>
+<span class="cstat-no" title="statement not covered" >                  pauseDurations.push(interStrokeTiming);</span>
+<span class="cstat-no" title="statement not covered" >                  totalPauseTime += interStrokeTiming;</span>
+                }
+              }
+            }
+          }
+          
+          // Calculate dwell times (slow movement within stroke)
+          const dwellPoints = <span class="cstat-no" title="statement not covered" >[];</span>
+<span class="cstat-no" title="statement not covered" >          for (let j = <span class="cstat-no" title="statement not covered" >1;</span> j &lt; points.length; j++) {</span>
+            const p1 = <span class="cstat-no" title="statement not covered" >points[j - 1];</span>
+            const p2 = <span class="cstat-no" title="statement not covered" >points[j];</span>
+            
+<span class="cstat-no" title="statement not covered" >            if (p1.time &amp;&amp; p2.time) {</span>
+              const timeDiff = <span class="cstat-no" title="statement not covered" >p2.time - p1.time;</span>
+              const distance = <span class="cstat-no" title="statement not covered" >Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));</span>
+              
+              // If moving very slowly (&lt; 5 pixels in &gt; 20ms), consider it a dwell
+<span class="cstat-no" title="statement not covered" >              if (timeDiff &gt; 20 &amp;&amp; distance &lt; 5) {</span>
+<span class="cstat-no" title="statement not covered" >                dwellPoints.push(timeDiff);</span>
+              }
+            }
+          }
+          
+          // Store dwell pattern info
+<span class="cstat-no" title="statement not covered" >          stroke.dwellCount = dwellPoints.length;</span>
+<span class="cstat-no" title="statement not covered" >          stroke.avgDwellTime = dwellPoints.length &gt; 0 ? </span>
+            dwellPoints.reduce(<span class="fstat-no" title="function not covered" >(a</span>, b) =&gt; <span class="cstat-no" title="statement not covered" >a + b,</span> 0) / dwellPoints.length : 0;
+        }
+      }
+      
+      // Calculate total drawing duration
+<span class="cstat-no" title="statement not covered" >      if (strokes.length &gt; 0) {</span>
+        const firstPoint = <span class="cstat-no" title="statement not covered" >strokes[0].points[0];</span>
+        const lastStroke = <span class="cstat-no" title="statement not covered" >strokes[strokes.length - 1];</span>
+        const lastPoint = <span class="cstat-no" title="statement not covered" >lastStroke.points[lastStroke.points.length - 1];</span>
+        
+<span class="cstat-no" title="statement not covered" >        if (firstPoint.time &amp;&amp; lastPoint.time) {</span>
+<span class="cstat-no" title="statement not covered" >          totalDrawingTime = lastPoint.time - firstPoint.time;</span>
+        }
+      }
+      
+      // Calculate rhythm consistency (standard deviation of stroke durations)
+      const avgStrokeDuration = <span class="cstat-no" title="statement not covered" >strokeDurations.length &gt; 0 ?</span>
+        strokeDurations.reduce(<span class="fstat-no" title="function not covered" >(a</span>, b) =&gt; <span class="cstat-no" title="statement not covered" >a + b,</span> 0) / strokeDurations.length : 0;
+      const rhythmVariance = <span class="cstat-no" title="statement not covered" >strokeDurations.length &gt; 0 ?</span>
+        strokeDurations.reduce(<span class="fstat-no" title="function not covered" >(a</span>cc, val) =&gt; <span class="cstat-no" title="statement not covered" >acc + Math.pow(val - avgStrokeDuration, 2),</span> 0) / strokeDurations.length : 0;
+      const rhythmConsistency = <span class="cstat-no" title="statement not covered" >Math.sqrt(rhythmVariance);</span>
+      
+      // Calculate tempo variation
+      const tempoVariations = <span class="cstat-no" title="statement not covered" >[];</span>
+<span class="cstat-no" title="statement not covered" >      for (let i = <span class="cstat-no" title="statement not covered" >1;</span> i &lt; strokeDurations.length; i++) {</span>
+<span class="cstat-no" title="statement not covered" >        tempoVariations.push(Math.abs(strokeDurations[i] - strokeDurations[i - 1]));</span>
+      }
+      const tempoVariation = <span class="cstat-no" title="statement not covered" >tempoVariations.length &gt; 0 ?</span>
+        tempoVariations.reduce(<span class="fstat-no" title="function not covered" >(a</span>, b) =&gt; <span class="cstat-no" title="statement not covered" >a + b,</span> 0) / tempoVariations.length : 0;
+      
+      // Calculate dwell time patterns
+      // const totalDwellPoints = strokes.reduce((acc, stroke) =&gt; acc + (stroke.dwellCount || 0), 0); // Unused variable removed
+      const avgDwellTime = <span class="cstat-no" title="statement not covered" >strokes.reduce(<span class="fstat-no" title="function not covered" >(a</span>cc, stroke) =&gt; <span class="cstat-no" title="statement not covered" >acc + (stroke.avgDwellTime || 0),</span> 0) / strokes.length;</span>
+      
+      const features = <span class="cstat-no" title="statement not covered" >{</span>
+        pause_detection: pauseDurations.length,
+        rhythm_consistency: rhythmConsistency,
+        tempo_variation: tempoVariation,
+        dwell_time_patterns: avgDwellTime,
+        inter_stroke_timing: interStrokeTimings.length &gt; 0 ?
+          interStrokeTimings.reduce(<span class="fstat-no" title="function not covered" >(a</span>, b) =&gt; <span class="cstat-no" title="statement not covered" >a + b,</span> 0) / interStrokeTimings.length : 0,
+        drawing_duration_total: totalDrawingTime,
+        pause_time_ratio: totalDrawingTime &gt; 0 ? totalPauseTime / totalDrawingTime : 0,
+        avg_stroke_duration: avgStrokeDuration
+      };
+      
+<span class="cstat-no" title="statement not covered" >      PerformanceMonitor.endExtraction(Object.keys(features).length, 'Timing');</span>
+<span class="cstat-no" title="statement not covered" >      return features;</span>
+      
+    } catch (error) {
+<span class="cstat-no" title="statement not covered" >      console.error('Timing feature extraction failed:', error);</span>
+<span class="cstat-no" title="statement not covered" >      return this.getDefaultTimingFeatures();</span>
+    }
+  },
+&nbsp;
+  // Phase 3: Advanced Geometric Features
+<span class="fstat-no" title="function not covered" >  ex</span>tractGeometricFeatures(strokeData) {
+<span class="cstat-no" title="statement not covered" >    PerformanceMonitor.startExtraction();</span>
+    
+<span class="cstat-no" title="statement not covered" >    try {</span>
+<span class="cstat-no" title="statement not covered" >      if (!this.validateStrokeData(strokeData)) {</span>
+<span class="cstat-no" title="statement not covered" >        return this.getDefaultGeometricFeatures();</span>
+      }
+      
+      const strokes = <span class="cstat-no" title="statement not covered" >this.extractStrokes(strokeData);</span>
+      
+      // Calculate stroke complexity
+      const complexityScores = <span class="cstat-no" title="statement not covered" >[];</span>
+      const tremorIndices = <span class="cstat-no" title="statement not covered" >[];</span>
+      const smoothnessScores = <span class="cstat-no" title="statement not covered" >[];</span>
+      const directionChangeCounts = <span class="cstat-no" title="statement not covered" >[];</span>
+      const curvatureValues = <span class="cstat-no" title="statement not covered" >[];</span>
+      
+<span class="cstat-no" title="statement not covered" >      for (const stroke of strokes) {</span>
+        const points = <span class="cstat-no" title="statement not covered" >stroke.points;</span>
+        
+<span class="cstat-no" title="statement not covered" >        if (points.length &gt; 2) {</span>
+          // Stroke complexity (based on path length vs direct distance)
+          const firstPoint = <span class="cstat-no" title="statement not covered" >points[0];</span>
+          const lastPoint = <span class="cstat-no" title="statement not covered" >points[points.length - 1];</span>
+          const directDistance = <span class="cstat-no" title="statement not covered" >Math.sqrt(</span>
+            Math.pow(lastPoint.x - firstPoint.x, 2) + 
+            Math.pow(lastPoint.y - firstPoint.y, 2)
+          );
+          
+          let pathLength = <span class="cstat-no" title="statement not covered" >0;</span>
+<span class="cstat-no" title="statement not covered" >          for (let i = <span class="cstat-no" title="statement not covered" >1;</span> i &lt; points.length; i++) {</span>
+<span class="cstat-no" title="statement not covered" >            pathLength += Math.sqrt(</span>
+              Math.pow(points[i].x - points[i - 1].x, 2) + 
+              Math.pow(points[i].y - points[i - 1].y, 2)
+            );
+          }
+          
+          const complexity = <span class="cstat-no" title="statement not covered" >directDistance &gt; 0 ? pathLength / directDistance : 1;</span>
+<span class="cstat-no" title="statement not covered" >          complexityScores.push(complexity);</span>
+          
+          // Tremor detection (jitter in movement)
+          const jitters = <span class="cstat-no" title="statement not covered" >[];</span>
+<span class="cstat-no" title="statement not covered" >          for (let i = <span class="cstat-no" title="statement not covered" >2;</span> i &lt; points.length; i++) {</span>
+            const v1 = <span class="cstat-no" title="statement not covered" >{</span>
+              x: points[i - 1].x - points[i - 2].x,
+              y: points[i - 1].y - points[i - 2].y
+            };
+            const v2 = <span class="cstat-no" title="statement not covered" >{</span>
+              x: points[i].x - points[i - 1].x,
+              y: points[i].y - points[i - 1].y
+            };
+            
+            // Calculate angle change
+            const dot = <span class="cstat-no" title="statement not covered" >v1.x * v2.x + v1.y * v2.y;</span>
+            const det = <span class="cstat-no" title="statement not covered" >v1.x * v2.y - v1.y * v2.x;</span>
+            const angle = <span class="cstat-no" title="statement not covered" >Math.atan2(det, dot);</span>
+            
+<span class="cstat-no" title="statement not covered" >            if (Math.abs(angle) &gt; Math.PI / 6) { // More than 30 degrees</span>
+<span class="cstat-no" title="statement not covered" >              jitters.push(Math.abs(angle));</span>
+            }
+          }
+          
+          const tremorIndex = <span class="cstat-no" title="statement not covered" >jitters.length / (points.length - 2);</span>
+<span class="cstat-no" title="statement not covered" >          tremorIndices.push(tremorIndex);</span>
+          
+          // Smoothness (inverse of average angular change)
+          let totalAngleChange = <span class="cstat-no" title="statement not covered" >0;</span>
+          let angleChangeCount = <span class="cstat-no" title="statement not covered" >0;</span>
+          
+<span class="cstat-no" title="statement not covered" >          for (let i = <span class="cstat-no" title="statement not covered" >2;</span> i &lt; points.length; i++) {</span>
+            const v1 = <span class="cstat-no" title="statement not covered" >{</span>
+              x: points[i - 1].x - points[i - 2].x,
+              y: points[i - 1].y - points[i - 2].y
+            };
+            const v2 = <span class="cstat-no" title="statement not covered" >{</span>
+              x: points[i].x - points[i - 1].x,
+              y: points[i].y - points[i - 1].y
+            };
+            
+            const angle = <span class="cstat-no" title="statement not covered" >Math.atan2(v2.y, v2.x) - Math.atan2(v1.y, v1.x);</span>
+<span class="cstat-no" title="statement not covered" >            totalAngleChange += Math.abs(angle);</span>
+<span class="cstat-no" title="statement not covered" >            angleChangeCount++;</span>
+          }
+          
+          const avgAngleChange = <span class="cstat-no" title="statement not covered" >angleChangeCount &gt; 0 ? totalAngleChange / angleChangeCount : 0;</span>
+          const smoothness = <span class="cstat-no" title="statement not covered" >1 / (1 + avgAngleChange);</span> // Normalized smoothness score
+<span class="cstat-no" title="statement not covered" >          smoothnessScores.push(smoothness);</span>
+          
+          // Direction changes
+          let directionChanges = <span class="cstat-no" title="statement not covered" >0;</span>
+          let lastDirection = <span class="cstat-no" title="statement not covered" >0;</span>
+          
+<span class="cstat-no" title="statement not covered" >          for (let i = <span class="cstat-no" title="statement not covered" >1;</span> i &lt; points.length; i++) {</span>
+            const dx = <span class="cstat-no" title="statement not covered" >points[i].x - points[i - 1].x;</span>
+            const dy = <span class="cstat-no" title="statement not covered" >points[i].y - points[i - 1].y;</span>
+            const direction = <span class="cstat-no" title="statement not covered" >Math.atan2(dy, dx);</span>
+            
+<span class="cstat-no" title="statement not covered" >            if (i &gt; 1) {</span>
+              const angleDiff = <span class="cstat-no" title="statement not covered" >Math.abs(direction - lastDirection);</span>
+<span class="cstat-no" title="statement not covered" >              if (angleDiff &gt; Math.PI / 4) { // More than 45 degrees</span>
+<span class="cstat-no" title="statement not covered" >                directionChanges++;</span>
+              }
+            }
+<span class="cstat-no" title="statement not covered" >            lastDirection = direction;</span>
+          }
+          
+<span class="cstat-no" title="statement not covered" >          directionChangeCounts.push(directionChanges);</span>
+          
+          // Curvature analysis
+          const curvatures = <span class="cstat-no" title="statement not covered" >[];</span>
+<span class="cstat-no" title="statement not covered" >          for (let i = <span class="cstat-no" title="statement not covered" >1;</span> i &lt; points.length - 1; i++) {</span>
+            const p1 = <span class="cstat-no" title="statement not covered" >points[i - 1];</span>
+            const p2 = <span class="cstat-no" title="statement not covered" >points[i];</span>
+            const p3 = <span class="cstat-no" title="statement not covered" >points[i + 1];</span>
+            
+            // Calculate curvature using three-point method
+            const area = <span class="cstat-no" title="statement not covered" >Math.abs(</span>
+              (p2.x - p1.x) * (p3.y - p1.y) - 
+              (p3.x - p1.x) * (p2.y - p1.y)
+            ) / 2;
+            
+            const a = <span class="cstat-no" title="statement not covered" >Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));</span>
+            const b = <span class="cstat-no" title="statement not covered" >Math.sqrt(Math.pow(p3.x - p2.x, 2) + Math.pow(p3.y - p2.y, 2));</span>
+            const c = <span class="cstat-no" title="statement not covered" >Math.sqrt(Math.pow(p3.x - p1.x, 2) + Math.pow(p3.y - p1.y, 2));</span>
+            
+            const curvature = <span class="cstat-no" title="statement not covered" >(a * b * c) &gt; 0 ? (4 * area) / (a * b * c) : 0;</span>
+<span class="cstat-no" title="statement not covered" >            curvatures.push(curvature);</span>
+          }
+          
+          const avgCurvature = <span class="cstat-no" title="statement not covered" >curvatures.length &gt; 0 ?</span>
+            curvatures.reduce(<span class="fstat-no" title="function not covered" >(a</span>, b) =&gt; <span class="cstat-no" title="statement not covered" >a + b,</span> 0) / curvatures.length : 0;
+<span class="cstat-no" title="statement not covered" >          curvatureValues.push(avgCurvature);</span>
+        }
+      }
+      
+      // Calculate spatial efficiency
+      let minX = <span class="cstat-no" title="statement not covered" >Infinity,</span> maxX = <span class="cstat-no" title="statement not covered" >-Infinity,</span> minY = <span class="cstat-no" title="statement not covered" >Infinity,</span> maxY = <span class="cstat-no" title="statement not covered" >-Infinity;</span>
+      let totalInkLength = <span class="cstat-no" title="statement not covered" >0;</span>
+      
+<span class="cstat-no" title="statement not covered" >      for (const stroke of strokes) {</span>
+<span class="cstat-no" title="statement not covered" >        for (let i = <span class="cstat-no" title="statement not covered" >0;</span> i &lt; stroke.points.length; i++) {</span>
+          const point = <span class="cstat-no" title="statement not covered" >stroke.points[i];</span>
+<span class="cstat-no" title="statement not covered" >          minX = Math.min(minX, point.x);</span>
+<span class="cstat-no" title="statement not covered" >          maxX = Math.max(maxX, point.x);</span>
+<span class="cstat-no" title="statement not covered" >          minY = Math.min(minY, point.y);</span>
+<span class="cstat-no" title="statement not covered" >          maxY = Math.max(maxY, point.y);</span>
+          
+<span class="cstat-no" title="statement not covered" >          if (i &gt; 0) {</span>
+<span class="cstat-no" title="statement not covered" >            totalInkLength += Math.sqrt(</span>
+              Math.pow(point.x - stroke.points[i - 1].x, 2) + 
+              Math.pow(point.y - stroke.points[i - 1].y, 2)
+            );
+          }
+        }
+      }
+      
+      const boundingArea = <span class="cstat-no" title="statement not covered" >(maxX - minX) * (maxY - minY);</span>
+      const spatialEfficiency = <span class="cstat-no" title="statement not covered" >boundingArea &gt; 0 ? totalInkLength / Math.sqrt(boundingArea) : 0;</span>
+      
+      // Calculate stroke overlap ratio
+      // Simplified: check how many points are very close to points from other strokes
+      let overlapCount = <span class="cstat-no" title="statement not covered" >0;</span>
+      const overlapThreshold = <span class="cstat-no" title="statement not covered" >5;</span> // pixels
+      
+<span class="cstat-no" title="statement not covered" >      for (let i = <span class="cstat-no" title="statement not covered" >0;</span> i &lt; strokes.length; i++) {</span>
+<span class="cstat-no" title="statement not covered" >        for (let j = <span class="cstat-no" title="statement not covered" >i + 1;</span> j &lt; strokes.length; j++) {</span>
+<span class="cstat-no" title="statement not covered" >          for (const p1 of strokes[i].points) {</span>
+<span class="cstat-no" title="statement not covered" >            for (const p2 of strokes[j].points) {</span>
+              const distance = <span class="cstat-no" title="statement not covered" >Math.sqrt(</span>
+                Math.pow(p1.x - p2.x, 2) + 
+                Math.pow(p1.y - p2.y, 2)
+              );
+<span class="cstat-no" title="statement not covered" >              if (distance &lt; overlapThreshold) {</span>
+<span class="cstat-no" title="statement not covered" >                overlapCount++;</span>
+              }
+            }
+          }
+        }
+      }
+      
+      const totalPoints = <span class="cstat-no" title="statement not covered" >strokes.reduce(<span class="fstat-no" title="function not covered" >(a</span>cc, s) =&gt; <span class="cstat-no" title="statement not covered" >acc + s.points.length,</span> 0);</span>
+      const overlapRatio = <span class="cstat-no" title="statement not covered" >totalPoints &gt; 0 ? overlapCount / totalPoints : 0;</span>
+      
+      const features = <span class="cstat-no" title="statement not covered" >{</span>
+        stroke_complexity: complexityScores.length &gt; 0 ?
+          complexityScores.reduce(<span class="fstat-no" title="function not covered" >(a</span>, b) =&gt; <span class="cstat-no" title="statement not covered" >a + b,</span> 0) / complexityScores.length : 1,
+        tremor_index: tremorIndices.length &gt; 0 ?
+          tremorIndices.reduce(<span class="fstat-no" title="function not covered" >(a</span>, b) =&gt; <span class="cstat-no" title="statement not covered" >a + b,</span> 0) / tremorIndices.length : 0,
+        smoothness_index: smoothnessScores.length &gt; 0 ?
+          smoothnessScores.reduce(<span class="fstat-no" title="function not covered" >(a</span>, b) =&gt; <span class="cstat-no" title="statement not covered" >a + b,</span> 0) / smoothnessScores.length : 1,
+        direction_changes: directionChangeCounts.length &gt; 0 ?
+          directionChangeCounts.reduce(<span class="fstat-no" title="function not covered" >(a</span>, b) =&gt; <span class="cstat-no" title="statement not covered" >a + b,</span> 0) / directionChangeCounts.length : 0,
+        curvature_analysis: curvatureValues.length &gt; 0 ?
+          curvatureValues.reduce(<span class="fstat-no" title="function not covered" >(a</span>, b) =&gt; <span class="cstat-no" title="statement not covered" >a + b,</span> 0) / curvatureValues.length : 0,
+        spatial_efficiency: spatialEfficiency,
+        stroke_overlap_ratio: overlapRatio
+      };
+      
+<span class="cstat-no" title="statement not covered" >      PerformanceMonitor.endExtraction(Object.keys(features).length, 'Geometric');</span>
+<span class="cstat-no" title="statement not covered" >      return features;</span>
+      
+    } catch (error) {
+<span class="cstat-no" title="statement not covered" >      console.error('Geometric feature extraction failed:', error);</span>
+<span class="cstat-no" title="statement not covered" >      return this.getDefaultGeometricFeatures();</span>
+    }
+  },
+&nbsp;
+  // Phase 4: Security &amp; Context Features
+<span class="fstat-no" title="function not covered" >  ex</span>tractSecurityFeatures(strokeData) {
+<span class="cstat-no" title="statement not covered" >    PerformanceMonitor.startExtraction();</span>
+    
+<span class="cstat-no" title="statement not covered" >    try {</span>
+<span class="cstat-no" title="statement not covered" >      if (!this.validateStrokeData(strokeData)) {</span>
+<span class="cstat-no" title="statement not covered" >        return this.getDefaultSecurityFeatures();</span>
+      }
+      
+      const strokes = <span class="cstat-no" title="statement not covered" >this.extractStrokes(strokeData);</span>
+      
+      // Unnatural pause detection
+      const unnaturalPauses = <span class="cstat-no" title="statement not covered" >[];</span>
+      const speedAnomalies = <span class="cstat-no" title="statement not covered" >[];</span>
+      const pressureAnomalies = <span class="cstat-no" title="statement not covered" >[];</span>
+      
+<span class="cstat-no" title="statement not covered" >      for (let i = <span class="cstat-no" title="statement not covered" >0;</span> i &lt; strokes.length; i++) {</span>
+        const stroke = <span class="cstat-no" title="statement not covered" >strokes[i];</span>
+        const points = <span class="cstat-no" title="statement not covered" >stroke.points;</span>
+        
+<span class="cstat-no" title="statement not covered" >        if (points.length &gt; 1) {</span>
+          // Check for unnatural pauses within strokes
+<span class="cstat-no" title="statement not covered" >          for (let j = <span class="cstat-no" title="statement not covered" >1;</span> j &lt; points.length; j++) {</span>
+            const p1 = <span class="cstat-no" title="statement not covered" >points[j - 1];</span>
+            const p2 = <span class="cstat-no" title="statement not covered" >points[j];</span>
+            
+<span class="cstat-no" title="statement not covered" >            if (p1.time &amp;&amp; p2.time) {</span>
+              const timeDiff = <span class="cstat-no" title="statement not covered" >p2.time - p1.time;</span>
+              const distance = <span class="cstat-no" title="statement not covered" >Math.sqrt(</span>
+                Math.pow(p2.x - p1.x, 2) + 
+                Math.pow(p2.y - p1.y, 2)
+              );
+              
+              // Very long pause with minimal movement (possible tracing)
+<span class="cstat-no" title="statement not covered" >              if (timeDiff &gt; 100 &amp;&amp; distance &lt; 2) {</span>
+<span class="cstat-no" title="statement not covered" >                unnaturalPauses.push(timeDiff);</span>
+              }
+              
+              // Calculate speed
+              const speed = <span class="cstat-no" title="statement not covered" >distance / timeDiff;</span>
+              
+              // Detect unusually consistent speed (bot-like)
+<span class="cstat-no" title="statement not covered" >              if (j &gt; 1) {</span>
+                const p0 = <span class="cstat-no" title="statement not covered" >points[j - 2];</span>
+                const prevDistance = <span class="cstat-no" title="statement not covered" >Math.sqrt(</span>
+                  Math.pow(p1.x - p0.x, 2) + 
+                  Math.pow(p1.y - p0.y, 2)
+                );
+                const prevTimeDiff = <span class="cstat-no" title="statement not covered" >p1.time - p0.time;</span>
+                const prevSpeed = <span class="cstat-no" title="statement not covered" >prevTimeDiff &gt; 0 ? prevDistance / prevTimeDiff : 0;</span>
+                
+                // Speed too consistent (less than 5% variation)
+<span class="cstat-no" title="statement not covered" >                if (Math.abs(speed - prevSpeed) / prevSpeed &lt; 0.05) {</span>
+<span class="cstat-no" title="statement not covered" >                  speedAnomalies.push(1);</span>
+                } else {
+<span class="cstat-no" title="statement not covered" >                  speedAnomalies.push(0);</span>
+                }
+              }
+            }
+            
+            // Pressure anomalies
+<span class="cstat-no" title="statement not covered" >            if (typeof p1.pressure === 'number' &amp;&amp; typeof p2.pressure === 'number') {</span>
+              // Detect sudden pressure changes
+              const pressureChange = <span class="cstat-no" title="statement not covered" >Math.abs(p2.pressure - p1.pressure);</span>
+<span class="cstat-no" title="statement not covered" >              if (pressureChange &gt; 0.5) { // More than 50% change</span>
+<span class="cstat-no" title="statement not covered" >                pressureAnomalies.push(pressureChange);</span>
+              }
+            }
+          }
+        }
+      }
+      
+      // Calculate timing regularity (for bot detection)
+      const strokeTimings = <span class="cstat-no" title="statement not covered" >[];</span>
+<span class="cstat-no" title="statement not covered" >      for (const stroke of strokes) {</span>
+<span class="cstat-no" title="statement not covered" >        if (stroke.points.length &gt; 1) {</span>
+          const firstPoint = <span class="cstat-no" title="statement not covered" >stroke.points[0];</span>
+          const lastPoint = <span class="cstat-no" title="statement not covered" >stroke.points[stroke.points.length - 1];</span>
+<span class="cstat-no" title="statement not covered" >          if (firstPoint.time &amp;&amp; lastPoint.time) {</span>
+<span class="cstat-no" title="statement not covered" >            strokeTimings.push(lastPoint.time - firstPoint.time);</span>
+          }
+        }
+      }
+      
+      // Check for too-regular timing patterns
+      let timingRegularityScore = <span class="cstat-no" title="statement not covered" >0;</span>
+<span class="cstat-no" title="statement not covered" >      if (strokeTimings.length &gt; 2) {</span>
+        const avgTiming = <span class="cstat-no" title="statement not covered" >strokeTimings.reduce(<span class="fstat-no" title="function not covered" >(a</span>, b) =&gt; <span class="cstat-no" title="statement not covered" >a + b,</span> 0) / strokeTimings.length;</span>
+        const timingVariance = <span class="cstat-no" title="statement not covered" >strokeTimings.reduce(<span class="fstat-no" title="function not covered" >(a</span>cc, val) =&gt; </span>
+<span class="cstat-no" title="statement not covered" >          acc + Math.pow(val - avgTiming, 2),</span> 0) / strokeTimings.length;
+        const timingStd = <span class="cstat-no" title="statement not covered" >Math.sqrt(timingVariance);</span>
+        
+        // Lower std means more regular (potentially bot-like)
+<span class="cstat-no" title="statement not covered" >        timingRegularityScore = avgTiming &gt; 0 ? timingStd / avgTiming : 1;</span>
+      }
+      
+      // Device consistency score (simplified - would need device info in real implementation)
+      // For now, check pressure consistency as proxy
+      let deviceConsistencyScore = <span class="cstat-no" title="statement not covered" >1;</span>
+      const hasPressure = <span class="cstat-no" title="statement not covered" >strokes.some(<span class="fstat-no" title="function not covered" >st</span>roke =&gt; </span>
+<span class="cstat-no" title="statement not covered" >        stroke.points.some(<span class="fstat-no" title="function not covered" >p </span>=&gt; <span class="cstat-no" title="statement not covered" >typeof p.pressure === 'number' &amp;&amp; p.pressure &gt; 0)</span></span>
+      );
+      
+<span class="cstat-no" title="statement not covered" >      if (!hasPressure) {</span>
+<span class="cstat-no" title="statement not covered" >        deviceConsistencyScore = 0.5; </span>// Device might not support pressure
+      }
+      
+      // Overall behavioral authenticity score
+      const authenticityFactors = <span class="cstat-no" title="statement not covered" >[</span>
+        unnaturalPauses.length === 0 ? 1 : 0.5,
+        speedAnomalies.filter(<span class="fstat-no" title="function not covered" >a </span>=&gt; <span class="cstat-no" title="statement not covered" >a === 1)</span>.length / Math.max(speedAnomalies.length, 1) &lt; 0.3 ? 1 : 0.5,
+        pressureAnomalies.length / strokes.reduce(<span class="fstat-no" title="function not covered" >(a</span>cc, s) =&gt; <span class="cstat-no" title="statement not covered" >acc + s.points.length,</span> 0) &lt; 0.1 ? 1 : 0.5,
+        timingRegularityScore &gt; 0.1 ? 1 : 0.5,
+        deviceConsistencyScore
+      ];
+      
+      const behavioralAuthenticityScore = 
+<span class="cstat-no" title="statement not covered" >        authenticityFactors.reduce(<span class="fstat-no" title="function not covered" >(a</span>, b) =&gt; <span class="cstat-no" title="statement not covered" >a + b,</span> 0) / authenticityFactors.length;</span>
+      
+      const features = <span class="cstat-no" title="statement not covered" >{</span>
+        unnatural_pause_detection: unnaturalPauses.length,
+        speed_anomaly_score: speedAnomalies.filter(<span class="fstat-no" title="function not covered" >a </span>=&gt; <span class="cstat-no" title="statement not covered" >a === 1)</span>.length / Math.max(speedAnomalies.length, 1),
+        pressure_anomaly_score: pressureAnomalies.length / 
+          strokes.reduce(<span class="fstat-no" title="function not covered" >(a</span>cc, s) =&gt; <span class="cstat-no" title="statement not covered" >acc + s.points.length,</span> 0),
+        timing_regularity_score: timingRegularityScore,
+        device_consistency_score: deviceConsistencyScore,
+        behavioral_authenticity_score: behavioralAuthenticityScore
+      };
+      
+<span class="cstat-no" title="statement not covered" >      PerformanceMonitor.endExtraction(Object.keys(features).length, 'Security');</span>
+<span class="cstat-no" title="statement not covered" >      return features;</span>
+      
+    } catch (error) {
+<span class="cstat-no" title="statement not covered" >      console.error('Security feature extraction failed:', error);</span>
+<span class="cstat-no" title="statement not covered" >      return this.getDefaultSecurityFeatures();</span>
+    }
+  },
+&nbsp;
+  // Extract all features from all phases
+<span class="fstat-no" title="function not covered" >  ex</span>tractAllFeatures(strokeData, deviceCapabilities = <span class="branch-0 cbranch-no" title="branch not covered" >null)</span> {
+<span class="cstat-no" title="statement not covered" >    PerformanceMonitor.startExtraction();</span>
+    
+<span class="cstat-no" title="statement not covered" >    try {</span>
+      // Extract features with device capability awareness
+      const pressureFeatures = <span class="cstat-no" title="statement not covered" >this.extractPressureFeatures(strokeData, deviceCapabilities);</span>
+      const timingFeatures = <span class="cstat-no" title="statement not covered" >this.extractTimingFeatures(strokeData);</span>
+      const geometricFeatures = <span class="cstat-no" title="statement not covered" >this.extractGeometricFeatures(strokeData);</span>
+      const securityFeatures = <span class="cstat-no" title="statement not covered" >this.extractSecurityFeatures(strokeData);</span>
+      
+      // Combine all features
+      const allFeatures = <span class="cstat-no" title="statement not covered" >{</span>
+        ...pressureFeatures,
+        ...timingFeatures,
+        ...geometricFeatures,
+        ...securityFeatures
+      };
+      
+      // Aggregate excluded features from all categories
+      const excludedFeatures = <span class="cstat-no" title="statement not covered" >[];</span>
+      const exclusionReasons = <span class="cstat-no" title="statement not covered" >[];</span>
+      
+<span class="cstat-no" title="statement not covered" >      [pressureFeatures, timingFeatures, geometricFeatures, securityFeatures].forEach(<span class="fstat-no" title="function not covered" >ca</span>tegory =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >        if (category._excluded_features) {</span>
+<span class="cstat-no" title="statement not covered" >          excludedFeatures.push(...category._excluded_features);</span>
+        }
+<span class="cstat-no" title="statement not covered" >        if (category._exclusion_reason) {</span>
+<span class="cstat-no" title="statement not covered" >          exclusionReasons.push(category._exclusion_reason);</span>
+        }
+      });
+      
+      // Clean up temporary exclusion data from individual categories
+<span class="cstat-no" title="statement not covered" >      Object.keys(allFeatures).forEach(<span class="fstat-no" title="function not covered" >ke</span>y =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >        if (key === '_excluded_features' || key === '_exclusion_reason') {</span>
+<span class="cstat-no" title="statement not covered" >          delete allFeatures[key];</span>
+        }
+      });
+      
+      const totalTime = <span class="cstat-no" title="statement not covered" >PerformanceMonitor.endExtraction(Object.keys(allFeatures).length, 'All Features');</span>
+      
+      // Add metadata
+<span class="cstat-no" title="statement not covered" >      allFeatures._extraction_time_ms = totalTime;</span>
+<span class="cstat-no" title="statement not covered" >      allFeatures._feature_version = '1.0';</span>
+      
+      // Add aggregated exclusion data if any features were excluded
+<span class="cstat-no" title="statement not covered" >      if (excludedFeatures.length &gt; 0) {</span>
+<span class="cstat-no" title="statement not covered" >        allFeatures._excluded_features = [...new Set(excludedFeatures)];</span>
+<span class="cstat-no" title="statement not covered" >        allFeatures._exclusion_reasons = [...new Set(exclusionReasons)];</span>
+      }
+      
+      // Add list of actually supported features
+      const supportedFeatures = <span class="cstat-no" title="statement not covered" >Object.keys(allFeatures).filter(<span class="fstat-no" title="function not covered" >k </span>=&gt; </span>
+<span class="cstat-no" title="statement not covered" >        !k.startsWith('_') &amp;&amp; </span>
+        !excludedFeatures.includes(k)
+      );
+<span class="cstat-no" title="statement not covered" >      allFeatures._supported_features = supportedFeatures;</span>
+      
+      // Add device capabilities if provided
+<span class="cstat-no" title="statement not covered" >      if (deviceCapabilities) {</span>
+<span class="cstat-no" title="statement not covered" >        allFeatures._device_capabilities = deviceCapabilities;</span>
+      }
+      
+<span class="cstat-no" title="statement not covered" >      return allFeatures;</span>
+      
+    } catch (error) {
+<span class="cstat-no" title="statement not covered" >      console.error('Complete feature extraction failed:', error);</span>
+<span class="cstat-no" title="statement not covered" >      return {</span>
+        ...this.getDefaultPressureFeatures(),
+        ...this.getDefaultTimingFeatures(),
+        ...this.getDefaultGeometricFeatures(),
+        ...this.getDefaultSecurityFeatures(),
+        _extraction_error: true
+      };
+    }
+  },
+&nbsp;
+  // Default feature values for fallback
+<span class="fstat-no" title="function not covered" >  ge</span>tDefaultPressureFeatures() {
+<span class="cstat-no" title="statement not covered" >    return {</span>
+      // Don't provide fallback values - these will be excluded
+      // Only has_pressure_data is always included as metadata
+      has_pressure_data: false
+    };
+  },
+&nbsp;
+<span class="fstat-no" title="function not covered" >  ge</span>tDefaultTimingFeatures() {
+<span class="cstat-no" title="statement not covered" >    return {</span>
+      pause_detection: 0,
+      rhythm_consistency: 0,
+      tempo_variation: 0,
+      dwell_time_patterns: 0,
+      inter_stroke_timing: 0,
+      drawing_duration_total: 0,
+      pause_time_ratio: 0,
+      avg_stroke_duration: 0
+    };
+  },
+&nbsp;
+<span class="fstat-no" title="function not covered" >  ge</span>tDefaultGeometricFeatures() {
+<span class="cstat-no" title="statement not covered" >    return {</span>
+      stroke_complexity: 1,
+      tremor_index: 0,
+      smoothness_index: 1,
+      direction_changes: 0,
+      curvature_analysis: 0,
+      spatial_efficiency: 0,
+      stroke_overlap_ratio: 0
+    };
+  },
+&nbsp;
+<span class="fstat-no" title="function not covered" >  ge</span>tDefaultSecurityFeatures() {
+<span class="cstat-no" title="statement not covered" >    return {</span>
+      unnatural_pause_detection: 0,
+      speed_anomaly_score: 0,
+      pressure_anomaly_score: 0,
+      timing_regularity_score: 0.5,
+      device_consistency_score: 0.5,
+      behavioral_authenticity_score: 0.5
+    };
+  }
+};
+&nbsp;
+// Export the module
+<span class="cstat-no" title="statement not covered" >module.exports = EnhancedFeatureExtractor;</span></pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2025-08-01T23:15:10.167Z
+            </div>
+        <script src="../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../sorter.js"></script>
+        <script src="../block-navigation.js"></script>
+    </body>
+</html>
+    
